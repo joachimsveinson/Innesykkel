@@ -1074,7 +1074,7 @@ function buildFit(r){
  desc(5,'avg_core_temperature','f32','C',18,208);
  desc(6,'max_core_temperature','f32','C',18,210);
  desc(7,'min_core_temperature','f32','C',18,209);
- M(0,0,[[0,'e',4],[1,'u16',edge?1:65535],[2,'u16',edge?GARMIN_EDGE840_PRODUCT:0],[3,'z32',devSerial()],[4,'u32',t0],[8,'s',edge?'Edge 840':'Innesykkel',20]]);
+ M(0,0,[[0,'e',4],[1,'u16',edge?1:65535],[2,'u16',edge?GARMIN_EDGE840_PRODUCT:0],[3,'z32',devSerial()],[4,'u32',t0]]);
  M(8,49,[[0,'u16',100]]);
  const bst=b=>b==null?null:b>=60?2:b>=30?3:b>=15?4:5;
  const devs=[['trainer','Kickr',7],['power','Wattpedaler',2],['hr','Pulsbelte',1],['core','CORE',null]].filter(d=>D[d[0]].dev).map((d,i)=>({c:D[d[0]],lab:d[1],ty:d[2],ix:i+1}));
@@ -1140,7 +1140,8 @@ function buildFit(r){
  if(gps&&firstPos)sf.push([3,'s32',firstPos[0]],[4,'s32',firstPos[1]],[38,'s32',lastPos[0]],[39,'s32',lastPos[1]]);
  M(6,18,sf,[[5,'f32',mean(all.core)],[6,'f32',mx(all.core)],[7,'f32',mn(all.core)]]);
  M(7,34,[[253,'u32',tN],[0,'u32',timerMs],[1,'u16',1],[2,'e',0],[3,'e',26],[4,'e',1],[5,'u32',tN+off]]);
- const d=out,h=[14,0x20,0x34,0x08,d.length&255,(d.length>>8)&255,(d.length>>16)&255,(d.length>>>24)&255,0x2E,0x46,0x49,0x54,0,0];
+ const d=out,h=[14,0x20,0xD0,0x52,d.length&255,(d.length>>8)&255,(d.length>>16)&255,(d.length>>>24)&255,0x2E,0x46,0x49,0x54,0,0];
+ const hc=fitCrc(h.slice(0,12));h[12]=hc&255;h[13]=hc>>8;
  const body=h.concat(d),c=fitCrc(body);body.push(c&255,c>>8);return new Uint8Array(body);
 }
 /* END FIT */

@@ -1060,12 +1060,14 @@ function buildFit(r){
   M(2,206,f);
  };
  /* Developer ID and CORE field descriptions. Native overrides match CORE's FIT mapping. */
- M(1,207,[[0,'u8',0],[1,'b',appId,16],[2,'u16',65535],[3,'u32',100]]);
+ M(1,207,[[0,'b',Array(16).fill(255),16],[1,'b',appId,16],[2,'u16',65535],[3,'u8',0],[4,'u32',100]]);
  desc(0,'core_temperature','f32','C',20,139);
  desc(10,'skin_temperature','f32','C',20,null);
  desc(19,'core_data_quality','s16','Q',20,null);
  desc(20,'core_reserved','s16','kcal',20,null);
  desc(95,'heat_strain_index','f32','a.u.',20,null);
+ desc(81,'CIQ_core_temperature','f32','C',20,null);
+ desc(82,'CIQ_skin_temperature','f32','C',20,null);
  desc(1,'avg_core_temperature','f32','C',19,158);
  desc(2,'max_core_temperature','f32','C',19,160);
  desc(3,'min_core_temperature','f32','C',19,159);
@@ -1107,7 +1109,7 @@ function buildFit(r){
    [6,'u16',speed==null?null:Math.round(speed*1000)],[7,'u16',x.w==null?null:Math.max(0,Math.round(x.w))],
    [29,'u32',Math.round(workAt.get(x))],[73,'u32',speed==null?null:Math.round(speed*1000)]];
   if(gps){const q=pos(distAt.get(x));if(!firstPos)firstPos=q;lastPos=q;f.push([0,'s32',q[0]],[1,'s32',q[1]])}
-  const dv=[[0,'f32',x.core],[10,'f32',x.skin],[19,'s16',x.quality],[20,'s16',x.reserved],[95,'f32',x.hsi]];
+  const dv=[[0,'f32',x.core],[10,'f32',x.skin],[19,'s16',x.quality],[20,'s16',x.reserved],[95,'f32',x.hsi],[81,'f32',x.core],[82,'f32',x.skin]];
   M(4,20,f,dv);
  });
  laps.forEach((l,li)=>{

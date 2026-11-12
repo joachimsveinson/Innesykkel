@@ -65,7 +65,7 @@ input:disabled{opacity:.55;cursor:not-allowed}
 #wt{grid-row:1/3}
 .t.ergon{background:#142235}
 .t.stale{opacity:.55}
-.th{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.th{display:flex;justify-content:space-between;align-items:baseline;gap:8px;min-width:0}.th>*{min-width:0}.th em{overflow:hidden;text-overflow:ellipsis}#wt .th{align-items:flex-start;flex-wrap:wrap}#wt .wl{flex:1;flex-wrap:wrap}#wt #tgtl{max-width:100%;text-align:right}
 .th span{text-transform:uppercase;font-size:12px;font-weight:600;color:var(--mut);letter-spacing:.06em;white-space:nowrap}
 .th em{font-style:normal;font-size:clamp(13px,1.5vw,18px);color:var(--fg);font-weight:600;white-space:nowrap}
 .wl{display:flex;align-items:center;gap:8px;min-width:0}
@@ -84,7 +84,7 @@ input:disabled{opacity:.55;cursor:not-allowed}
 .ministats{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:8px;flex:1;min-height:0;margin-top:6px}
 .ministats.sum{grid-template-columns:repeat(3,1fr)}
 .ministats div{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:2px;background:rgba(255,255,255,.03);border-radius:8px;padding:4px 10px;min-height:0;overflow:hidden}
-.ministats span{font-size:11px;text-transform:uppercase;font-weight:600;color:var(--mut);letter-spacing:.06em;white-space:nowrap}
+.ministats span{font-size:11px;text-transform:uppercase;font-weight:600;color:var(--mut);letter-spacing:.04em;white-space:normal;line-height:1.1;overflow-wrap:anywhere}
 .ministats b{font-size:clamp(18px,min(2vw,3.4vh),26px);line-height:1}
 
 .clks{display:flex;gap:8px;flex:none}
@@ -222,7 +222,7 @@ body.landing #land{display:flex}
      <strong id="hr">0</strong>
      <div class="zonebar" id="hz" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
    </div>
-   <div class="t"><div class="th"><span>Tråkkfrekvens · rpm</span><em id="spd">0.0 km/t</em></div><strong id="cad">0</strong></div>
+   <div class="t"><div class="th"><span>Kadens · rpm</span><em id="spd">0.0 km/t</em></div><strong id="cad">0</strong></div>
    <div class="t"><div class="th"><span>Kjernetemp (°C)</span><em>Hud <b id="skin">0.0</b></em></div><strong id="core">0.0</strong></div>
    <div class="t" id="sumT"><div class="th"><span>Økten</span></div>
     <div class="ministats sum">
@@ -417,7 +417,7 @@ const D={
     if(dt>0){this.cad=dr/dt*60;this.pc=Date.now()}else if(Date.now()-(this.pc||0)>2500)this.cad=0}
    this.pr=r;this.pt=t}}},
  hr:{svc:0x180D,chr:0x2A37,parse(v){this.hr=(v.getUint8(0)&1)?v.getUint16(1,true):v.getUint8(1)}},
- core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)&&v.byteLength>=5?(v.getUint16(3,true)&0x0fff)/20:null;this.quality=v.byteLength>5?v.getUint8(5):null;this.reserved=v.byteLength>=8?v.getUint16(6,true):null;this.hsi=v.byteLength>8?v.getUint8(8)/10:null}}
+ core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)&&v.byteLength>=5?v.getInt16(3,true)/100:null;this.quality=v.byteLength>5?v.getUint8(5):null;this.reserved=v.byteLength>=8?v.getUint16(6,true):null;this.hsi=v.byteLength>8?v.getUint8(8)/10:null}}
 };
 const fresh=(k,f)=>{const c=D[k];return c.ok&&Date.now()-c.t<5000&&c[f]!=null?c[f]:null};
 function status(k,txt,cls){const b=document.querySelector(`[data-k=${k}]`);b.querySelector('small').textContent=txt;b.className='conn '+(cls||'')}
@@ -940,8 +940,8 @@ function draw(){
  g.font='11px sans-serif';
  if(S.kind!=='workout'){drawCurves(g,W,H);return}
  if(!S.iv.length)return;
- const ym=S.maxp*1.15,T=S.post?S.total:Math.max(S.total,S.el,1),vs=S.post?Math.max(0,S.el-S.total):0; /* etter programmet glir diagrammet mot venstre */
- const yW=w=>padT+plotH-clamp(w/(S.ftp*ym/100),0,1)*plotH;
+ const ym=S.maxp*1.15,T=S.post?S.total:Math.max(S.total,S.el,1),vs=S.post?Math.max(0,S.el-S.total):0,hHi=Math.max(180,(S.hrmax||0)+5),hLo=60; /* etter programmet glir diagrammet mot venstre */
+ const yW=w=>padT+plotH-clamp(w/(S.ftp*ym/100),0,1)*plotH,yH=h=>padT+plotH-clamp((h-hLo)/(hHi-hLo),0,1)*plotH;
 
  /* akse: watt-etiketter ved sonegrenser */
  g.fillStyle='#5c6a7e';g.strokeStyle='#232c3b';g.lineWidth=1;
@@ -968,6 +968,11 @@ function draw(){
  });
  g.globalAlpha=1;
 
+ /* pulsakse og puls-kurve */
+ g.fillStyle='#5c6a7e';for(let h=80;h<=hHi;h+=20)g.fillText(h,W-32,yH(h)+3);
+ g.strokeStyle='#ef5350';g.lineWidth=2;g.beginPath();let hrStarted=false;
+ S.log.forEach(r=>{if(r.hr==null||r.e<vs)return;const x=padL+(r.e-vs)/T*plotW,y=yH(r.hr);hrStarted?g.lineTo(x,y):g.moveTo(x,y);hrStarted=true});g.stroke();
+
  /* FTP-referanselinje */
  g.strokeStyle='rgba(244,246,248,.25)';g.setLineDash([4,4]);
  g.beginPath();g.moveTo(padL,yW(S.ftp));g.lineTo(W-6,yW(S.ftp));g.stroke();g.setLineDash([]);
@@ -977,6 +982,7 @@ function draw(){
  g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();let st=false;
  S.log.forEach(r=>{if(r.w==null||r.e<vs)return;const x=padL+(r.e-vs)/T*plotW,y=yW(r.w);st?g.lineTo(x,y):g.moveTo(x,y);st=true});
  g.stroke();
+ g.fillStyle='#c8d2de';g.fillText('Watt (hvit, venstre) · Puls (rød, høyre)',padL,13);
 
  /* tidsmarkør */
  const px=clamp(padL+(S.el-vs)/T*plotW,padL,W-6);

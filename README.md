@@ -86,7 +86,7 @@ Appen har ingen egen server eller brukerkonto. Data som du importerer eller regi
 
 - Web Bluetooth fungerer ikke i alle nettlesere eller innebygde nettleservisninger.
 - Bluetooth-tilkobling og sensordata avhenger av operativsystem, nettleser og enhet.
-- CORE-data som faktisk er implementert, omfatter kjernetemperatur og hudtemperatur. HSI (Heat Strain Index) er foreløpig ikke lest fra Bluetooth-pakken. HSI-feltet finnes i eksportstrukturen, men vil være tomt til parsing er implementert.
+- CORE-data omfatter kjernetemperatur, hudtemperatur, datakvalitet, reservert verdi og HSI (Heat Strain Index) når sensoren sender disse feltene. HSI krever CORE-fastvare 0.8.7 eller nyere. Hudtemperatur dekodes som en 12-bits verdi delt på 20. Eksporten tar med HSI i FIT og CSV. TCX legger HSI og hudtemperatur i utvidelsesfeltene.
 - FIT-filen bruker Garmin-relaterte metadata og felt, men er ikke en garanti for identisk oppførsel med en ekte Garmin Edge-enhet.
 - Virtuell GPS er beregnet og skal ikke brukes som dokumentasjon på faktisk posisjon eller tilbakelagt utendørs rute.
 - Prosjektet er under utvikling. Kontroller eksportfilene før du bruker dem som eneste kilde til treningsanalyse.

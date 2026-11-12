@@ -1056,8 +1056,7 @@ function buildFit(r){
  while(appId.length<16)appId.push(0);
  const desc=(n,name,type,units,nativeMsg,nativeField)=>{
   const f=[[0,'u8',0],[1,'u8',n],[2,'u8',BT[type]],[3,'s',name,64]];
-  if(units)f.push([8,'s',units,16]);
-  if(nativeMsg!=null){f.push([14,'u16',nativeMsg],[15,'u8',nativeField])}
+  f.push([8,'s',units||'',16],[14,'u16',nativeMsg==null?65535:nativeMsg],[15,'u8',nativeField==null?255:nativeField]);
   M(2,206,f);
  };
  /* Developer ID and CORE field descriptions. Native overrides match CORE's FIT mapping. */
@@ -1091,7 +1090,7 @@ function buildFit(r){
  const distAt=new Map(),workAt=new Map();
  r.forEach((x,i)=>{
   distAt.set(x,dist);workAt.set(x,workJ);
-  const next=r[i+1],dt=Math.max(0,((next?next.ts:endMs)-x.ts)/1000);
+  const next=r[i+1],dt=Math.max(0,(next?next.e-x.e:(S.realEl||x.e)-x.e));
   const speed=x.spd==null?null:x.spd/3.6;
   if(speed!=null)dist+=speed*dt;
   if(x.w!=null)workJ+=x.w*dt;
@@ -1115,9 +1114,10 @@ function buildFit(r){
   const pts=l.pts,lh=pts.map(x=>x.hr).filter(x=>x!=null),lc=pts.map(x=>x.cad).filter(x=>x!=null&&x>0),
    lw=pts.map(x=>x.w).filter(x=>x!=null),lcore=pts.map(x=>x.core).filter(x=>x!=null);
   const startIndex=r.indexOf(pts[0]),endIndex=startIndex+pts.length;
-  let ld=0;for(let j=startIndex;j<endIndex;j++){const x=r[j],next=r[j+1],dt=Math.max(0,((next?next.ts:endMs)-x.ts)/1000);if(x.spd!=null)ld+=x.spd/3.6*dt}
+  let ld=0;for(let j=startIndex;j<endIndex;j++){const x=r[j],next=r[j+1],dt=Math.max(0,(next?next.e-x.e:(S.realEl||x.e)-x.e));if(x.spd!=null)ld+=x.spd/3.6*dt}
   const lf=[[253,'u32',T(l.endTs)],[2,'u32',T(l.startTs)],[7,'u32',Math.round(l.sec*1000)],[8,'u32',Math.round(l.sec*1000)],
-   [9,'u32',Math.round(ld*100)],[0,'e',9],[1,'e',1],[15,'u8',R(mean(lh))],[16,'u8',mx(lh)],
+   [9,'u32',Math.round(ld*100)],[0,'e',9],[1,'e',1],[13,'u16',l.sec?Math.round(ld/l.sec*1000):null],
+   [14,'u16',mx(pts.map(x=>x.spd==null?null:x.spd/3.6*1000))],[15,'u8',R(mean(lh))],[16,'u8',mx(lh)],
    [17,'u8',R(mean(lc))],[18,'u8',mx(lc)],[19,'u16',R(mean(lw))],[20,'u16',mx(lw)],
    [24,'e',li===laps.length-1?7:0],[25,'e',2],[39,'e',SUB],[254,'u16',li]];
   M(5,19,lf,[[1,'f32',mean(lcore)],[2,'f32',mx(lcore)],[3,'f32',mn(lcore)]]);
@@ -1144,7 +1144,7 @@ function buildFit(r){
 
 {let on=VIRTUAL_GPS_DEFAULT;try{const v=localStorage.getItem('vgps');if(v!=null)on=v==='1'}catch(e){}
  $3('vGps').checked=on;$3('vGps').onchange=()=>{try{localStorage.setItem('vgps',$3('vGps').checked?'1':'0')}catch(e){}}}
-{let on=true;try{const v=localStorage.getItem('vedge');if(v!=null)on=v==='1'}catch(e){}
+{let on=true;try{if(localStorage.getItem('vedge_default_v2')!=='1'){localStorage.setItem('vedge','1');localStorage.setItem('vedge_default_v2','1')}const v=localStorage.getItem('vedge');if(v!=null)on=v==='1'}catch(e){}
  $3('vEdge').checked=on;$3('vEdge').onchange=()=>{try{localStorage.setItem('vedge',$3('vEdge').checked?'1':'0')}catch(e){}}}
 try{const v=localStorage.getItem('vroute');if(v)$3('vRoute').value=v}catch(e){}
 $3('vRoute').onchange=()=>{try{localStorage.setItem('vroute',$3('vRoute').value)}catch(e){}};
@@ -1186,7 +1186,7 @@ $3('bCsv').onclick=()=>{
  const v=(x,d=0)=>x==null?'':(d?x.toFixed(d):Math.round(x));
  let dist=0;const r=S.log;
  const rows=r.map((x,i)=>{
-  const next=r[i+1],dt=Math.max(0,((next?next.ts:x.ts+1000)-x.ts)/1000);
+  const next=r[i+1],dt=Math.max(0,(next?next.e-x.e:(S.realEl||x.e)-x.e));
   const speed=x.spd==null?null:x.spd/3.6;
   if(speed!=null)dist+=speed*dt;
   return [((x.ts-r[0].ts)/1000).toFixed(3),v(x.w),v(x.hr),v(x.cad),speed==null?'':speed.toFixed(3),dist.toFixed(2),

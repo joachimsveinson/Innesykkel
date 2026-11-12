@@ -1118,7 +1118,8 @@ function buildFit(r){
   const startIndex=r.indexOf(pts[0]),endIndex=startIndex+pts.length;
   let ld=0;for(let j=startIndex;j<endIndex;j++){const x=r[j],next=r[j+1],dt=Math.max(0,(next?next.e-x.e:(S.realEl||x.e)-x.e));if(x.spd!=null)ld+=x.spd/3.6*dt}
   const lf=[[253,'u32',T(l.endTs)],[2,'u32',T(l.startTs)],[7,'u32',Math.round(l.sec*1000)],[8,'u32',Math.round(l.timerSec*1000)],
-   [9,'u32',Math.round(ld*100)],[0,'e',9],[1,'e',1],[13,'u16',l.sec?Math.round(ld/l.sec*1000):null],
+   [9,'u32',Math.round(ld*100)],[0,'e',9],[1,'e',1],[11,'u16',Math.round((pts.reduce((sum,x,j)=>{const next=pts[j+1],dt=Math.max(0,(next?next.e-x.e:(S.realEl||x.e)-x.e));return sum+(x.w==null?0:x.w*dt)},0))/1000)],
+   [13,'u16',l.timerSec?Math.round(ld/l.timerSec*1000):null],
    [14,'u16',mx(pts.map(x=>x.spd==null?null:x.spd/3.6*1000))],[15,'u8',R(mean(lh))],[16,'u8',mx(lh)],
    [17,'u8',R(mean(lc))],[18,'u8',mx(lc)],[19,'u16',R(mean(lw))],[20,'u16',mx(lw)],
    [24,'e',li===laps.length-1?7:0],[25,'e',2],[39,'e',SUB],[254,'u16',li]];
@@ -1132,7 +1133,7 @@ function buildFit(r){
  const ifv=ftp?np/ftp:null,tss=ifv&&timerMs?(timerMs/1000*np*ifv)/(ftp*3600)*100:null;
  const sf=[[253,'u32',tN],[2,'u32',t0],[7,'u32',Math.round(elapsedMs)],[8,'u32',timerMs],[9,'u32',Math.round(dist*100)],
   [0,'e',8],[1,'e',1],[5,'e',2],[6,'e',SUB],[25,'u16',0],[26,'u16',laps.length],
-  [11,'u16',Math.round(workJ/4184)],[14,'u16',avgSpeed==null?null:Math.round(avgSpeed*1000)],[15,'u16',maxSpeed==null?null:Math.round(maxSpeed*1000)],
+  [11,'u16',Math.round(workJ/1000)],[14,'u16',avgSpeed==null?null:Math.round(avgSpeed*1000)],[15,'u16',maxSpeed==null?null:Math.round(maxSpeed*1000)],
   [16,'u8',R(avgH)],[17,'u8',mx(all.h)],[18,'u8',R(avgC)],[19,'u8',mx(all.c)],
   [20,'u16',R(avgW)],[21,'u16',mx(all.w)],[34,'u16',R(np)],[35,'u16',tss==null?null:Math.round(tss*10)],
   [36,'u16',ifv==null?null:Math.round(ifv*1000)],[45,'u16',ftp],[48,'u32',Math.round(workJ)],[254,'u16',0]];
@@ -1144,7 +1145,7 @@ function buildFit(r){
 }
 /* END FIT */
 
-{let on=VIRTUAL_GPS_DEFAULT;try{const v=localStorage.getItem('vgps');if(v!=null)on=v==='1'}catch(e){}
+{let on=VIRTUAL_GPS_DEFAULT;try{if(localStorage.getItem('vgps_default_v2')!=='1'){localStorage.setItem('vgps','1');localStorage.setItem('vgps_default_v2','1')}const v=localStorage.getItem('vgps');if(v!=null)on=v==='1'}catch(e){}
  $3('vGps').checked=on;$3('vGps').onchange=()=>{try{localStorage.setItem('vgps',$3('vGps').checked?'1':'0')}catch(e){}}}
 {let on=true;try{if(localStorage.getItem('vedge_default_v2')!=='1'){localStorage.setItem('vedge','1');localStorage.setItem('vedge_default_v2','1')}const v=localStorage.getItem('vedge');if(v!=null)on=v==='1'}catch(e){}
  $3('vEdge').checked=on;$3('vEdge').onchange=()=>{try{localStorage.setItem('vedge',$3('vEdge').checked?'1':'0')}catch(e){}}}

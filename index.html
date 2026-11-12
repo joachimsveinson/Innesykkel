@@ -417,7 +417,7 @@ const D={
     if(dt>0){this.cad=dr/dt*60;this.pc=Date.now()}else if(Date.now()-(this.pc||0)>2500)this.cad=0}
    this.pr=r;this.pt=t}}},
  hr:{svc:0x180D,chr:0x2A37,parse(v){this.hr=(v.getUint8(0)&1)?v.getUint16(1,true):v.getUint8(1)}},
- core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)?v.getInt16(3,true)/100:null;this.hsi=null;this.quality=null;this.reserved=null}}
+ core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)&&v.byteLength>=5?(v.getUint16(3,true)&0x0fff)/20:null;this.quality=v.byteLength>5?v.getUint8(5):null;this.reserved=v.byteLength>=8?v.getUint16(6,true):null;this.hsi=v.byteLength>8?v.getUint8(8)/10:null}}
 };
 const fresh=(k,f)=>{const c=D[k];return c.ok&&Date.now()-c.t<5000&&c[f]!=null?c[f]:null};
 function status(k,txt,cls){const b=document.querySelector(`[data-k=${k}]`);b.querySelector('small').textContent=txt;b.className='conn '+(cls||'')}
@@ -663,7 +663,7 @@ function tick(){
    {const pw=fresh('power','w'),tw=fresh('trainer','w'); /* pedaler ≈ halve Kickr-watt i 30 s = bare én side */
     if(pw!=null&&tw!=null&&tw>100&&pw/tw>.42&&pw/tw<.58){S.halfN=(S.halfN||0)+1;if(S.halfN===30)toast('Pedalene viser omtrent halv watt mot Kickr. Sjekk i Favero-appen at venstre pedal sender samlet watt (ikke bare venstre side).',true)}else S.halfN=0}
    S.acc||accReset();
-   S.log.push({e:t,ts:now,w,hr,cad,core,skin,hsi,quality,reserved,spd,tgt:S.tgt,lap:S.lapSeq+1});
+   S.log.push({e:t,realEl:S.realEl,ts:now,w,hr,cad,core,skin,hsi,quality,reserved,spd,tgt:S.tgt,lap:S.lapSeq+1});
    accAdd(S.log[S.log.length-1]);
    if(hr>S.hrmax)S.hrmax=hr;
    [['w',w],['h',hr],['c',cad]].forEach(([k,v])=>{if(v!=null){S.lap.s[k][0]+=v;S.lap.s[k][1]++}});
@@ -995,7 +995,8 @@ async function dl(name,text,mime){
 const stamp=()=>'okt_'+oslo(S.log[0].ts).f;
 
 /* ---------- FIT-eksport (kjernetemp som felt 139, hudtemp som utviklerfelt – slik Intervals.icu leser CORE-data) ---------- */
-function groupLaps(r,endTs){const L=[];let c=null;r.forEach(x=>{if(!c||x.lap!==c.lapNo){if(c)L.push(c);c={lapNo:x.lap,pts:[],startTs:x.ts,startEl:x.e}}c.pts.push(x)});if(c)L.push(c);L.forEach((l,i)=>{const next=L[i+1],end=next?next.startTs:endTs??(l.pts[l.pts.length-1].ts+1000),endEl=next?next.startEl:(S.realEl||l.pts[l.pts.length-1].e+1);l.endTs=end;l.sec=Math.max(0,(end-l.startTs)/1000);l.timerSec=Math.max(0,endEl-l.startEl)});return L}
+function activeTimes(r){let t=0,prevTs=null;return r.map((x,i)=>{if(Number.isFinite(x.realEl))t=x.realEl;else if(i)t+=Math.min(1.5,Math.max(0,(x.ts-prevTs)/1000));else t=0;prevTs=x.ts;return t})}
+function groupLaps(r,endTs,endRealEl){const times=activeTimes(r),idx=new Map(r.map((x,i)=>[x,i])),L=[];let c=null;r.forEach(x=>{if(!c||x.lap!==c.lapNo){if(c)L.push(c);c={lapNo:x.lap,pts:[],startTs:x.ts,startEl:times[idx.get(x)]}}c.pts.push(x)});if(c)L.push(c);L.forEach((l,i)=>{const next=L[i+1],last=l.pts[l.pts.length-1],lastIndex=idx.get(last),end=next?next.startTs:endTs??(last.ts+1000),endEl=next?next.startEl:(endRealEl??times[lastIndex]);l.endTs=end;l.endEl=endEl;l.sec=Math.max(0,(end-l.startTs)/1000);l.timerSec=Math.max(0,endEl-l.startEl)});return L}
 function fitCrc(b){const T=[0x0000,0xCC01,0xD801,0x1400,0xF001,0x3C00,0x2800,0xE401,0xA001,0x6C00,0x7800,0xB401,0x5000,0x9C01,0x8801,0x4400];let c=0;for(const x of b){let t=T[c&15];c=(c>>4)&0xFFF;c=c^t^T[x&15];t=T[c&15];c=(c>>4)&0xFFF;c=c^t^T[(x>>4)&15]}return c}
 let _route=null;
 function buildRoute(shape){ /* 'loop': svingete lukket vei (kursen dreier én runde + slyngninger). 'circle': ren sirkel */
@@ -1063,8 +1064,8 @@ function buildFit(r){
  M(1,207,[[0,'b',Array(16).fill(255),16],[1,'b',appId,16],[2,'u16',65535],[3,'u8',0],[4,'u32',100]]);
  desc(0,'core_temperature','f32','C',20,139);
  desc(10,'skin_temperature','f32','C',20,null);
- desc(19,'core_data_quality','s16','Q',20,null);
- desc(20,'core_reserved','s16','kcal',20,null);
+ desc(19,'core_data_quality','u8','Q',20,null);
+ desc(20,'core_reserved','u16','kcal',20,null);
  desc(95,'heat_strain_index','f32','a.u.',20,null);
  desc(81,'CIQ_core_temperature','f32','C',20,null);
  desc(82,'CIQ_skin_temperature','f32','C',20,null);
@@ -1087,12 +1088,12 @@ function buildFit(r){
  M(10,12,[[0,'e',2],[1,'e',SUB],[3,'s','Innesykkel',16]]);
  M(11,7,[[3,'u16',S.sessFtp||S.ftp]]);
  M(3,21,[[253,'u32',t0],[0,'e',0],[1,'e',0]]);
- const laps=groupLaps(r,endMs),all={w:[],h:[],c:[],spd:[],core:[],skin:[],hsi:[],quality:[],reserved:[]};
+ const times=activeTimes(r),activeEnd=Math.max(S.realEl||0,times[times.length-1]||0),laps=groupLaps(r,endMs,activeEnd),all={w:[],h:[],c:[],spd:[],core:[],skin:[],hsi:[],quality:[],reserved:[]};
  let dist=0,workJ=0,firstPos=null,lastPos=null,accPower=0;
  const distAt=new Map(),workAt=new Map();
  r.forEach((x,i)=>{
   distAt.set(x,dist);workAt.set(x,workJ);
-  const next=r[i+1],dt=Math.max(0,(next?next.e-x.e:(S.realEl||x.e)-x.e));
+  const dt=Math.max(0,(times[i+1]??activeEnd)-times[i]);
   const speed=x.spd==null?null:x.spd/3.6;
   if(speed!=null)dist+=speed*dt;
   if(x.w!=null)workJ+=x.w*dt;
@@ -1109,16 +1110,16 @@ function buildFit(r){
    [6,'u16',speed==null?null:Math.round(speed*1000)],[7,'u16',x.w==null?null:Math.max(0,Math.round(x.w))],
    [29,'u32',Math.round(workAt.get(x))],[73,'u32',speed==null?null:Math.round(speed*1000)]];
   if(gps){const q=pos(distAt.get(x));if(!firstPos)firstPos=q;lastPos=q;f.push([0,'s32',q[0]],[1,'s32',q[1]])}
-  const dv=[[0,'f32',x.core],[10,'f32',x.skin],[19,'s16',x.quality],[20,'s16',x.reserved],[95,'f32',x.hsi],[81,'f32',x.core],[82,'f32',x.skin]];
+  const dv=[[0,'f32',x.core],[10,'f32',x.skin],[19,'u8',x.quality],[20,'u16',x.reserved],[95,'f32',x.hsi],[81,'f32',x.core],[82,'f32',x.skin]];
   M(4,20,f,dv);
  });
  laps.forEach((l,li)=>{
   const pts=l.pts,lh=pts.map(x=>x.hr).filter(x=>x!=null),lc=pts.map(x=>x.cad).filter(x=>x!=null&&x>0),
    lw=pts.map(x=>x.w).filter(x=>x!=null),lcore=pts.map(x=>x.core).filter(x=>x!=null);
   const startIndex=r.indexOf(pts[0]),endIndex=startIndex+pts.length;
-  let ld=0;for(let j=startIndex;j<endIndex;j++){const x=r[j],next=r[j+1],dt=Math.max(0,(next?next.e-x.e:(S.realEl||x.e)-x.e));if(x.spd!=null)ld+=x.spd/3.6*dt}
+  let ld=0;for(let j=startIndex;j<endIndex;j++){const x=r[j],dt=Math.max(0,(times[j+1]??activeEnd)-times[j]);if(x.spd!=null)ld+=x.spd/3.6*dt}
   const lf=[[253,'u32',T(l.endTs)],[2,'u32',T(l.startTs)],[7,'u32',Math.round(l.sec*1000)],[8,'u32',Math.round(l.timerSec*1000)],
-   [9,'u32',Math.round(ld*100)],[0,'e',9],[1,'e',1],[11,'u16',Math.round((pts.reduce((sum,x,j)=>{const next=pts[j+1],dt=Math.max(0,(next?next.e-x.e:(S.realEl||x.e)-x.e));return sum+(x.w==null?0:x.w*dt)},0))/1000)],
+   [9,'u32',Math.round(ld*100)],[0,'e',9],[1,'e',1],
    [13,'u16',l.timerSec?Math.round(ld/l.timerSec*1000):null],
    [14,'u16',mx(pts.map(x=>x.spd==null?null:x.spd/3.6*1000))],[15,'u8',R(mean(lh))],[16,'u8',mx(lh)],
    [17,'u8',R(mean(lc))],[18,'u8',mx(lc)],[19,'u16',R(mean(lw))],[20,'u16',mx(lw)],
@@ -1133,7 +1134,7 @@ function buildFit(r){
  const ifv=ftp?np/ftp:null,tss=ifv&&timerMs?(timerMs/1000*np*ifv)/(ftp*3600)*100:null;
  const sf=[[253,'u32',tN],[2,'u32',t0],[7,'u32',Math.round(elapsedMs)],[8,'u32',timerMs],[9,'u32',Math.round(dist*100)],
   [0,'e',8],[1,'e',1],[5,'e',2],[6,'e',SUB],[25,'u16',0],[26,'u16',laps.length],
-  [11,'u16',Math.round(workJ/1000)],[14,'u16',avgSpeed==null?null:Math.round(avgSpeed*1000)],[15,'u16',maxSpeed==null?null:Math.round(maxSpeed*1000)],
+  [14,'u16',avgSpeed==null?null:Math.round(avgSpeed*1000)],[15,'u16',maxSpeed==null?null:Math.round(maxSpeed*1000)],
   [16,'u8',R(avgH)],[17,'u8',mx(all.h)],[18,'u8',R(avgC)],[19,'u8',mx(all.c)],
   [20,'u16',R(avgW)],[21,'u16',mx(all.w)],[34,'u16',R(np)],[35,'u16',tss==null?null:Math.round(tss*10)],
   [36,'u16',ifv==null?null:Math.round(ifv*1000)],[45,'u16',ftp],[48,'u32',Math.round(workJ)],[254,'u16',0]];
@@ -1146,34 +1147,36 @@ function buildFit(r){
 }
 /* END FIT */
 
-{let on=VIRTUAL_GPS_DEFAULT;try{if(localStorage.getItem('vgps_default_v2')!=='1'){localStorage.setItem('vgps','1');localStorage.setItem('vgps_default_v2','1')}const v=localStorage.getItem('vgps');if(v!=null)on=v==='1'}catch(e){}
+{let on=VIRTUAL_GPS_DEFAULT;try{const v=localStorage.getItem('vgps');if(v!=null)on=v==='1'}catch(e){}
  $3('vGps').checked=on;$3('vGps').onchange=()=>{try{localStorage.setItem('vgps',$3('vGps').checked?'1':'0')}catch(e){}}}
-{let on=true;try{if(localStorage.getItem('vedge_default_v2')!=='1'){localStorage.setItem('vedge','1');localStorage.setItem('vedge_default_v2','1')}const v=localStorage.getItem('vedge');if(v!=null)on=v==='1'}catch(e){}
+{let on=false;try{const v=localStorage.getItem('vedge');if(v!=null)on=v==='1'}catch(e){}
  $3('vEdge').checked=on;$3('vEdge').onchange=()=>{try{localStorage.setItem('vedge',$3('vEdge').checked?'1':'0')}catch(e){}}}
 try{const v=localStorage.getItem('vroute');if(v)$3('vRoute').value=v}catch(e){}
 $3('vRoute').onchange=()=>{try{localStorage.setItem('vroute',$3('vRoute').value)}catch(e){}};
 $3('bFit').onclick=()=>{if(!S.log.length)return;dl(stamp()+'.fit',buildFit(S.log),'application/octet-stream')};
 $3('bTcx').onclick=()=>{
  const r=S.log;if(!r.length)return;
-  const allLaps=groupLaps(r);
+  const times=activeTimes(r),activeEnd=Math.max(S.realEl||0,times[times.length-1]||0),allLaps=groupLaps(r,undefined,activeEnd),indexOf=new Map(r.map((x,i)=>[x,i]));
 
  const lapsXml=allLaps.map(l=>{
   const hrs=l.pts.map(p=>p.hr).filter(v=>v!=null);
   const lapHr=hrs.length?`<AverageHeartRateBpm><Value>${Math.round(avg(hrs))}</Value></AverageHeartRateBpm><MaximumHeartRateBpm><Value>${Math.max(...hrs)}</Value></MaximumHeartRateBpm>`:'';
   const trackPts=l.pts.map(x=>{
    let ext='';
-   if(x.w!=null||x.core!=null){
+   if(x.w!=null||x.core!=null||x.skin!=null||x.hsi!=null){
     ext=`<Extensions><ns3:TPX>`+
      (x.w!=null?`<ns3:Watts>${Math.round(x.w)}</ns3:Watts>`:'')+
      (x.core!=null?`<ns3:CoreTemp>${x.core.toFixed(2)}</ns3:CoreTemp>`:'')+
+     (x.skin!=null?`<ns3:SkinTemp>${x.skin.toFixed(2)}</ns3:SkinTemp>`:'')+
+     (x.hsi!=null?`<ns3:HeatStrainIndex>${x.hsi.toFixed(1)}</ns3:HeatStrainIndex>`:'')+
      `</ns3:TPX></Extensions>`;
    }
    return `<Trackpoint><Time>${oslo(x.ts).s}</Time>`+
     (x.hr!=null?`<HeartRateBpm><Value>${Math.round(x.hr)}</Value></HeartRateBpm>`:'')+
     (x.cad!=null?`<Cadence>${Math.round(x.cad)}</Cadence>`:'')+ext+`</Trackpoint>`;
   }).join('\n');
-  const dist=l.pts.reduce((s,p)=>s+(p.spd||0)/3.6,0);
-  return `<Lap StartTime="${oslo(l.startTs).s}"><TotalTimeSeconds>${Math.round(l.sec)}</TotalTimeSeconds><DistanceMeters>${dist.toFixed(1)}</DistanceMeters><Calories>0</Calories>${lapHr}<Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${trackPts}</Track></Lap>`;
+  const dist=l.pts.reduce((s,p)=>{const i=indexOf.get(p),dt=Math.max(0,(times[i+1]??activeEnd)-times[i]);return s+(p.spd||0)/3.6*dt},0);
+  return `<Lap StartTime="${oslo(l.startTs).s}"><TotalTimeSeconds>${Math.round(l.sec)}</TotalTimeSeconds><DistanceMeters>${dist.toFixed(1)}</DistanceMeters>${lapHr}<Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod><Track>${trackPts}</Track></Lap>`;
  }).join('\n');
 
  const t0=oslo(r[0].ts).s;
@@ -1188,9 +1191,9 @@ ${lapsXml}
 $3('bCsv').onclick=()=>{
  if(!S.log.length)return;
  const v=(x,d=0)=>x==null?'':(d?x.toFixed(d):Math.round(x));
- let dist=0;const r=S.log;
+ let dist=0;const r=S.log,times=activeTimes(r),activeEnd=Math.max(S.realEl||0,times[times.length-1]||0);
  const rows=r.map((x,i)=>{
-  const next=r[i+1],dt=Math.max(0,(next?next.e-x.e:(S.realEl||x.e)-x.e));
+  const dt=Math.max(0,(times[i+1]??activeEnd)-times[i]);
   const speed=x.spd==null?null:x.spd/3.6;
   if(speed!=null)dist+=speed*dt;
   return [((x.ts-r[0].ts)/1000).toFixed(3),v(x.w),v(x.hr),v(x.cad),speed==null?'':speed.toFixed(3),dist.toFixed(2),

@@ -316,6 +316,7 @@ body.landing #land{display:flex}
  <div class="sd-row"><span>Batteri</span><b id="sdBat"></b></div>
  <div class="sd-row"><span>Pakker</span><b id="sdPk"></b></div>
  <div class="sd-row"><span>Siste signal</span><b id="sdLast"></b></div>
+ <div class="sd-row"><span>CORE rådata</span><b id="sdRaw">–</b></div>
  <div class="row"><button class="big" id="sdClose">Lukk</button><button class="big st" id="sdOff">Koble fra sensor</button></div>
 </div>
 <aside id="steps" hidden aria-label="Steg i økten"><h2><span>Steg i økten</span><button class="big" id="stClose" style="font-size:16px;min-width:0;padding:6px 12px;height:auto">Lukk</button></h2><div id="stl"></div></aside>
@@ -416,7 +417,7 @@ const D={
     if(dt>0){this.cad=dr/dt*60;this.pc=Date.now()}else if(Date.now()-(this.pc||0)>2500)this.cad=0}
    this.pr=r;this.pt=t}}},
  hr:{svc:0x180D,chr:0x2A37,parse(v){this.hr=(v.getUint8(0)&1)?v.getUint16(1,true):v.getUint8(1)}},
- core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)?v.getInt16(3,true)/100:null}}
+ core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)?(v.getUint16(3,true)&0x0fff)/20:null;this.hsi=null;this.quality=null;this.reserved=null}}
 };
 const fresh=(k,f)=>{const c=D[k];return c.ok&&Date.now()-c.t<5000&&c[f]!=null?c[f]:null};
 function status(k,txt,cls){const b=document.querySelector(`[data-k=${k}]`);b.querySelector('small').textContent=txt;b.className='conn '+(cls||'')}
@@ -426,6 +427,7 @@ function sensorDlgUpdate(){
  const c=D[sdK];if(!c||!c.dev){$('sensordlg').hidden=true;sdK=null;return}
  $('sdName').textContent=c.dev.name||'Sensor';$('sdBat').textContent=c.bat!=null?c.bat+' %':'Ukjent';$('sdPk').textContent=c.n||0;
  $('sdLast').textContent=c.t?Math.round((Date.now()-c.t)/1000)+' s siden':'–';
+ $('sdRaw').textContent=sdK==='core'?(c.rawHex||'Venter på data'):'–';
 }
 function openSensorDlg(k,b){
  sdK=k;const r=b.getBoundingClientRect(),d=$('sensordlg');d.hidden=false;
@@ -475,7 +477,7 @@ async function link(k){
  c.stage='finne tjeneste';const svc=await srv.getPrimaryService(U(c.svc));
  c.stage='finne karakteristikk';const ch=await svc.getCharacteristic(U(c.chr));
  c.srv=srv;c.svcObj=svc;c.ch=ch;c.n=0; /* behold referansene så de ikke ryddes bort */
- ch.addEventListener('characteristicvaluechanged',e=>{c.t=Date.now();c.n=(c.n||0)+1;try{c.parse(e.target.value)}catch(err){c.err=String(err)}});
+ ch.addEventListener('characteristicvaluechanged',e=>{c.t=Date.now();c.n=(c.n||0)+1;try{if(k==='core'){const v=e.target.value;c.rawHex=Array.from(new Uint8Array(v.buffer,v.byteOffset,v.byteLength)).map(x=>x.toString(16).padStart(2,'0')).join(' ')}c.parse(e.target.value)}catch(err){c.err=String(err)}});
  c.stage='slå på varsler (startNotifications)';await ch.startNotifications();
  await readBattery(c,srv);
  if(k==='trainer'){
@@ -649,7 +651,8 @@ function tick(){
   S.wb=[...S.wb,w].slice(-25); /* 25 x 200 ms = 5 s */
   {const dt=S.lastNow?Math.min(1,(now-S.lastNow)/1000):0;S.lastNow=now;S.realEl+=dt} /* faktisk syklet tid – pause og hopp telles ikke */
   const hr=hold('h',fresh('hr','hr')),cad=hold('c',fresh('power','cad')??fresh('trainer','cad')),
-        core=hold('k',fresh('core','core')),skin=hold('s',fresh('core','skin')),spd=hold('v',fresh('trainer','speed'));
+        core=hold('k',fresh('core','core')),skin=hold('s',fresh('core','skin')),hsi=hold('i',fresh('core','hsi')),
+        quality=hold('q',fresh('core','quality')),reserved=hold('r',fresh('core','reserved')),spd=hold('v',fresh('trainer','speed'));
 
   if(!S.lap)lapStart(S.freeLap||0);
   const b=o?o.b:(S.freeLap||0);
@@ -660,7 +663,7 @@ function tick(){
    {const pw=fresh('power','w'),tw=fresh('trainer','w'); /* pedaler ≈ halve Kickr-watt i 30 s = bare én side */
     if(pw!=null&&tw!=null&&tw>100&&pw/tw>.42&&pw/tw<.58){S.halfN=(S.halfN||0)+1;if(S.halfN===30)toast('Pedalene viser omtrent halv watt mot Kickr. Sjekk i Favero-appen at venstre pedal sender samlet watt (ikke bare venstre side).',true)}else S.halfN=0}
    S.acc||accReset();
-   S.log.push({e:t,ts:now,w,hr,cad,core,skin,spd,tgt:S.tgt,lap:S.lapSeq+1});
+   S.log.push({e:t,ts:now,w,hr,cad,core,skin,hsi,quality,reserved,spd,tgt:S.tgt,lap:S.lapSeq+1});
    accAdd(S.log[S.log.length-1]);
    if(hr>S.hrmax)S.hrmax=hr;
    [['w',w],['h',hr],['c',cad]].forEach(([k,v])=>{if(v!=null){S.lap.s[k][0]+=v;S.lap.s[k][1]++}});
@@ -992,7 +995,7 @@ async function dl(name,text,mime){
 const stamp=()=>'okt_'+oslo(S.log[0].ts).f;
 
 /* ---------- FIT-eksport (kjernetemp som felt 139, hudtemp som utviklerfelt – slik Intervals.icu leser CORE-data) ---------- */
-function groupLaps(r){const L=[];let c=null;r.forEach(x=>{if(!c||x.lap!==c.lapNo){if(c)L.push(c);c={lapNo:x.lap,pts:[],startTs:x.ts}}c.pts.push(x)});if(c)L.push(c);L.forEach(l=>l.sec=l.pts.length);return L}
+function groupLaps(r,endTs){const L=[];let c=null;r.forEach(x=>{if(!c||x.lap!==c.lapNo){if(c)L.push(c);c={lapNo:x.lap,pts:[],startTs:x.ts}}c.pts.push(x)});if(c)L.push(c);L.forEach((l,i)=>{const end=L[i+1]?.startTs??endTs??(l.pts[l.pts.length-1].ts+1000);l.endTs=end;l.sec=Math.max(0,(end-l.startTs)/1000)});return L}
 function fitCrc(b){const T=[0x0000,0xCC01,0xD801,0x1400,0xF001,0x3C00,0x2800,0xE401,0xA001,0x6C00,0x7800,0xB401,0x5000,0x9C01,0x8801,0x4400];let c=0;for(const x of b){let t=T[c&15];c=(c>>4)&0xFFF;c=c^t^T[x&15];t=T[c&15];c=(c>>4)&0xFFF;c=c^t^T[(x>>4)&15]}return c}
 let _route=null;
 function buildRoute(shape){ /* 'loop': svingete lukket vei (kursen dreier én runde + slyngninger). 'circle': ren sirkel */
@@ -1018,66 +1021,122 @@ function routePos(d){ /* posisjon (semicircles) etter tilbakelagt distanse d lan
 }
 function devSerial(){let v=0;try{v=+localStorage.getItem('devid')||0;if(!v){v=(Math.random()*4294967295)>>>0||1;localStorage.setItem('devid',v)}}catch(e){v=1}return v}
 function buildFit(r){
- const out=[],def={},BT={e:0,u8:2,u16:0x84,s32:0x85,u32:0x86,z32:0x8C,s:7,b:13},SZ={e:1,u8:1,u16:2,s32:4,u32:4,z32:4},INV={e:255,u8:255,u16:65535,s32:2147483647,u32:4294967295,z32:0};
- const num=(t,v)=>{if(v==null)v=INV[t];for(let i=0;i<SZ[t];i++)out.push(Math.floor(v/Math.pow(2,8*i))&255)};
- const wr=f=>{const t=f[1],v=f[2],sz=f[3];if(t==='s'){const s=String(v);for(let i=0;i<sz;i++)out.push(i<s.length?s.charCodeAt(i)&127:0)}else if(t==='b'){for(let i=0;i<sz;i++)out.push(v[i]||0)}else num(t,v)};
- const M=(loc,gm,fields,dv)=>{ /* fields: [nr,type,verdi,størrelse?] – dv: utviklerfelt [nr,størrelse,verdi] */
+ const out=[],def={},BT={e:0,u8:2,s16:0x83,u16:0x84,s32:0x85,u32:0x86,z32:0x8C,f32:0x88,s:7,b:13},
+  SZ={e:1,u8:1,s16:2,u16:2,s32:4,u32:4,z32:4,f32:4},
+  INV={e:255,u8:255,s16:32767,u16:65535,s32:2147483647,u32:4294967295,z32:0,f32:null};
+ const num=(t,v)=>{
+  if(v==null){
+   if(t==='f32'){out.push(255,255,255,255);return}
+   v=INV[t];
+  }
+  if(t==='f32'){
+   const b=new ArrayBuffer(4);new DataView(b).setFloat32(0,v,true);
+   const a=new Uint8Array(b);for(const q of a)out.push(q);return;
+  }
+  for(let i=0;i<SZ[t];i++)out.push(Math.floor(v/Math.pow(256,i))&255);
+ };
+ const wr=f=>{const t=f[1],v=f[2],sz=f[3];if(t==='s'){const a=String(v);for(let i=0;i<sz;i++)out.push(i<a.length?a.charCodeAt(i)&127:0)}else if(t==='b'){for(let i=0;i<sz;i++)out.push(v[i]||0)}else num(t,v)};
+ const M=(loc,gm,fields,dv)=>{
   if(!def[loc]){def[loc]=1;out.push(0x40|(dv?0x20:0)|loc,0,0,gm&255,gm>>8,fields.length);
    fields.forEach(f=>out.push(f[0],f[3]||SZ[f[1]],BT[f[1]]));
-   if(dv){out.push(dv.length);dv.forEach(d=>out.push(d[0],d[1],0))}}
-  out.push(loc);fields.forEach(wr);if(dv)dv.forEach(d=>num('u16',d[2]));
+   if(dv){out.push(dv.length);dv.forEach(d=>out.push(d[0],SZ[d[1]],0))}}
+  out.push(loc);fields.forEach(wr);if(dv)dv.forEach(d=>num(d[1],d[2]));
  };
- const T=ms=>Math.floor(ms/1000)-631065600,R=x=>x==null?null:Math.round(x),mx=a=>a.length?a.reduce((p,q)=>Math.max(p,q)):null,mn=a=>a.length?a.reduce((p,q)=>Math.min(p,q)):null;
- const edge=!!($('vEdge')&&$('vEdge').checked),gps=!!($('vGps')&&$('vGps').checked),SUB=gps?58:6; /* 58 = virtual_activity, 6 = indoor_cycling */
- const t0=T(r[0].ts),tN=T(r[r.length-1].ts)+1;
+ const T=ms=>Math.floor(ms/1000)-631065600,R=x=>x==null?null:Math.round(x),
+  mx=a=>a.length?Math.max(...a):null,mn=a=>a.length?Math.min(...a):null,
+  mean=a=>a.length?a.reduce((p,q)=>p+q,0)/a.length:null;
+ const edge=!!($('vEdge')&&$('vEdge').checked),gps=!!($('vGps')&&$('vGps').checked),SUB=gps?58:6;
+ const stepList=r.slice(1).map((x,i)=>Math.max(0,x.ts-r[i].ts)).filter(x=>x>0).sort((a,b)=>a-b);
+ const sampleMs=stepList.length?stepList[Math.floor(stepList.length/2)]:1000;
+ const t0=T(r[0].ts),endMs=r[r.length-1].ts+sampleMs,tN=T(endMs),elapsedMs=Math.max(0,endMs-r[0].ts);
+ const timerMs=Math.max(0,Math.round((S.realEl||elapsedMs/1000)*1000));
  const off=(m=>(m[0]==='-'?-1:1)*(+m.slice(1,3)*3600+ +m.slice(4)*60))(oslo(r[0].ts).s.slice(-6));
  const pos=d=>routePos(d);
- /* normalisert watt: 30 s glidende snitt opphøyd i 4 */
- let np=0;{const q=[];let sq=0,n4=0,nn=0;for(const x of r){const w=x.w==null?0:x.w;q.push(w);sq+=w;if(q.length>30)sq-=q.shift();if(q.length===30){n4+=Math.pow(sq/30,4);nn++}}np=nn?Math.pow(n4/nn,.25):(r.reduce((a,x)=>a+(x.w||0),0)/r.length)}
- const ftp=S.sessFtp||S.ftp,ifv=ftp?np/ftp:null,tss=ifv?(r.length*np*ifv)/(ftp*3600)*100:null;
- /* filhode og overordnet info */
- M(0,0,[[0,'e',4],[1,'u16',edge?1:255],[2,'u16',edge?GARMIN_EDGE840_PRODUCT:0],[3,'z32',devSerial()],[4,'u32',t0],[8,'s',edge?'Edge 840':'Innesykkel',20]]);
- M(8,49,[[0,'u16',100]]); /* file_creator: programversjon 1.00 */
- M(1,207,[[1,'b',[...'innesykkel'].map(c=>c.charCodeAt(0)),16],[3,'u8',0]]);
- M(2,206,[[0,'u8',0],[1,'u8',0],[2,'u8',0x84],[3,'s','skin_temperature',64],[6,'u8',100],[8,'s','C',16]]);
- /* enheter: oppretter (appen) + sensorer, med batteri ved start og slutt der sensoren oppgir det */
- const bst=b=>b==null?null:b>=60?2:b>=30?3:b>=15?4:5; /* 2 good · 3 ok · 4 low · 5 critical */
+ const appId=[...'InnesykkelFIT01'].map(c=>c.charCodeAt(0));
+ while(appId.length<16)appId.push(0);
+ const desc=(n,name,type,units,nativeMsg,nativeField)=>{
+  const f=[[0,'u8',0],[1,'u8',n],[2,'u8',BT[type]],[3,'s',name,64]];
+  if(units)f.push([8,'s',units,16]);
+  if(nativeMsg!=null){f.push([14,'u16',nativeMsg],[15,'u8',nativeField])}
+  M(2,206,f);
+ };
+ /* Developer ID and CORE field descriptions. Native overrides match CORE's FIT mapping. */
+ M(1,207,[[0,'u8',0],[1,'b',appId,16],[2,'u16',65535],[3,'u32',100]]);
+ desc(0,'core_temperature','f32','C',20,139);
+ desc(10,'skin_temperature','f32','C',20,null);
+ desc(19,'core_data_quality','s16','Q',20,null);
+ desc(20,'core_reserved','s16','kcal',20,null);
+ desc(95,'heat_strain_index','f32','a.u.',20,null);
+ desc(1,'avg_core_temperature','f32','C',19,158);
+ desc(2,'max_core_temperature','f32','C',19,160);
+ desc(3,'min_core_temperature','f32','C',19,159);
+ desc(5,'avg_core_temperature','f32','C',18,208);
+ desc(6,'max_core_temperature','f32','C',18,210);
+ desc(7,'min_core_temperature','f32','C',18,209);
+ M(0,0,[[0,'e',4],[1,'u16',edge?1:65535],[2,'u16',edge?GARMIN_EDGE840_PRODUCT:0],[3,'z32',devSerial()],[4,'u32',t0],[8,'s',edge?'Edge 840':'Innesykkel',20]]);
+ M(8,49,[[0,'u16',100]]);
+ const bst=b=>b==null?null:b>=60?2:b>=30?3:b>=15?4:5;
  const devs=[['trainer','Kickr',7],['power','Wattpedaler',2],['hr','Pulsbelte',1],['core','CORE',null]].filter(d=>D[d[0]].dev).map((d,i)=>({c:D[d[0]],lab:d[1],ty:d[2],ix:i+1}));
  const devInfo=(ts,end)=>{
-  if(!end)M(9,23,[[253,'u32',ts],[0,'u8',0],[2,'u16',edge?1:255],[3,'z32',devSerial()],[4,'u16',edge?GARMIN_EDGE840_PRODUCT:0],[5,'u16',edge?2026:100],[25,'e',5],[27,'s',edge?'Edge 840':'Innesykkel',32]]);
+  if(!end)M(9,23,[[253,'u32',ts],[0,'u8',0],[2,'u16',edge?1:65535],[3,'z32',devSerial()],[4,'u16',edge?GARMIN_EDGE840_PRODUCT:0],[5,'u16',edge?2026:100],[25,'e',5],[27,'s',edge?'Edge 840':'Innesykkel',32]]);
   devs.forEach(d=>{const bt=end?d.c.bat:d.c.bat0;if(end&&bt==null)return;
    M(12,23,[[253,'u32',ts],[0,'u8',d.ix],[1,'u8',d.ty],[25,'e',3],[27,'s',d.c.dev.name||d.lab,32],[19,'s',d.lab,16],[11,'e',bst(bt)],[32,'u8',bt]])});
  };
  devInfo(t0,false);
- M(10,12,[[0,'e',2],[1,'e',SUB],[3,'s','Innesykkel',16]]); /* sport: cycling / virtual_activity eller indoor_cycling */
- M(11,7,[[3,'u16',ftp]]); /* zones_target: FTP */
+ M(10,12,[[0,'e',2],[1,'e',SUB],[3,'s','Innesykkel',16]]);
+ M(11,7,[[3,'u16',S.sessFtp||S.ftp]]);
  M(3,21,[[253,'u32',t0],[0,'e',0],[1,'e',0]]);
- let dist=0;const all={w:[],h:[],c:[],core:[]},laps=groupLaps(r);let jt=0,firstPos=null,lastPos=null;
+ const laps=groupLaps(r,endMs),all={w:[],h:[],c:[],spd:[],core:[],skin:[],hsi:[],quality:[],reserved:[]};
+ let dist=0,workJ=0,firstPos=null,lastPos=null,accPower=0;
+ const distAt=new Map(),workAt=new Map();
+ r.forEach((x,i)=>{
+  distAt.set(x,dist);workAt.set(x,workJ);
+  const next=r[i+1],dt=Math.max(0,((next?next.ts:endMs)-x.ts)/1000);
+  const speed=x.spd==null?null:x.spd/3.6;
+  if(speed!=null)dist+=speed*dt;
+  if(x.w!=null)workJ+=x.w*dt;
+  if(x.w!=null)all.w.push(x.w);
+  if(x.hr!=null)all.h.push(x.hr);
+  if(x.cad!=null&&x.cad>0)all.c.push(x.cad);
+  if(speed!=null)all.spd.push(speed);
+  if(x.core!=null)all.core.push(x.core);
+  if(x.skin!=null)all.skin.push(x.skin);
+  if(x.hsi!=null)all.hsi.push(x.hsi);
+  if(x.quality!=null)all.quality.push(x.quality);
+  if(x.reserved!=null)all.reserved.push(x.reserved);
+  const f=[[253,'u32',T(x.ts)],[3,'u8',R(x.hr)],[4,'u8',R(x.cad)],[5,'u32',Math.round(distAt.get(x)*100)],
+   [6,'u16',speed==null?null:Math.round(speed*1000)],[7,'u16',x.w==null?null:Math.max(0,Math.round(x.w))],
+   [29,'u32',Math.round(workAt.get(x))],[73,'u32',speed==null?null:Math.round(speed*1000)]];
+  if(gps){const q=pos(distAt.get(x));if(!firstPos)firstPos=q;lastPos=q;f.push([0,'s32',q[0]],[1,'s32',q[1]])}
+  const dv=[[0,'f32',x.core],[10,'f32',x.skin],[19,'s16',x.quality],[20,'s16',x.reserved],[95,'f32',x.hsi]];
+  M(4,20,f,dv);
+ });
  laps.forEach((l,li)=>{
-  const lw=[],lh=[],lc=[];let ld=0;
-  l.pts.forEach(x=>{
-   const sp=x.spd==null?null:x.spd/3.6;dist+=sp||0;ld+=sp||0;
-   if(x.w!=null){lw.push(x.w);all.w.push(x.w);jt+=x.w}if(x.hr!=null){lh.push(x.hr);all.h.push(x.hr)}if(x.cad!=null){lc.push(x.cad);all.c.push(x.cad)}if(x.core!=null)all.core.push(x.core);
-   const f=[[253,'u32',T(x.ts)],[3,'u8',R(x.hr)],[4,'u8',R(x.cad)],[5,'u32',Math.round(dist*100)],[6,'u16',sp==null?null:Math.round(sp*1000)],
-    [7,'u16',x.w==null?null:Math.max(0,Math.round(x.w))],[139,'u16',x.core==null?null:Math.round(x.core*100)]];
-   if(gps){const q=pos(dist);if(!firstPos)firstPos=q;lastPos=q;f.push([0,'s32',q[0]],[1,'s32',q[1]])}
-   M(4,20,f,[[0,2,x.skin==null?null:Math.round(x.skin*100)]]);
-  });
-  M(5,19,[[253,'u32',T(l.pts[l.pts.length-1].ts)+1],[2,'u32',T(l.pts[0].ts)],[7,'u32',l.sec*1000],[8,'u32',l.sec*1000],[9,'u32',Math.round(ld*100)],[0,'e',9],[1,'e',1],
-   [15,'u8',R(avg(lh))],[16,'u8',mx(lh)],[17,'u8',R(avg(lc))],[19,'u16',R(avg(lw))],[20,'u16',R(mx(lw))],[24,'e',li===laps.length-1?7:0],[25,'e',2],[39,'e',SUB],[254,'u16',li]]);
+  const pts=l.pts,lh=pts.map(x=>x.hr).filter(x=>x!=null),lc=pts.map(x=>x.cad).filter(x=>x!=null&&x>0),
+   lw=pts.map(x=>x.w).filter(x=>x!=null),lcore=pts.map(x=>x.core).filter(x=>x!=null);
+  const startIndex=r.indexOf(pts[0]),endIndex=startIndex+pts.length;
+  let ld=0;for(let j=startIndex;j<endIndex;j++){const x=r[j],next=r[j+1],dt=Math.max(0,((next?next.ts:endMs)-x.ts)/1000);if(x.spd!=null)ld+=x.spd/3.6*dt}
+  const lf=[[253,'u32',T(l.endTs)],[2,'u32',T(l.startTs)],[7,'u32',Math.round(l.sec*1000)],[8,'u32',Math.round(l.sec*1000)],
+   [9,'u32',Math.round(ld*100)],[0,'e',9],[1,'e',1],[15,'u8',R(mean(lh))],[16,'u8',mx(lh)],
+   [17,'u8',R(mean(lc))],[18,'u8',mx(lc)],[19,'u16',R(mean(lw))],[20,'u16',mx(lw)],
+   [24,'e',li===laps.length-1?7:0],[25,'e',2],[39,'e',SUB],[254,'u16',li]];
+  M(5,19,lf,[[1,'f32',mean(lcore)],[2,'f32',mx(lcore)],[3,'f32',mn(lcore)]]);
  });
  M(3,21,[[253,'u32',tN],[0,'e',0],[1,'e',4]]);
  devInfo(tN,true);
- const n=r.length,sf=[[253,'u32',tN],[2,'u32',t0],[7,'u32',(tN-t0)*1000],[8,'u32',n*1000],[9,'u32',Math.round(dist*100)],[0,'e',8],[1,'e',1],[5,'e',2],[6,'e',SUB],
-  [25,'u16',0],[26,'u16',laps.length],[11,'u16',Math.round(jt/1000)],[14,'u16',Math.round(dist/n*1000)],
-  [16,'u8',R(avg(all.h))],[17,'u8',mx(all.h)],[18,'u8',R(avg(all.c))],[20,'u16',R(avg(all.w))],[21,'u16',R(mx(all.w))],
-  [34,'u16',R(np)],[35,'u16',tss==null?null:Math.round(tss*10)],[36,'u16',ifv==null?null:Math.round(ifv*1000)],[45,'u16',ftp],[48,'u32',Math.round(jt)],
-  [110,'s','Innesykkel',16],
-  [208,'u16',all.core.length?Math.round(avg(all.core)*100):null],[209,'u16',all.core.length?Math.round(mn(all.core)*100):null],[210,'u16',all.core.length?Math.round(mx(all.core)*100):null],
-  [254,'u16',0]];
+ const avgW=mean(all.w),avgH=mean(all.h),avgC=mean(all.c),avgSpeed=timerMs?dist/(timerMs/1000):null,
+  maxSpeed=mx(all.spd),ftp=S.sessFtp||S.ftp;
+ let np=0;{const q=[];let sq=0,n4=0,nn=0;for(const x of r){const w=x.w==null?0:x.w;q.push(w);sq+=w;if(q.length>30)sq-=q.shift();if(q.length===30){n4+=Math.pow(sq/30,4);nn++}}np=nn?Math.pow(n4/nn,.25):(avgW||0)}
+ const ifv=ftp?np/ftp:null,tss=ifv&&timerMs?(timerMs/1000*np*ifv)/(ftp*3600)*100:null;
+ const sf=[[253,'u32',tN],[2,'u32',t0],[7,'u32',Math.round(elapsedMs)],[8,'u32',timerMs],[9,'u32',Math.round(dist*100)],
+  [0,'e',8],[1,'e',1],[5,'e',2],[6,'e',SUB],[25,'u16',0],[26,'u16',laps.length],
+  [11,'u16',Math.round(workJ/4184)],[14,'u16',avgSpeed==null?null:Math.round(avgSpeed*1000)],[15,'u16',maxSpeed==null?null:Math.round(maxSpeed*1000)],
+  [16,'u8',R(avgH)],[17,'u8',mx(all.h)],[18,'u8',R(avgC)],[19,'u8',mx(all.c)],
+  [20,'u16',R(avgW)],[21,'u16',mx(all.w)],[34,'u16',R(np)],[35,'u16',tss==null?null:Math.round(tss*10)],
+  [36,'u16',ifv==null?null:Math.round(ifv*1000)],[45,'u16',ftp],[48,'u32',Math.round(workJ)],[254,'u16',0]];
  if(gps&&firstPos)sf.push([3,'s32',firstPos[0]],[4,'s32',firstPos[1]],[38,'s32',lastPos[0]],[39,'s32',lastPos[1]]);
- M(6,18,sf);
- M(7,34,[[253,'u32',tN],[0,'u32',n*1000],[1,'u16',1],[2,'e',0],[3,'e',26],[4,'e',1],[5,'u32',tN+off]]);
+ M(6,18,sf,[[5,'f32',mean(all.core)],[6,'f32',mx(all.core)],[7,'f32',mn(all.core)]]);
+ M(7,34,[[253,'u32',tN],[0,'u32',timerMs],[1,'u16',1],[2,'e',0],[3,'e',26],[4,'e',1],[5,'u32',tN+off]]);
  const d=out,h=[14,0x20,0x34,0x08,d.length&255,(d.length>>8)&255,(d.length>>16)&255,(d.length>>>24)&255,0x2E,0x46,0x49,0x54,0,0];
  const body=h.concat(d),c=fitCrc(body);body.push(c&255,c>>8);return new Uint8Array(body);
 }
@@ -1085,7 +1144,7 @@ function buildFit(r){
 
 {let on=VIRTUAL_GPS_DEFAULT;try{const v=localStorage.getItem('vgps');if(v!=null)on=v==='1'}catch(e){}
  $3('vGps').checked=on;$3('vGps').onchange=()=>{try{localStorage.setItem('vgps',$3('vGps').checked?'1':'0')}catch(e){}}}
-{let on=false;try{on=localStorage.getItem('vedge')==='1'}catch(e){}
+{let on=true;try{const v=localStorage.getItem('vedge');if(v!=null)on=v==='1'}catch(e){}
  $3('vEdge').checked=on;$3('vEdge').onchange=()=>{try{localStorage.setItem('vedge',$3('vEdge').checked?'1':'0')}catch(e){}}}
 try{const v=localStorage.getItem('vroute');if(v)$3('vRoute').value=v}catch(e){}
 $3('vRoute').onchange=()=>{try{localStorage.setItem('vroute',$3('vRoute').value)}catch(e){}};
@@ -1125,12 +1184,15 @@ ${lapsXml}
 $3('bCsv').onclick=()=>{
  if(!S.log.length)return;
  const v=(x,d=0)=>x==null?'':(d?x.toFixed(d):Math.round(x));
- let dist=0;
- const rows=S.log.map((x,i)=>{
-  dist+=(x.spd||0)/3.6; /* 1 rad = 1 sekund syklet tid */
-  return [i,v(x.w),v(x.hr),v(x.cad),x.spd==null?'':(x.spd/3.6).toFixed(2),dist.toFixed(1),v(x.core,2),v(x.skin,2)].join(',');
+ let dist=0;const r=S.log;
+ const rows=r.map((x,i)=>{
+  const next=r[i+1],dt=Math.max(0,((next?next.ts:x.ts+1000)-x.ts)/1000);
+  const speed=x.spd==null?null:x.spd/3.6;
+  if(speed!=null)dist+=speed*dt;
+  return [((x.ts-r[0].ts)/1000).toFixed(3),v(x.w),v(x.hr),v(x.cad),speed==null?'':speed.toFixed(3),dist.toFixed(2),
+   v(x.core,2),v(x.skin,2),v(x.hsi,1),v(x.quality),v(x.reserved)].join(',');
  });
- dl(stamp()+'_streams.csv','time,watts,heartrate,cadence,velocity_smooth,distance,core_temperature,skin_temperature\n'+rows.join('\n'),'text/csv');
+ dl(stamp()+'_streams.csv','time,watts,heartrate,cadence,velocity_smooth,distance,core_temperature,skin_temperature,heat_strain_index,core_data_quality,core_reserved\n'+rows.join('\n'),'text/csv');
 };
 
 /* ---------- Moduser: fri tur / treningsøkt / puls-ERG ---------- */

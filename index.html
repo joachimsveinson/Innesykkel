@@ -1187,7 +1187,7 @@ function render(){
  const on=S.state==='running'?S.mode==='erg':S.erg;
  $3('wt').className='t '+((on?'ergon':'ergoff')+(Date.now()-(S.hd.pw?.t||0)>8000&&w3==null?' stale':''));
  $3('wtl').textContent='Watt · 5 s snitt';$3('wchip').textContent=on?'ERG på':'Fri giring';$3('wchip').className='chip '+(on?'on':'off');
- const zc=curO&&!curO.free?zoneIdx(curPc):null;
+ const zc=curO&&!curO.free?zoneIdx(curPc*S.scale/100):null;
  [...$3('wz').children].forEach((el,i)=>el.className=i===zc?'lit':'');
 
  $3('hr').textContent=fm(hr);$3('hrmax').textContent=S.hrmax||'0';
@@ -1276,7 +1276,7 @@ function draw(){
  g.font='10px "DM Mono", monospace';
  if(S.kind!=='workout'){drawCurves(g,W,H);return}
  if(!S.iv.length)return;
- const ym=S.maxp*1.15,T=S.post?S.total:Math.max(S.total,S.el,1),vs=S.post?Math.max(0,S.el-S.total):0,hHi=Math.max(180,(S.hrmax||0)+5),hLo=60;
+ const ym=Math.max(100,S.maxp*S.scale/100)*1.15,T=S.post?S.total:Math.max(S.total,S.el,1),vs=S.post?Math.max(0,S.el-S.total):0,hHi=Math.max(180,(S.hrmax||0)+5),hLo=60;
  const yW=w=>padT+plotH-clamp(w/(S.ftp*ym/100),0,1)*plotH,yH=h=>padT+plotH-clamp((h-hLo)/(hHi-hLo),0,1)*plotH;
 
  g.fillStyle='#7f7f7f';g.strokeStyle='#282828';g.lineWidth=1;
@@ -1290,15 +1290,16 @@ function draw(){
   g.fillText(m+'′',x-8,H-4)}
 
  S.iv.forEach(o=>{
-  const x1=padL+(o.s+o.d-vs)/T*plotW;if(x1<=padL)return;const x=Math.max(padL,padL+(o.s-vs)/T*plotW),w=Math.max(1.5,x1-x),h=plotH-(yW(S.ftp*o.p/100)-padT);
+  const sp=o.free?o.p:o.p*S.scale/100;
+  const x1=padL+(o.s+o.d-vs)/T*plotW;if(x1<=padL)return;const x=Math.max(padL,padL+(o.s-vs)/T*plotW),w=Math.max(1.5,x1-x),h=plotH-(yW(S.ftp*sp/100)-padT);
   const done=o.s+o.d<=S.el,cur=S.i>=0&&S.iv[S.i]===o;
   g.globalAlpha=done?.32:cur?1:.82;
-  const by=yW(S.ftp*o.p/100),c0=o.free?'#5A6266':col(o.p),gr=g.createLinearGradient(0,by,0,by+h);
+  const by=yW(S.ftp*sp/100),c0=o.free?'#5A6266':col(sp),gr=g.createLinearGradient(0,by,0,by+h);
   gr.addColorStop(0,hexA(c0,.85));gr.addColorStop(1,hexA(c0,.22));
   g.fillStyle=gr;rrTop(g,x,by,w,h,4);g.fill();
   if(o.free){g.fillStyle=hatch(g);rrTop(g,x,by,w,h,4);g.fill()}
-  if(o.rg){g.strokeStyle='rgba(255,255,255,.8)';g.lineWidth=1.5;o.rg.forEach(v=>{const yy=yW(S.ftp*v/100);g.beginPath();g.moveTo(x,yy);g.lineTo(x+w,yy);g.stroke()});g.lineWidth=1}
-  if(cur){g.strokeStyle='rgba(25,208,232,.65)';g.strokeRect(x+.5,yW(S.ftp*o.p/100)+.5,w-1,h-1)}
+  if(o.rg){g.strokeStyle='rgba(255,255,255,.8)';g.lineWidth=1.5;o.rg.forEach(v=>{const yy=yW(S.ftp*(v*S.scale/100)/100);g.beginPath();g.moveTo(x,yy);g.lineTo(x+w,yy);g.stroke()});g.lineWidth=1}
+  if(cur){g.strokeStyle='rgba(25,208,232,.65)';g.strokeRect(x+.5,yW(S.ftp*sp/100)+.5,w-1,h-1)}
  });
  g.globalAlpha=1;
 

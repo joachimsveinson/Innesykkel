@@ -1364,7 +1364,27 @@ function anCalc(){
 }
 function anCell(label,value,unit='',sub=''){return '<div class="an-metric"><span>'+label+'</span><b>'+value+(unit?' '+unit:'')+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</div>'}
 function renderAnalysis(){
- if(!S.log.length){$('anStatus').textContent='Start en økt for å se analyse her.';return}
+ if(!S.log.length){
+  $('anStatus').textContent='Ingen øktdata er lastet inn. Start en økt for sanntidsanalyse, eller gjenopprett en avbrutt økt hvis appen tilbyr dette.';
+  $('anMetrics').innerHTML=[
+   anCell('Watt nå','Venter',''),anCell('3 s snitt','Venter',''),anCell('10 s snitt','Venter',''),
+   anCell('Normalisert effekt','Venter','W'),anCell('IF','Venter'),anCell('TSS','Venter'),
+   anCell('Puls','Venter','bpm'),anCell('Kadens','Venter','rpm'),anCell('Snitt watt','Venter','W'),
+   anCell('Snittpuls','Venter','bpm'),anCell('Arbeid','Venter','kJ'),anCell('Tid','0:00')
+  ].join('');
+  const colors=['#6b7a8f','#46a6ff','#35d07f','#f1c40f','#f08c3a','#ef5350','#b36be0'];
+  $('anZones').innerHTML=AN_ZONES.map((z,i)=>'<article class="zone-card" style="--zc:'+colors[i]+'"><h3><span>'+z.name+'</span><small>'+(z.hi===Infinity?'>150':z.lo+' til <'+z.hi)+' % FTP</small></h3><div class="zone-stats">'+
+   '<div><span>Tid</span><b>0:00</b></div><div><span>Arbeid</span><b>– kJ</b></div><div><span>Andel arbeid</span><b>–</b></div><div><span>Snittpuls</span><b>– bpm</b></div><div><span>Snittkadens</span><b>– rpm</b></div><div><span>Watt per bpm</span><b>–</b></div><div><span>Innganger</span><b>0</b></div><div><span>Core °C/time</span><b>–</b></div></div><p class="an-note">Venter på treningsdata.</p></article>').join('');
+  $('anHalves').innerHTML=['Første halvdel','Andre halvdel'].map(x=>'<div class="an-half"><h3>'+x+'</h3><p>Snitt watt: –</p><p>Snitt puls: –</p><p>Watt per bpm: –</p><p>Core endring: –</p><p>Ingen sone 2 data ennå.</p></div>').join('');
+  $('anTemps').innerHTML=anCell('Core start / snitt / maks','Venter','°C')+anCell('Hud start / snitt / maks','Venter','°C')+anCell('Core temperaturøkning','Venter','°C')+anCell('HSI snitt / maks','Venter');
+  $('anTempNote').textContent='Koble til CORE sensoren og start økten for å registrere temperatur og HSI.';
+  const c=$('anHsi'),g=c.getContext('2d'),dpr=window.devicePixelRatio||1,w=c.clientWidth,h=120;c.width=Math.max(1,Math.round(w*dpr));c.height=Math.round(h*dpr);g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);g.fillStyle='#A0AAB8';g.font='12px sans-serif';g.fillText('Ingen HSI målinger ennå',4,20);
+  $('anRelations').innerHTML=anCell('Watt og puls','Venter')+anCell('Watt og Core','Venter')+anCell('Puls og Core','Venter');
+  $('anDrift').innerHTML=anCell('EF første halvdel','Venter')+anCell('EF andre halvdel','Venter')+anCell('Pw:Hr drift','Venter');
+  $('anDriftNote').textContent='Pw:Hr beregnes når økten har nok sammenhengende watt og pulsdata.';
+  $('anLR').textContent='Ikke tilgjengelig ennå';$('anLRNote').textContent='L/R balanse vises bare når tilkoblede wattpedaler sender et gyldig balansefelt.';
+  return;
+ }
  const a=anCalc(),p= a.np!=null&&a.ftp?a.np/a.ftp:null;
  $('anStatus').textContent=(S.state==='running'?'Oppdateres live':'Økten er '+(S.state==='done'?'ferdig':'pauset'))+' · FTP '+a.ftp+' W · Maks puls '+a.hrSetting+' bpm';
  $('anMetrics').innerHTML=[

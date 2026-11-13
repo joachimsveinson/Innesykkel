@@ -688,7 +688,7 @@ const D={
     if(dt>0){this.cad=dr/dt*60;this.pc=Date.now()}else if(Date.now()-(this.pc||0)>2500)this.cad=0}
    this.pr=r;this.pt=t}}},
  hr:{svc:0x180D,chr:0x2A37,parse(v){this.hr=(v.getUint8(0)&1)?v.getUint16(1,true):v.getUint8(1)}},
- core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)&&v.byteLength>=5?v.getInt16(3,true)/100:null;this.quality=v.byteLength>5?v.getUint8(5):null;this.hsi=v.byteLength>8?v.getUint8(8)/10:null}}
+ core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)&&v.byteLength>=5?v.getInt16(3,true)/100:null;this.quality=v.byteLength>5?v.getUint8(5):null;this.hsi=v.byteLength>=10?v.getUint16(8,true)/100:null}}
 };
 const fresh=(k,f)=>{const c=D[k];return c.ok&&Date.now()-c.t<5000&&c[f]!=null?c[f]:null};
 function status(k,txt,cls){const b=document.querySelector(`[data-k=${k}]`);b.querySelector('small').textContent=txt;b.className='conn '+(cls||'')}
@@ -1038,7 +1038,7 @@ function fxLabel(){
  const L=$2('fxlbl'),dn=$2('fDn'),up=$2('fUp'),val=$2('fixw');
  if(S.kind==='hr'&&S.hrPhase!=='warm'&&HC.mode==='auto'){L.textContent='Pulstak';up.textContent='+1';dn.textContent='−1';val.textContent=HC.cap+' bpm'}
  else if(S.erg){L.textContent=(S.kind==='hr'&&S.hrPhase==='warm')?'Oppv.watt':'Målwatt';up.textContent='+5 W';dn.textContent='−5 W';val.textContent=(S.kind==='hr'?(()=>{const v=S.hrPhase==='warm'?S.warmW:S.hrW;return v!=null?Math.round(v):'0'})():S.fixW)+' W'}
- else{L.textContent='Stigning';up.textContent='+0.5%';dn.textContent='−0.5%';val.textContent=(S.grade>0?'+':'')+S.grade.toFixed(1)+'%'}
+ else{L.textContent='Stigning';up.text='+0.5%';dn.textContent='−0.5%';val.textContent=(S.grade>0?'+':'')+S.grade.toFixed(1)+'%'}
 }
 function fx(d){
  if(S.kind==='hr'){
@@ -1444,7 +1444,7 @@ $3('bTcx').onclick=()=>{
      (x.w!=null?`<ns3:Watts>${Math.round(x.w)}</ns3:Watts>`:'')+
      (x.core!=null?`<ns3:CoreTemp>${x.core.toFixed(2)}</ns3:CoreTemp>`:'')+
      (x.skin!=null?`<ns3:SkinTemp>${x.skin.toFixed(2)}</ns3:SkinTemp>`:'')+
-     (x.hsi!=null?`<ns3:HeatStrainIndex>${x.hsi.toFixed(1)}</ns3:HeatStrainIndex>`:'')+
+     (x.hsi!=null?`<ns3:HeatStrainIndex>${x.hsi.toFixed(2)}</ns3:HeatStrainIndex>`:'')+
      `</ns3:TPX></Extensions>`;
    }
    return `<Trackpoint><Time>${oslo(x.ts).s}</Time>`+
@@ -1473,7 +1473,7 @@ $3('bCsv').onclick=()=>{
   const speed=x.spd==null?null:x.spd/3.6;
   if(speed!=null)dist+=speed*dt;
   return [((x.ts-r[0].ts)/1000).toFixed(3),v(x.w),v(x.hr),v(x.cad),speed==null?'':speed.toFixed(3),dist.toFixed(2),
-   v(x.core,2),v(x.skin,2),v(x.hsi,1),v(x.quality)].join(',');
+   v(x.core,2),v(x.skin,2),v(x.hsi,2),v(x.quality)].join(',');
  });
  dl(stamp()+'_streams.csv','time,watts,heartrate,cadence,velocity_smooth,distance,core_temperature,skin_temperature,heat_strain_index,core_data_quality\n'+rows.join('\n'),'text/csv');
 };
@@ -1678,7 +1678,7 @@ function renderAnalysis() {
   $('anTemps').innerHTML =
     anKv('Core (Start/Snitt/Maks)', `${anFmt(a.core.start,2)} / ${anFmt(a.core.avg,2)} / ${anFmt(a.core.max,2)} °C`) +
     anKv('Hud (Start/Snitt/Maks)', `${anFmt(a.skin.start,1)} / ${anFmt(a.skin.avg,1)} / ${anFmt(a.skin.max,1)} °C`) +
-    anKv('Core økning / HSI maks', `${a.core.rise!=null?(a.core.rise>0?'+':'')+anFmt(a.core.rise,2)+' °C':'–'} / ${anFmt(a.hsi.max,1)}`);
+    anKv('Core økning / HSI maks', `${a.core.rise!=null?(a.core.rise>0?'+':'')+anFmt(a.core.rise,2)+' °C':'–'} / ${anFmt(a.hsi.max,2)}`);
 
   const lrTot = a.lrN ? `${anFmt(a.lrLeft,1)}% / ${anFmt(100-a.lrLeft,1)}%` : 'Ikke tilgjengelig';
   $('anDrift').innerHTML =

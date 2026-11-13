@@ -1331,6 +1331,7 @@ function anCalc(){
   const x=r[i],next=r[i+1],dt=next?Math.max(0,Math.min(2,(next.realEl??x.realEl+1)-(x.realEl??0))):(active?Math.max(0,Math.min(1,elapsed-(x.realEl||0))):0);
   if(!dt)continue;
   const zi=anZone(x.w,ftp);
+  if(zi==null){candidate=null;candidateSec=0;continue}
   if(zi!=null){
    if(activeZone==null){activeZone=zi;z[zi].entries++}
    else if(zi!==activeZone){
@@ -1368,8 +1369,8 @@ function renderAnalysis(){
  $('anStatus').textContent=(S.state==='running'?'Oppdateres live':'Økten er '+(S.state==='done'?'ferdig':'pauset'))+' · FTP '+a.ftp+' W · Maks puls '+a.hrSetting+' bpm';
  $('anMetrics').innerHTML=[
   anCell('Watt nå',anFmt(S.log.at(-1)?.w),'W'),
-  anCell('3 s snitt',anFmt(anMean(S.log.slice(-3).map(x=>x.w).filter(x=>x!=null))),'W'),
-  anCell('10 s snitt',anFmt(anMean(S.log.slice(-10).map(x=>x.w).filter(x=>x!=null))),'W'),
+  anCell('3 s snitt',anFmt((()=>{const v=S.log.slice(-3).map(x=>x.w).filter(x=>x!=null);return v.length>=2?anMean(v):null})()),'W'),
+  anCell('10 s snitt',anFmt((()=>{const v=S.log.slice(-10).map(x=>x.w).filter(x=>x!=null);return v.length>=7?anMean(v):null})()),'W'),
   anCell('Normalisert effekt',anFmt(a.np),'W','30 s rullerende snitt, fjerde potens'),
   anCell('IF',anFmt(a.IF,2),'','NP delt på FTP'),
   anCell('TSS',anFmt(a.TSS,1),'','Foreløpig under økten'),

@@ -220,86 +220,101 @@ body.analysis-open{overflow:hidden}
 @media(max-width:520px){#analysisPage{padding:10px}.an-compare{grid-template-columns:1fr}.an-table{font-size:11px}.an-table th,.an-table td{padding:6px 4px}}
 
 
-/* ---------- kompakt analysevisning uten rulling ---------- */
+/* ---------- analysevisning tilpasset Mac skjerm ---------- */
 #analysisPage{
+ position:fixed;
+ inset:0;
+ z-index:7;
  overflow:hidden;
- padding:clamp(7px,1.2vw,14px);
+ padding:clamp(10px,1vw,20px);
  display:none;
 }
 body.analysis-open #analysisPage{
  display:grid;
  grid-template-rows:auto auto minmax(0,1fr);
- gap:clamp(5px,.8vh,9px);
+ gap:clamp(8px,1vh,12px);
 }
-.an-head{width:100%;max-width:none;margin:0;min-height:34px}
-.an-head h1{font-size:clamp(18px,2vw,25px)}
-.an-sub{font-size:11px;margin-top:2px}
-.an-head .big{min-height:34px;padding:0 10px}
-#analysisPage>.an-section{width:100%;max-width:none;margin:0;min-height:0}
-#analysisPage>.an-section:nth-of-type(2){
- display:grid;
- grid-template-rows:auto auto minmax(0,1fr);
- overflow:hidden;
+#analysisPage .an-head{
+ width:100%;max-width:none;margin:0;min-height:0;flex-wrap:nowrap;
 }
-#analysisPage>.an-section:nth-of-type(n+3){display:none}
-#analysisPage>.an-section h2{font-size:13px;margin:0 0 5px}
-#analysisPage>.an-section:nth-of-type(2)>.an-sub{font-size:10px;margin-bottom:5px}
+#analysisPage .an-head h1{font-size:clamp(22px,2vw,32px)}
+#analysisPage .an-head .an-sub{font-size:12px;margin-top:3px}
+#analysisPage > .an-section{
+ width:100%;max-width:none;margin:0;min-width:0;min-height:0;
+}
+#analysisPage > .an-section:has(#anMetrics){
+ display:grid;grid-template-rows:auto minmax(0,1fr);gap:5px;
+}
+#analysisPage > .an-section:has(#anZones){
+ display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:5px;overflow:hidden;
+}
+#analysisPage > .an-section:has(#anMetrics) h2,
+#analysisPage > .an-section:has(#anZones) h2{
+ font-size:clamp(14px,1vw,18px);margin:0;
+}
+#analysisPage > .an-section:has(#anZones) > .an-sub{
+ font-size:11px;margin:0;
+}
 #anMetrics{
- grid-template-columns:repeat(4,minmax(0,1fr));
- gap:5px;
+ display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px;
 }
-#anMetrics .an-metric{padding:6px 8px;border-radius:8px}
-#anMetrics .an-metric span{font-size:9px}
-#anMetrics .an-metric b{font-size:clamp(15px,2.1vw,22px);margin-top:2px}
-#anMetrics .an-metric small{display:none}
+#anMetrics .an-metric{
+ min-width:0;padding:8px 10px;border-radius:9px;
+ display:flex;flex-direction:column;justify-content:center;
+}
 #anMetrics .an-metric:nth-child(n+9){display:none}
-.zone-grid{
- height:100%;
- min-height:0;
- grid-template-columns:repeat(4,minmax(0,1fr));
- grid-template-rows:repeat(2,minmax(0,1fr));
- gap:6px;
+#anMetrics .an-metric span{font-size:10px;line-height:1.15}
+#anMetrics .an-metric b{
+ font-size:clamp(17px,1.5vw,25px);line-height:1.15;margin-top:5px;
+ overflow-wrap:normal;white-space:nowrap;
 }
-.zone-card{
- padding:7px;
- border-radius:8px;
- border-top-width:3px;
- display:flex;
- flex-direction:column;
- min-height:0;
+#anMetrics .an-metric small{display:none}
+#anZones{
+ height:100%;min-height:0;
+ display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+ grid-template-rows:minmax(0,1fr);gap:7px;
 }
-.zone-card h3{font-size:13px;margin:0 0 5px}
-.zone-card h3 small{font-size:9px}
-.zone-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
-.zone-stats div{padding:4px 5px;border-radius:5px}
-.zone-stats span{font-size:8px}
-.zone-stats b{font-size:clamp(12px,1.5vw,16px);margin-top:1px}
-.zone-stats div:nth-child(n+5){display:none}
-.zone-card details{margin-top:auto;padding-top:4px}
-.zone-card summary{font-size:10px}
-.zone-card .an-note{font-size:9px;margin-top:4px;line-height:1.2}
+#anZones .zone-card{
+ min-width:0;min-height:0;padding:9px;border-radius:9px;
+ display:flex;flex-direction:column;overflow:hidden;
+}
+#anZones .zone-card h3{
+ font-size:clamp(13px,1.05vw,17px);margin:0 0 7px;gap:4px;
+}
+#anZones .zone-card h3 small{font-size:clamp(9px,.72vw,11px);white-space:nowrap}
+#anZones .zone-stats{
+ grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;
+}
+#anZones .zone-stats div{min-width:0;padding:6px;border-radius:6px}
+#anZones .zone-stats span{font-size:clamp(8px,.65vw,10px);line-height:1.15}
+#anZones .zone-stats b{
+ font-size:clamp(12px,1vw,16px);line-height:1.15;overflow-wrap:anywhere;
+}
+#anZones .zone-stats div:nth-child(n+5){display:none}
+#anZones .zone-card details{margin-top:auto;padding-top:6px}
+#anZones .zone-card summary{font-size:10px}
+#anZones .zone-card .an-note{font-size:10px;line-height:1.25;margin-top:5px}
+#analysisPage > .an-section:has(#anHalves),
+#analysisPage > .an-section:has(#anTemps),
+#analysisPage > .an-section:has(#anRelations),
+#analysisPage > .an-section:has(#anDrift),
+#analysisPage > .an-section:has(#anLR){display:none}
+@media(max-width:1250px){
+ #anMetrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+ #anZones{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+}
 @media(max-width:700px){
- #analysisPage{padding:7px}
- body.analysis-open #analysisPage{gap:5px}
+ #analysisPage{padding:7px;gap:6px}
+ #analysisPage .an-head{gap:6px}
+ #analysisPage .an-head h1{font-size:19px}
+ #analysisPage .an-head .an-sub{font-size:10px}
  #anMetrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
  #anMetrics .an-metric{padding:5px}
- #anMetrics .an-metric span{font-size:8px;letter-spacing:0}
- #anMetrics .an-metric b{font-size:clamp(13px,3.5vw,18px)}
- .zone-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:5px}
- .zone-card{padding:6px}
- .zone-card h3{font-size:12px}
- .zone-stats b{font-size:13px}
-}
-@media(max-height:620px){
- #anMetrics .an-metric{padding:3px 6px}
  #anMetrics .an-metric b{font-size:15px}
- .zone-card{padding:4px}
- .zone-card h3{margin-bottom:3px}
- .zone-stats{gap:2px}
- .zone-stats div{padding:2px 4px}
- .zone-card details{display:none}
+ #anZones{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:4px}
+ #anZones .zone-card{padding:5px}
+ #anZones .zone-card details{display:none}
 }
-
 </style></head>
 <body>
 <div id="warn">Web Bluetooth mangler i denne visningen – åpne i Chrome (Mac/PC) eller Bluefy (iPad) for sensortilkobling.</div>

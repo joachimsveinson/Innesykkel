@@ -315,6 +315,47 @@ body.analysis-open #analysisPage{
  #anZones .zone-card{padding:5px}
  #anZones .zone-card details{display:none}
 }
+
+/* ---------- kompakt høyde på analyseboksene ---------- */
+body.analysis-open #analysisPage{
+ grid-template-rows:auto auto auto;
+ align-content:start;
+}
+#analysisPage > .an-section:has(#anMetrics){
+ grid-template-rows:auto auto;
+}
+#anMetrics{
+ grid-template-rows:auto;
+ align-items:stretch;
+}
+#anMetrics .an-metric{
+ min-height:82px;
+ height:82px;
+ justify-content:center;
+}
+#analysisPage > .an-section:has(#anZones){
+ grid-template-rows:auto auto auto;
+ align-content:start;
+}
+#anZones{
+ height:auto;
+ min-height:0;
+ grid-template-rows:auto;
+ align-items:stretch;
+ align-content:start;
+}
+#anZones .zone-card{
+ height:clamp(205px,28vh,265px);
+ min-height:0;
+}
+@media(max-width:1250px){
+ #anZones{grid-template-rows:repeat(2,auto)}
+ #anZones .zone-card{height:220px}
+}
+@media(max-width:700px){
+ #anZones{grid-template-rows:repeat(4,auto)}
+ #anZones .zone-card{height:190px}
+}
 </style></head>
 <body>
 <div id="warn">Web Bluetooth mangler i denne visningen – åpne i Chrome (Mac/PC) eller Bluefy (iPad) for sensortilkobling.</div>

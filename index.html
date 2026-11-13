@@ -438,7 +438,7 @@ try{S.ftp=+localStorage.getItem('ftp')||DEFAULT_FTP}catch(e){}
 $('ftp').value=S.ftp;
 S.maxHrSetting=188;try{S.maxHrSetting=clamp(+localStorage.getItem('maxhr')||188,80,230)}catch(e){}
 $('maxHrSet').value=S.maxHrSetting;
-$('maxHrSet').onchange=()=>{S.maxHrSetting=clamp(+$('maxHrSet').value||188,80,230);$('maxHrSet').value=S.maxHrSetting;try{localStorage.setItem('maxhr',S.maxHrSetting)}catch(e){}render();if(document.body.classList.contains('analysis-open'))renderAnalysis()};
+$('maxHrSet').onchange=()=>{if(S.state==='running'||S.state==='paused')return;S.maxHrSetting=clamp(+$('maxHrSet').value||188,80,230);$('maxHrSet').value=S.maxHrSetting;try{localStorage.setItem('maxhr',S.maxHrSetting)}catch(e){}render();if(document.body.classList.contains('analysis-open'))renderAnalysis()};
 
 try{S.fixW=+localStorage.getItem('fixw')}catch(e){}
 S.fixW=S.fixW||Math.round(S.ftp*.5/5)*5;
@@ -780,7 +780,7 @@ function ui(){
  $('bLap').disabled=!r;$('bSkip').disabled=!S.iv.length;
  $('bBack').hidden=!(S.kind&&(S.state==='idle'||S.state==='done'));
  $('pick').hidden=!(S.kind==='workout'&&!S.iv.length);$('bExp').hidden=!(S.state==='done'&&S.log.length>0);
- $('ftp').disabled=(S.state==='running'||S.state==='paused');$('ftp').title=$('ftp').disabled?'FTP er låst mens økten pågår':'';$('bCool').disabled=!(r&&S.hrPhase==='reg'&&HC.cool>0);
+ $('ftp').disabled=(S.state==='running'||S.state==='paused');$('ftp').title=$('ftp').disabled?'FTP er låst mens økten pågår':'';$('maxHrSet').disabled=(S.state==='running'||S.state==='paused');$('maxHrSet').title=$('maxHrSet').disabled?'Maks puls er låst mens økten pågår':'';$('bCool').disabled=!(r&&S.hrPhase==='reg'&&HC.cool>0);
 }
 $('bGo').onclick=start;$('bPa').onclick=pause;
 $('bSt').onclick=()=>{if(S.state==='running')pause();$('stopdlg').style.display='flex'};
@@ -1364,6 +1364,9 @@ function anCalc(){
 }
 function anCell(label,value,unit='',sub=''){return '<div class="an-metric"><span>'+label+'</span><b>'+value+(unit?' '+unit:'')+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</div>'}
 function renderAnalysis(){
+ const zoneColors=['#6b7a8f','#46a6ff','#35d07f','#f1c40f','#f08c3a','#ef5350','#b36be0'];
+ $('anZones').innerHTML=AN_ZONES.map((z,i)=>'<article class="zone-card" style="--zc:'+zoneColors[i]+'"><h3><span>'+z.name+'</span><small>'+(z.hi===Infinity?'>150':z.lo+' til <'+z.hi)+' % FTP</small></h3><div class="zone-stats">'+
+  '<div><span>Tid</span><b>0:00</b></div><div><span>Arbeid</span><b>– kJ</b></div><div><span>Andel arbeid</span><b>–</b></div><div><span>Snittpuls</span><b>– bpm</b></div><div><span>Snittkadens</span><b>– rpm</b></div><div><span>Watt per bpm</span><b>–</b></div><div><span>Innganger</span><b>0</b></div><div><span>Core °C/time</span><b>–</b></div></div><p class="an-note">Venter på treningsdata.</p></article>').join('');
  if(!S.log.length){
   $('anStatus').textContent='Ingen øktdata er lastet inn. Start en økt for sanntidsanalyse, eller gjenopprett en avbrutt økt hvis appen tilbyr dette.';
   $('anMetrics').innerHTML=[

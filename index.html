@@ -182,6 +182,43 @@ body.landing #land{display:flex}
   .tiles{grid-template-columns:1fr}
   #wt{grid-column:auto}
 }
+
+/* ---------- treningsanalyse ---------- */
+#analysisPage{position:fixed;inset:0;z-index:7;background:var(--bg);color:var(--fg);overflow:auto;padding:16px;display:none}
+body.analysis-open #analysisPage{display:block}
+body.analysis-open{overflow:hidden}
+.an-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:1500px;margin:0 auto 14px}
+.an-head h1{font-size:clamp(22px,3vw,32px)}
+.an-sub{color:var(--mut);font-size:13px;margin-top:4px}
+.an-section{max-width:1500px;margin:0 auto 16px}
+.an-section h2{font-size:18px;margin:14px 0 8px}
+.an-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.an-metric,.zone-card{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:12px;min-width:0}
+.an-metric span,.zone-card .z-label{display:block;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.an-metric b{display:block;font-size:clamp(20px,3vw,28px);margin-top:4px;overflow-wrap:anywhere}
+.an-metric small{display:block;color:var(--mut);font-size:11px;margin-top:3px}
+.zone-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:9px}
+.zone-card{border-top:4px solid var(--zc,var(--line));}
+.zone-card.active{outline:2px solid var(--zc);background:#1b2635}
+.zone-card h3{display:flex;justify-content:space-between;align-items:center;font-size:17px;margin:3px 0 10px}
+.zone-card h3 small{font-size:11px;color:var(--mut);font-weight:500}
+.zone-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.zone-stats div{background:rgba(255,255,255,.035);padding:7px;border-radius:7px;min-width:0}
+.zone-stats span{display:block;color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.zone-stats b{display:block;font-size:16px;margin-top:2px;overflow-wrap:anywhere}
+.zone-card details{margin-top:9px;border-top:1px solid var(--line);padding-top:8px}
+.zone-card summary{cursor:pointer;color:var(--acc);font-size:12px}
+.an-note{color:var(--mut);font-size:12px;line-height:1.5;margin-top:8px}
+.an-table{width:100%;border-collapse:collapse;font-size:13px}
+.an-table th,.an-table td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+.an-table th{color:var(--mut);font-size:11px;text-transform:uppercase}
+.an-compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.an-half{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.an-half h3{font-size:14px;margin-bottom:8px}
+.an-half p{font-size:13px;color:var(--mut);margin:5px 0}
+.an-temp{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:8px}
+@media(max-width:520px){#analysisPage{padding:10px}.an-compare{grid-template-columns:1fr}.an-table{font-size:11px}.an-table th,.an-table td{padding:6px 4px}}
+
 </style></head>
 <body>
 <div id="warn">Web Bluetooth mangler i denne visningen – åpne i Chrome (Mac/PC) eller Bluefy (iPad) for sensortilkobling.</div>
@@ -195,8 +232,10 @@ body.landing #land{display:flex}
  <span id="toast"></span>
  <div class="set">
   <label>FTP <input id="ftp" type="number" min="50" max="600" value="300" aria-label="FTP i watt"> W</label>
+  <label>Maks puls <input id="maxHrSet" type="number" min="80" max="230" value="188" aria-label="Maksimal puls"> bpm</label>
   <label class="file" id="fileLbl" hidden>Last økt (.zwo / .mrc)<input id="file" type="file"></label>
  </div>
+ <button class="conn" id="bAnalysis" style="min-width:0;justify-content:center"><b>Analyse</b></button>
  <button class="conn" id="bKeys" title="Hurtigtaster (?)" style="min-width:0;justify-content:center"><b>?</b></button>
 </header>
 <div id="land">
@@ -326,6 +365,16 @@ body.landing #land{display:flex}
  <li><b>Wattområdet</b> (% av FTP) er harde grenser – watten går aldri utenfor, uansett puls.</li>
  <li><b>Regulator:</b> «Varsel» farger bare pulsen, «Av» holder watten. Du kan justere med ±5 W når som helst.</li></ol>
  <button class="big go" id="helpOk" style="font-size:18px;height:44px">Skjønner</button></div></div>
+
+<section id="analysisPage" aria-label="Treningsanalyse">
+ <div class="an-head"><div><h1>Treningsanalyse</h1><div class="an-sub" id="anStatus">Sanntidsanalyse. Verdiene oppdateres mens økten går.</div></div><button class="big" id="anClose">Tilbake til økten</button></div>
+ <div class="an-section"><h2>Belastning og effekt</h2><div class="an-grid" id="anMetrics"></div></div>
+ <div class="an-section"><h2>Wattsoner basert på FTP</h2><div class="an-sub">Sonebytte krever tre sekunder i ny sone for å redusere raske skift rundt en grense.</div><div class="zone-grid" id="anZones"></div></div>
+ <div class="an-section"><h2>Sone 2. Første og andre halvdel</h2><div class="an-compare" id="anHalves"></div><p class="an-note">Sammenligningen bruker bare registrerte sone 2 prøver i hver halvdel av økten.</p></div>
+ <div class="an-section"><h2>Temperatur og varmebelastning</h2><div class="an-temp" id="anTemps"></div><p class="an-note" id="anTempNote"></p></div>
+ <div class="an-section"><h2>Pulsdrift</h2><div class="an-grid" id="anDrift"></div><p class="an-note" id="anDriftNote"></p></div>
+ <div class="an-section"><h2>Venstre og høyre balanse</h2><div class="an-metric"><b>Ikke tilgjengelig</b><small>Appens nåværende Bluetooth parser leser ikke L/R balanse fra wattpedalene. Verdien vises ikke som null eller som et estimat.</small></div></div>
+</section>
 <div id="stopdlg" role="dialog" aria-modal="true" aria-label="Økt satt på pause">
  <h2>Økten er satt på pause</h2>
  <div class="row">
@@ -386,6 +435,10 @@ const S={kind:null,hrb:[],hd:{},laps:[],erg:true,ftp:DEFAULT_FTP,scale:100,iv:[]
  off:0,lastErg:null,pb:[],wb:[],hrmax:0,lap:null,tgt:null,prev:null,i:-1,lapSeq:0,grade:0,startTime:null,mode:null,realEl:0};
 try{S.ftp=+localStorage.getItem('ftp')||DEFAULT_FTP}catch(e){}
 $('ftp').value=S.ftp;
+S.maxHrSetting=188;try{S.maxHrSetting=clamp(+localStorage.getItem('maxhr')||188,80,230)}catch(e){}
+$('maxHrSet').value=S.maxHrSetting;
+$('maxHrSet').onchange=()=>{S.maxHrSetting=clamp(+$('maxHrSet').value||188,80,230);$('maxHrSet').value=S.maxHrSetting;try{localStorage.setItem('maxhr',S.maxHrSetting)}catch(e){}render();if(document.body.classList.contains('analysis-open'))renderAnalysis()};
+
 try{S.fixW=+localStorage.getItem('fixw')}catch(e){}
 S.fixW=S.fixW||Math.round(S.ftp*.5/5)*5;
 $('ftp').onchange=()=>{S.ftp=clamp(+$('ftp').value||DEFAULT_FTP,50,600);try{localStorage.setItem('ftp',S.ftp)}catch(e){}render()};
@@ -830,6 +883,7 @@ function zoneIdx(pct){for(let i=zcol.length-2;i>=0;i--)if(pct>=zcol[i])return i;
 const $3=id=>document.getElementById(id);
 const fm=(v,d=0)=>v==null?(d?'0.0':'0'):v.toFixed(d);
 function render(){
+ if(document.body.classList.contains('analysis-open'))renderAnalysis();
  const w3=avg(S.wb),hr=fresh('hr','hr'),cad=fresh('power','cad')??fresh('trainer','cad'),
        core=fresh('core','core'),skin=fresh('core','skin'),spd=fresh('trainer','speed');
 
@@ -851,7 +905,7 @@ function render(){
 
  /* puls-flis med sone indikert i tekst (basert på FTP-ekvivalent dersom ukjent maks) */
  $3('hr').textContent=fm(hr);$3('hrmax').textContent=S.hrmax||'0';
- const hrpct=S.hrmax?hr/S.hrmax:null;
+ const hrpct=S.maxHrSetting?hr/S.maxHrSetting:null;
  $3('hrz').textContent=hrpct?Math.round(hrpct*100)+'%':'0%';
  $3('hr').style.color=hrpct?(hrpct>.9?'var(--bad)':hrpct>.8?'#f1c40f':''):'';
 
@@ -1248,6 +1302,101 @@ function hrUi(){
  $('hrstxt').textContent=m;
  const h=fresh('hr','hr');if(h!=null)$('hr').style.color=h>HC.cap+2?'var(--bad)':h>HC.cap?'var(--warn)':h>=cl?'var(--ok)':'var(--acc)';
 }
+
+/* ---------- Treningsanalyse ---------- */
+const AN_ZONES=[
+ {name:'Z1',lo:0,hi:55,color:'#6b7a8f'},
+ {name:'Z2',lo:55,hi:75,color:'#46a6ff'},
+ {name:'Z3',lo:75,hi:90,color:'#35d07f'},
+ {name:'Z4',lo:90,hi:105,color:'#f1c40f'},
+ {name:'Z5',lo:105,hi:120,color:'#f08c3a'},
+ {name:'Z6',lo:120,hi:150,color:'#ef5350'},
+ {name:'Z7',lo:150,hi:Infinity,color:'#b36be0'}
+];
+const anFmt=(v,d=0)=>v==null||!Number.isFinite(v)?'–':v.toFixed(d);
+const anTime=v=>{if(!Number.isFinite(v))return '–';const n=Math.round(v);return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')};
+const anMean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+function anZone(w,ftp){if(w==null||!ftp)return null;const p=w/ftp*100;return AN_ZONES.findIndex(z=>p<z.hi)}
+function anCalc(){
+ const r=S.log||[],ftp=S.sessFtp||S.ftp,elapsed=Math.max(0,S.realEl||0),active=S.state==='running';
+ const validW=r.filter(x=>x.w!=null),ws=validW.map(x=>x.w),hrs=r.filter(x=>x.hr!=null).map(x=>x.hr);
+ const avgW=anMean(ws),avgHr=anMean(hrs),cad=r.filter(x=>x.cad!=null&&x.cad>0).map(x=>x.cad);
+ const roll=n=>{const a=ws.slice(-n);return a.length?anMean(a):null};
+ let n4=0,nN=0;for(let i=29;i<ws.length;i++){const m=anMean(ws.slice(i-29,i+1));if(m!=null){n4+=Math.pow(m,4);nN++}}
+ const np=nN?Math.pow(n4/nN,.25):null,IF=np!=null&&ftp?np/ftp:null,TSS=IF!=null?elapsed*np*IF/(ftp*3600)*100:null;
+ const z=AN_ZONES.map(()=>({sec:0,j:0,hr:[],cad:[],core:[],skin:[],hsi:[],entries:0,firstCore:null,lastCore:null,firstT:null,lastT:null}));
+ let activeZone=null,candidate=null,candidateSec=0;
+ for(let i=0;i<r.length;i++){
+  const x=r[i],next=r[i+1],dt=next?Math.max(0,Math.min(2,(next.realEl??x.realEl+1)-(x.realEl??0))):(active?Math.max(0,Math.min(1,elapsed-(x.realEl||0))):0);
+  if(!dt)continue;
+  const zi=anZone(x.w,ftp);
+  if(zi!=null){
+   if(activeZone==null){activeZone=zi;z[zi].entries++}
+   else if(zi!==activeZone){
+    if(candidate!==zi){candidate=zi;candidateSec=0}
+    candidateSec+=dt;
+    if(candidateSec>=3){activeZone=zi;z[zi].entries++;candidate=null;candidateSec=0}
+   }else{candidate=null;candidateSec=0}
+  }
+  if(activeZone==null)continue;
+  const q=z[activeZone];q.sec+=dt;if(x.w!=null)q.j+=x.w*dt;
+  if(x.hr!=null)q.hr.push(x.hr);if(x.cad!=null&&x.cad>0)q.cad.push(x.cad);
+  if(x.core!=null){q.core.push(x.core);if(q.firstCore==null){q.firstCore=x.core;q.firstT=x.realEl??0}q.lastCore=x.core;q.lastT=x.realEl??0}
+  if(x.skin!=null)q.skin.push(x.skin);if(x.hsi!=null)q.hsi.push(x.hsi);
+ }
+ const totalJ=z.reduce((a,q)=>a+q.j,0);
+ z.forEach(q=>{q.avgHr=anMean(q.hr);q.avgCad=anMean(q.cad);q.ef=q.avgHr&&q.j>0?(q.j/Math.max(q.sec,1))/q.avgHr:null;q.share=totalJ>0?q.j/totalJ*100:null;q.coreRate=q.firstCore!=null&&q.lastCore!=null&&q.lastT-q.firstT>=30?(q.lastCore-q.firstCore)/((q.lastT-q.firstT)/3600):null});
+ const firstTs=r.length?r[0].realEl||0:0,half=elapsed/2,halfStats=[0,1].map(h=>{
+  const a=r.filter(x=>x.realEl>=firstTs+(h?half:0)&&x.realEl<firstTs+(h?elapsed:half)&&anZone(x.w,ftp)===1);
+  const p=a.filter(x=>x.w!=null).map(x=>x.w),hr=a.filter(x=>x.hr!=null).map(x=>x.hr),c=a.filter(x=>x.core!=null).map(x=>x.core);
+  return{w:anMean(p),hr:anMean(hr),ef:anMean(p)!=null&&anMean(hr)?anMean(p)/anMean(hr):null,core:c.length?c[c.length-1]-c[0]:null,n:a.length}
+ });
+ const temps={core:r.filter(x=>x.core!=null).map(x=>x.core),skin:r.filter(x=>x.skin!=null).map(x=>x.skin),hsi:r.filter(x=>x.hsi!=null).map(x=>x.hsi)};
+ const tempStats=a=>({start:a.length?a[0]:null,avg:anMean(a),max:a.length?Math.max(...a):null,rise:a.length?a[a.length-1]-a[0]:null});
+ const hrFirst=r.filter(x=>x.hr!=null&&x.realEl<elapsed/2).map(x=>x.hr),hrSecond=r.filter(x=>x.hr!=null&&x.realEl>=elapsed/2).map(x=>x.hr);
+ const wFirst=r.filter(x=>x.w!=null&&x.realEl<elapsed/2).map(x=>x.w),wSecond=r.filter(x=>x.w!=null&&x.realEl>=elapsed/2).map(x=>x.w);
+ const ef1=anMean(wFirst)!=null&&anMean(hrFirst)?anMean(wFirst)/anMean(hrFirst):null,ef2=anMean(wSecond)!=null&&anMean(hrSecond)?anMean(wSecond)/anMean(hrSecond):null;
+ const drift=ef1&&ef2?(ef1-ef2)/ef1*100:null;
+ return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),np,IF,TSS,z,totalJ,halfStats,core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
+}
+function anCell(label,value,unit='',sub=''){return '<div class="an-metric"><span>'+label+'</span><b>'+value+(unit?' '+unit:'')+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</div>'}
+function renderAnalysis(){
+ if(!S.log.length){$('anStatus').textContent='Start en økt for å se analyse her.';return}
+ const a=anCalc(),p= a.np!=null&&a.ftp?a.np/a.ftp:null;
+ $('anStatus').textContent=(S.state==='running'?'Oppdateres live':'Økten er '+(S.state==='done'?'ferdig':'pauset'))+' · FTP '+a.ftp+' W · Maks puls '+a.hrSetting+' bpm';
+ $('anMetrics').innerHTML=[
+  anCell('Watt nå',anFmt(S.log.at(-1)?.w),'W'),
+  anCell('3 s snitt',anFmt(anMean(S.log.slice(-3).map(x=>x.w).filter(x=>x!=null))),'W'),
+  anCell('10 s snitt',anFmt(anMean(S.log.slice(-10).map(x=>x.w).filter(x=>x!=null))),'W'),
+  anCell('Normalisert effekt',anFmt(a.np),'W','30 s rullerende snitt, fjerde potens'),
+  anCell('IF',anFmt(a.IF,2),'','NP delt på FTP'),
+  anCell('TSS',anFmt(a.TSS,1),'','Foreløpig under økten'),
+  anCell('Puls',anFmt(S.log.at(-1)?.hr),'bpm',anFmt(a.hrSetting?S.log.at(-1)?.hr/a.hrSetting*100:null,0)+' % av maks'),
+  anCell('Kadens',anFmt(S.log.at(-1)?.cad),'rpm','Snitt '+anFmt(a.avgCad,0)+' rpm'),
+  anCell('Snitt watt',anFmt(a.avgW),'W'),
+  anCell('Snittpuls',anFmt(a.avgHr),'bpm'),
+  anCell('Arbeid',anFmt(a.totalJ/1000,0),'kJ'),
+  anCell('Tid',anTime(a.elapsed))
+ ].join('');
+ const colors=['#6b7a8f','#46a6ff','#35d07f','#f1c40f','#f08c3a','#ef5350','#b36be0'];
+ $('anZones').innerHTML=a.z.map((q,i)=>'<article class="zone-card '+(S.state==='running'&&anZone(S.log.at(-1)?.w,a.ftp)===i?'active':'')+'" style="--zc:'+colors[i]+'"><h3><span>'+AN_ZONES[i].name+'</span><small>'+(AN_ZONES[i].hi===Infinity?' >150':AN_ZONES[i].lo+'–'+AN_ZONES[i].hi)+' % FTP</small></h3><div class="zone-stats">'+
+  '<div><span>Tid</span><b>'+anTime(q.sec)+'</b></div><div><span>Arbeid</span><b>'+anFmt(q.j/1000,1)+' kJ</b></div>'+
+  '<div><span>Andel arbeid</span><b>'+anFmt(q.share,1)+' %</b></div><div><span>Snittpuls</span><b>'+anFmt(q.avgHr,0)+' bpm</b></div>'+
+  '<div><span>Snittkadens</span><b>'+anFmt(q.avgCad,0)+' rpm</b></div><div><span>Watt per bpm</span><b>'+anFmt(q.ef,2)+'</b></div>'+
+  '<div><span>Innganger</span><b>'+q.entries+'</b></div><div><span>Core °C/time</span><b>'+anFmt(q.coreRate,2)+'</b></div></div>'+
+  '<details><summary>Flere sonedata</summary><p class="an-note">Core start '+anFmt(q.firstCore,2)+' °C · slutt '+anFmt(q.lastCore,2)+' °C</p><p class="an-note">Hud snitt '+anFmt(anMean(q.skin),2)+' °C · HSI snitt '+anFmt(anMean(q.hsi),1)+'</p><p class="an-note">L/R balanse: ikke tilgjengelig fra gjeldende pedalparser</p></details></article>').join('');
+ $('anHalves').innerHTML=a.halfStats.map((q,i)=>'<div class="an-half"><h3>'+(i?'Andre halvdel':'Første halvdel')+'</h3><p>Snitt watt: <b>'+anFmt(q.w,0)+' W</b></p><p>Snitt puls: <b>'+anFmt(q.hr,0)+' bpm</b></p><p>Watt per bpm: <b>'+anFmt(q.ef,2)+'</b></p><p>Core endring: <b>'+anFmt(q.core,2)+' °C</b></p><p>Prøver i sone 2: '+q.n+'</p></div>').join('');
+ $('anTemps').innerHTML=anCell('Core start / snitt / maks',anFmt(a.core.start,2)+' / '+anFmt(a.core.avg,2)+' / '+anFmt(a.core.max,2),'°C')+
+  anCell('Hud start / snitt / maks',anFmt(a.skin.start,2)+' / '+anFmt(a.skin.avg,2)+' / '+anFmt(a.skin.max,2),'°C')+
+  anCell('Core temperaturøkning',anFmt(a.core.rise,2),'°C')+
+  anCell('HSI snitt / maks',anFmt(a.hsi.avg,1)+' / '+anFmt(a.hsi.max,1),'');
+ $('anTempNote').textContent='Temperaturverdier vises bare når CORE sensoren leverer målinger. Temperaturøkning per sone er endring mellom første og siste Core prøve i sonen, delt på målt tid. Dette er en enkel trend, ikke en fysiologisk modell.';
+ $('anDrift').innerHTML=anCell('EF første halvdel',anFmt(a.ef1,3))+anCell('EF andre halvdel',anFmt(a.ef2,3))+anCell('Pw:Hr drift',anFmt(a.drift,1),'%');
+ $('anDriftNote').textContent=a.elapsed<1200?'Pw:Hr vises som en foreløpig sammenligning. En mer stabil vurdering krever minst 20 minutter med gyldige watt og pulsdata.':a.drift==null?'Ikke nok gyldige watt og pulsdata til å beregne Pw:Hr.':'Beregningen sammenligner effektivitet, watt delt på puls, i første og andre halvdel. Positiv verdi betyr lavere effektivitet i andre halvdel. Pauser og endringer i intensitet kan påvirke resultatet.';
+}
+$('bAnalysis').onclick=()=>{document.body.classList.add('analysis-open');renderAnalysis()};
+$('anClose').onclick=()=>document.body.classList.remove('analysis-open');
+
 function drawCurves(g,W,H){ /* rullerende watt- og pulskurve (siste 20 min) */
  const padL=40,padR=40,padT=22,padB=16,pw=W-padL-padR,ph=H-padT-padB,N=CURVE_WINDOW_S,L=S.log,n=L.length,i0=Math.max(0,n-N);
  let wMax=S.ftp*1.2;for(let i=i0;i<n;i++)if(L[i].w>wMax)wMax=L[i].w;

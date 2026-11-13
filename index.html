@@ -183,7 +183,7 @@ body.landing #land{display:flex}
   #wt{grid-column:auto}
 }
 
-/* ---------- treningsanalyse (1-sides layout med sonebokser) */
+/* ---------- treningsanalyse (1-sides kategorisert layout) */
 #analysisPage {
   position: fixed;
   inset: 0;
@@ -211,16 +211,40 @@ body.analysis-open { overflow: hidden; }
 .an-sub { color: var(--mut); font-size: 12px; }
 #anClose { min-height: 36px; padding: 0 12px; font-size: 14px; }
 
-/* Rad 1: 13 nøkkeltall i én kompakt rad (inkl. % makspuls) */
-.an-top-metrics {
+/* Rad 1: 3 kategoriserte grupper (Watt, Puls, Økt) */
+.an-top-groups {
   display: grid;
-  grid-template-columns: repeat(13, minmax(0, 1fr));
+  grid-template-columns: 9fr 4fr 2fr;
+  gap: 8px;
+}
+.an-group {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 6px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.an-group-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--acc);
+  font-weight: 700;
+}
+.an-group.hr-grp .an-group-title { color: #ff6b6b; }
+.an-group.sess-grp .an-group-title { color: var(--ok); }
+
+.an-group-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
   gap: 5px;
 }
 .an-metric {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
   padding: 5px 7px;
   min-width: 0;
 }
@@ -236,7 +260,7 @@ body.analysis-open { overflow: hidden; }
 }
 .an-metric b {
   display: block;
-  font-size: clamp(13px, 1.2vw, 18px);
+  font-size: clamp(14px, 1.3vw, 19px);
   margin-top: 2px;
   white-space: nowrap;
 }
@@ -358,13 +382,13 @@ body.analysis-open { overflow: hidden; }
 }
 
 @media (max-width: 1150px) {
-  .an-top-metrics { grid-template-columns: repeat(7, 1fr); }
+  .an-top-groups { grid-template-columns: 1fr; }
+  .an-group-grid { grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)) !important; }
   .an-zones-grid { grid-template-columns: repeat(4, 1fr); overflow-y: auto; }
   .an-bottom-grid { grid-template-columns: repeat(2, 1fr); }
   #analysisPage { overflow-y: auto; }
 }
 @media (max-width: 650px) {
-  .an-top-metrics { grid-template-columns: repeat(3, 1fr); }
   .an-zones-grid { grid-template-columns: repeat(2, 1fr); }
   .an-bottom-grid { grid-template-columns: 1fr; }
 }
@@ -524,7 +548,20 @@ body.analysis-open { overflow: hidden; }
     <button class="big" id="anClose">Tilbake til økten</button>
   </div>
 
-  <div class="an-top-metrics" id="anMetrics"></div>
+  <div class="an-top-groups">
+    <div class="an-group">
+      <div class="an-group-title">Watt og arbeid</div>
+      <div class="an-group-grid" id="anPowerMetrics" style="--cols:9"></div>
+    </div>
+    <div class="an-group hr-grp">
+      <div class="an-group-title">Puls</div>
+      <div class="an-group-grid" id="anHrMetrics" style="--cols:4"></div>
+    </div>
+    <div class="an-group sess-grp">
+      <div class="an-group-title">Økt</div>
+      <div class="an-group-grid" id="anSessMetrics" style="--cols:2"></div>
+    </div>
+  </div>
 
   <div class="an-zones-grid" id="anZones"></div>
 
@@ -1546,8 +1583,9 @@ function renderAnalysis() {
   
   if (!r.length) {
     $('anStatus').textContent = 'Ingen øktdata. Start en økt for sanntidsanalyse.';
-    $('anMetrics').innerHTML = ['Watt nå','3 s snitt','10 s snitt','NP','IF','TSS','Puls','% Maks puls','Kadens','Snitt W','Snitt puls','Arbeid','Tid']
-      .map(l => anCell(l, '–')).join('');
+    $('anPowerMetrics').innerHTML = ['Nå','3 s','10 s','Snitt','NP','IF','TSS','Arbeid','kJ/t'].map(l => anCell(l, '–')).join('');
+    $('anHrMetrics').innerHTML = ['Nå','% Maks','Snitt','Maks'].map(l => anCell(l, '–')).join('');
+    $('anSessMetrics').innerHTML = ['Kadens','Tid'].map(l => anCell(l, '–')).join('');
     $('anZones').innerHTML = AN_ZONES.map((z, i) => `
       <article class="zone-card" style="--zc:${colors[i]}">
         <h3><span>${z.name}</span><small>${z.hi===Infinity?'>150':z.lo+'–'+z.hi}%</small></h3>
@@ -1575,7 +1613,20 @@ function renderAnalysis() {
 
   const w3 = (() => { const v = r.slice(-3).map(x=>x.w).filter(x=>x!=null); return v.length>=2 ? anMean(v) : null; })();
   const w10 = (() => { const v = r.slice(-10).map(x=>x.w).filter(x=>x!=null); return v.length>=7 ? anMean(v) : null; })();
-  
+  const kjPerHour = a.elapsed >= 10 ? (a.totalJ / 1000) / (a.elapsed / 3600) : null;
+
+  $('anPowerMetrics').innerHTML = [
+    anCell('Nå', anFmt(r.at(-1)?.w), 'W'),
+    anCell('3 s', anFmt(w3), 'W'),
+    anCell('10 s', anFmt(w10), 'W'),
+    anCell('Snitt', anFmt(a.avgW), 'W'),
+    anCell('NP', anFmt(a.np), 'W'),
+    anCell('IF', anFmt(a.IF, 2)),
+    anCell('TSS', anFmt(a.TSS, 0)),
+    anCell('Arbeid', anFmt(a.totalJ/1000, 0), 'kJ'),
+    anCell('kJ/t', anFmt(kjPerHour, 0))
+  ].join('');
+
   const curHr = r.at(-1)?.hr;
   const pctMaxHrNow = a.hrSetting && curHr != null ? (curHr / a.hrSetting * 100) : null;
   const pctMaxHrAvg = a.hrSetting && a.avgHr != null ? (a.avgHr / a.hrSetting * 100) : null;
@@ -1583,19 +1634,20 @@ function renderAnalysis() {
     ? `${anFmt(pctMaxHrNow, 0)}%` + (pctMaxHrAvg != null ? ` (${anFmt(pctMaxHrAvg, 0)}%)` : '')
     : (pctMaxHrAvg != null ? `Ø ${anFmt(pctMaxHrAvg, 0)}%` : '–');
 
-  $('anMetrics').innerHTML = [
-    anCell('Watt nå', anFmt(r.at(-1)?.w), 'W'),
-    anCell('3 s snitt', anFmt(w3), 'W'),
-    anCell('10 s snitt', anFmt(w10), 'W'),
-    anCell('NP', anFmt(a.np), 'W'),
-    anCell('IF', anFmt(a.IF, 2)),
-    anCell('TSS', anFmt(a.TSS, 0)),
-    anCell('Puls', anFmt(curHr), 'bpm'),
-    anCell('% Maks puls', pctMaxHrStr),
-    anCell('Kadens', anFmt(r.at(-1)?.cad), 'rpm'),
-    anCell('Snitt W', anFmt(a.avgW), 'W'),
-    anCell('Snitt puls', anFmt(a.avgHr), 'bpm'),
-    anCell('Arbeid', anFmt(a.totalJ/1000, 0), 'kJ'),
+  $('anHrMetrics').innerHTML = [
+    anCell('Nå', anFmt(curHr), 'bpm'),
+    anCell('% Maks', pctMaxHrStr),
+    anCell('Snitt', anFmt(a.avgHr), 'bpm'),
+    anCell('Maks', anFmt(a.hrPeak), 'bpm')
+  ].join('');
+
+  const curCad = r.at(-1)?.cad;
+  const cadStr = curCad != null 
+    ? `${anFmt(curCad, 0)}` + (a.avgCad != null ? ` (${anFmt(a.avgCad, 0)})` : '')
+    : (a.avgCad != null ? `Ø ${anFmt(a.avgCad, 0)}` : '–');
+
+  $('anSessMetrics').innerHTML = [
+    anCell('Kadens', cadStr, curCad != null || a.avgCad != null ? 'rpm' : ''),
     anCell('Tid', anTime(a.elapsed))
   ].join('');
 
@@ -1779,7 +1831,7 @@ function doRestore(r){
  accReset();S.log.forEach(accAdd);
  if(r.sessFtp){S.sessFtp=r.sessFtp;S.ftp=r.sessFtp;$('ftp').value=S.ftp}
  setKind(r.kind||(r.iv&&r.iv.length?'workout':'free'));Object.assign(S,{hrW:r.hrW??null,hrPhase:r.hrPhase??null,hrW0:r.hrW0,warmW:r.warmW,coolT0:r.coolT0});
- if(r.iv&&r.iv.length){setWorkout(r.iv);S.i=S.iv.findIndex(x=>S.el>=x.s&&S.el<x.s+x.d)}
+ if(r.iv&&r.iv.length){setWorkout(r.iv);S.i=S.iv.findIndex(x=>S.el>=x.s&&x.el<x.s+x.d)}
  $3('scl').textContent=S.scale+'%';toast('Økt gjenopprettet – trykk Fortsett');ui();render();
 }
 try{

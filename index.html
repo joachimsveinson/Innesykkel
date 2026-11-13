@@ -214,7 +214,7 @@ body.analysis-open { overflow: hidden; }
 /* Rad 1: 3 kategoriserte grupper (Watt, Puls, Økt) */
 .an-top-groups {
   display: grid;
-  grid-template-columns: 9fr 4fr 2fr;
+  grid-template-columns: 9fr 4fr 3fr;
   gap: 8px;
 }
 .an-group {
@@ -443,7 +443,7 @@ body.analysis-open { overflow: hidden; }
      <div><span>NP</span><b id="sNp">0</b></div>
      <div><span>EF</span><b id="sEf">0.00</b></div>
      <div><span>TSS</span><b id="sTss">0</b></div>
-     <div><span>ØPuls</span><b id="sAh">0</b></div>
+     <div><span>Ø Puls</span><b id="sAh">0</b></div>
     </div>
    </div>
   </section>
@@ -559,7 +559,7 @@ body.analysis-open { overflow: hidden; }
     </div>
     <div class="an-group sess-grp">
       <div class="an-group-title">Økt</div>
-      <div class="an-group-grid" id="anSessMetrics" style="--cols:2"></div>
+      <div class="an-group-grid" id="anSessMetrics" style="--cols:3"></div>
     </div>
   </div>
 
@@ -1585,7 +1585,7 @@ function renderAnalysis() {
     $('anStatus').textContent = 'Ingen øktdata. Start en økt for sanntidsanalyse.';
     $('anPowerMetrics').innerHTML = ['Nå','3 s','10 s','Snitt','NP','IF','TSS','Arbeid','kJ/t'].map(l => anCell(l, '–')).join('');
     $('anHrMetrics').innerHTML = ['Nå','% Maks','Snitt','Maks'].map(l => anCell(l, '–')).join('');
-    $('anSessMetrics').innerHTML = ['Kadens','Tid'].map(l => anCell(l, '–')).join('');
+    $('anSessMetrics').innerHTML = ['Kadens nå','Ø Kadens','Tid'].map(l => anCell(l, '–')).join('');
     $('anZones').innerHTML = AN_ZONES.map((z, i) => `
       <article class="zone-card" style="--zc:${colors[i]}">
         <h3><span>${z.name}</span><small>${z.hi===Infinity?'>150':z.lo+'–'+z.hi}%</small></h3>
@@ -1641,13 +1641,9 @@ function renderAnalysis() {
     anCell('Maks', anFmt(a.hrPeak), 'bpm')
   ].join('');
 
-  const curCad = r.at(-1)?.cad;
-  const cadStr = curCad != null 
-    ? `${anFmt(curCad, 0)}` + (a.avgCad != null ? ` (${anFmt(a.avgCad, 0)})` : '')
-    : (a.avgCad != null ? `Ø ${anFmt(a.avgCad, 0)}` : '–');
-
   $('anSessMetrics').innerHTML = [
-    anCell('Kadens', cadStr, curCad != null || a.avgCad != null ? 'rpm' : ''),
+    anCell('Kadens nå', anFmt(r.at(-1)?.cad), 'rpm'),
+    anCell('Snitt kadens', anFmt(a.avgCad), 'rpm'),
     anCell('Tid', anTime(a.elapsed))
   ].join('');
 

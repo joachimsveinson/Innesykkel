@@ -183,21 +183,21 @@ body.landing #land{display:flex}
   #wt{grid-column:auto}
 }
 
-/* ---------- treningsanalyse (kompakt 1-sides layout) ---------- */
+/* ---------- treningsanalyse (1-sides layout med sonebokser) */
 #analysisPage {
   position: fixed;
   inset: 0;
   z-index: 7;
   background: var(--bg);
   color: var(--fg);
-  padding: 12px 16px;
+  padding: 10px 14px;
   display: none;
   overflow: hidden;
 }
 body.analysis-open #analysisPage {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 10px;
+  grid-template-rows: auto auto minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 8px;
 }
 body.analysis-open { overflow: hidden; }
 
@@ -207,26 +207,27 @@ body.analysis-open { overflow: hidden; }
   justify-content: space-between;
   gap: 12px;
 }
-.an-head h1 { font-size: 22px; }
+.an-head h1 { font-size: 20px; }
 .an-sub { color: var(--mut); font-size: 12px; }
+#anClose { min-height: 36px; padding: 0 12px; font-size: 14px; }
 
-/* Rad 1: 12 nøkkeltall i én kompakt rad */
+/* Rad 1: 13 nøkkeltall i én kompakt rad (inkl. % makspuls) */
 .an-top-metrics {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+  gap: 5px;
 }
 .an-metric {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 5px 7px;
   min-width: 0;
 }
 .an-metric span {
   display: block;
   color: var(--mut);
-  font-size: 10px;
+  font-size: 9.5px;
   text-transform: uppercase;
   font-weight: 600;
   white-space: nowrap;
@@ -235,91 +236,137 @@ body.analysis-open { overflow: hidden; }
 }
 .an-metric b {
   display: block;
-  font-size: clamp(14px, 1.3vw, 20px);
+  font-size: clamp(13px, 1.2vw, 18px);
   margin-top: 2px;
   white-space: nowrap;
 }
 
-/* Rad 2: Hovedområde delt i Venstre (Sonetabell) og Høyre (Detaljkort) */
-.an-body {
+/* Rad 2: 7 sonebokser side om side */
+.an-zones-grid {
   display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  min-height: 0;
+}
+.zone-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--zc, var(--line));
+  border-radius: 8px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.zone-card.active {
+  outline: 2px solid var(--zc);
+  background: #1b2635;
+}
+.zone-card h3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+.zone-card h3 small {
+  font-size: 10px;
+  color: var(--mut);
+  font-weight: 500;
+}
+.zone-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+}
+.zone-stats div {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 5px;
+  padding: 3px 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+.zone-stats span {
+  font-size: 8.5px;
+  text-transform: uppercase;
+  color: var(--mut);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zone-stats b {
+  font-size: clamp(11px, 0.95vw, 14px);
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Rad 3: 4 detaljbokser side om side */
+.an-bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
   min-height: 0;
 }
 .an-panel {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 10px 12px;
+  border-radius: 8px;
+  padding: 7px 10px;
   display: flex;
   flex-direction: column;
+  min-width: 0;
   min-height: 0;
 }
 .an-panel h2 {
-  font-size: 13px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--mut);
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-}
-
-/* Sonetabell */
-.an-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  flex: 1;
-}
-.an-table th {
-  text-align: right;
-  color: var(--mut);
-  font-size: 10px;
-  text-transform: uppercase;
-  padding: 4px 6px;
-  border-bottom: 1px solid var(--line);
-}
-.an-table th:first-child, .an-table td:first-child { text-align: left; }
-.an-table td {
-  text-align: right;
-  padding: 5px 6px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  font-weight: 500;
-}
-.an-table tr.active { background: #1b2635; font-weight: 700; }
-.z-badge {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-
-/* Høyre kolonne: 2x2 rutenett for Drift, Sone 2, Temperatur og Korrelasjon */
-.an-right-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1.1fr;
-  gap: 10px;
-  min-height: 0;
+  margin-bottom: 5px;
 }
 .an-kv {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  padding: 3px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 11.5px;
+  padding: 2.5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  gap: 6px;
 }
-.an-kv span { color: var(--mut); }
+.an-kv span {
+  color: var(--mut);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.an-kv b {
+  white-space: nowrap;
+}
 .an-kv:last-child { border-bottom: 0; }
-#anHsi { width: 100%; flex: 1; min-height: 45px; margin-top: 6px; }
+#anHsi {
+  width: 100%;
+  flex: 1;
+  min-height: 30px;
+  margin-top: 4px;
+}
 
-@media (max-width: 1100px) {
-  .an-top-metrics { grid-template-columns: repeat(6, 1fr); }
-  .an-body { grid-template-columns: 1fr; overflow-y: auto; }
+@media (max-width: 1150px) {
+  .an-top-metrics { grid-template-columns: repeat(7, 1fr); }
+  .an-zones-grid { grid-template-columns: repeat(4, 1fr); overflow-y: auto; }
+  .an-bottom-grid { grid-template-columns: repeat(2, 1fr); }
   #analysisPage { overflow-y: auto; }
+}
+@media (max-width: 650px) {
+  .an-top-metrics { grid-template-columns: repeat(3, 1fr); }
+  .an-zones-grid { grid-template-columns: repeat(2, 1fr); }
+  .an-bottom-grid { grid-template-columns: 1fr; }
 }
 </style></head>
 <body>
@@ -479,49 +526,28 @@ body.analysis-open { overflow: hidden; }
 
   <div class="an-top-metrics" id="anMetrics"></div>
 
-  <div class="an-body">
+  <div class="an-zones-grid" id="anZones"></div>
+
+  <div class="an-bottom-grid">
     <div class="an-panel">
-      <h2><span>Wattsoner (FTP)</span><span style="font-weight:400;text-transform:none">3 s forsinkelse ved sonebytte</span></h2>
-      <table class="an-table">
-        <thead>
-          <tr>
-            <th>Sone</th>
-            <th>Område</th>
-            <th>Tid</th>
-            <th>Arbeid</th>
-            <th>Andel</th>
-            <th>Puls</th>
-            <th>Kad</th>
-            <th>W/bpm</th>
-            <th>Core °C/t</th>
-            <th>L/R %</th>
-          </tr>
-        </thead>
-        <tbody id="anZoneBody"></tbody>
-      </table>
+      <h2>Temperatur og HSI</h2>
+      <div id="anTemps"></div>
+      <canvas id="anHsi"></canvas>
     </div>
 
-    <div class="an-right-grid">
-      <div class="an-panel">
-        <h2>Temperatur og HSI</h2>
-        <div id="anTemps"></div>
-        <canvas id="anHsi"></canvas>
-      </div>
+    <div class="an-panel">
+      <h2>Pulsdrift og Balanse</h2>
+      <div id="anDrift"></div>
+    </div>
 
-      <div class="an-panel">
-        <h2>Pulsdrift og Balanse</h2>
-        <div id="anDrift"></div>
-      </div>
+    <div class="an-panel">
+      <h2>Sone 2 (1. vs 2. halvdel)</h2>
+      <div id="anHalves"></div>
+    </div>
 
-      <div class="an-panel">
-        <h2>Sone 2 (1. vs 2. halvdel)</h2>
-        <div id="anHalves"></div>
-      </div>
-
-      <div class="an-panel">
-        <h2>Korrelasjoner (r)</h2>
-        <div id="anRelations"></div>
-      </div>
+    <div class="an-panel">
+      <h2>Korrelasjoner (r)</h2>
+      <div id="anRelations"></div>
     </div>
   </div>
 </section>
@@ -1520,9 +1546,22 @@ function renderAnalysis() {
   
   if (!r.length) {
     $('anStatus').textContent = 'Ingen øktdata. Start en økt for sanntidsanalyse.';
-    $('anMetrics').innerHTML = ['Watt nå','3 s snitt','10 s snitt','NP','IF','TSS','Puls','Kadens','Snitt W','Snitt puls','Arbeid','Tid']
+    $('anMetrics').innerHTML = ['Watt nå','3 s snitt','10 s snitt','NP','IF','TSS','Puls','% Maks puls','Kadens','Snitt W','Snitt puls','Arbeid','Tid']
       .map(l => anCell(l, '–')).join('');
-    $('anZoneBody').innerHTML = AN_ZONES.map((z, i) => `<tr><td><i class="z-badge" style="background:${colors[i]}"></i>${z.name}</td><td>${z.hi===Infinity?'>150':z.lo+'–'+z.hi}%</td><td>0:00</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td></tr>`).join('');
+    $('anZones').innerHTML = AN_ZONES.map((z, i) => `
+      <article class="zone-card" style="--zc:${colors[i]}">
+        <h3><span>${z.name}</span><small>${z.hi===Infinity?'>150':z.lo+'–'+z.hi}%</small></h3>
+        <div class="zone-stats">
+          <div><span>Tid</span><b>0:00</b></div>
+          <div><span>Arbeid</span><b>–</b></div>
+          <div><span>Andel</span><b>–</b></div>
+          <div><span>Puls</span><b>–</b></div>
+          <div><span>Kadens</span><b>–</b></div>
+          <div><span>W/bpm</span><b>–</b></div>
+          <div><span>Core/t</span><b>–</b></div>
+          <div><span>L/R %</span><b>–</b></div>
+        </div>
+      </article>`).join('');
     $('anTemps').innerHTML = anKv('Core (Start/Snitt/Maks)', '–') + anKv('Hud (Start/Snitt/Maks)', '–') + anKv('Core økning / HSI maks', '–');
     $('anDrift').innerHTML = anKv('EF 1. halvdel', '–') + anKv('EF 2. halvdel', '–') + anKv('Pw:Hr drift', '–') + anKv('L/R balanse', '–');
     $('anHalves').innerHTML = anKv('1. halvdel (W / bpm / EF)', '–') + anKv('2. halvdel (W / bpm / EF)', '–') + anKv('Core endring (1. / 2.)', '–');
@@ -1536,6 +1575,13 @@ function renderAnalysis() {
 
   const w3 = (() => { const v = r.slice(-3).map(x=>x.w).filter(x=>x!=null); return v.length>=2 ? anMean(v) : null; })();
   const w10 = (() => { const v = r.slice(-10).map(x=>x.w).filter(x=>x!=null); return v.length>=7 ? anMean(v) : null; })();
+  
+  const curHr = r.at(-1)?.hr;
+  const pctMaxHrNow = a.hrSetting && curHr != null ? (curHr / a.hrSetting * 100) : null;
+  const pctMaxHrAvg = a.hrSetting && a.avgHr != null ? (a.avgHr / a.hrSetting * 100) : null;
+  const pctMaxHrStr = pctMaxHrNow != null 
+    ? `${anFmt(pctMaxHrNow, 0)}%` + (pctMaxHrAvg != null ? ` (${anFmt(pctMaxHrAvg, 0)}%)` : '')
+    : (pctMaxHrAvg != null ? `Ø ${anFmt(pctMaxHrAvg, 0)}%` : '–');
 
   $('anMetrics').innerHTML = [
     anCell('Watt nå', anFmt(r.at(-1)?.w), 'W'),
@@ -1544,7 +1590,8 @@ function renderAnalysis() {
     anCell('NP', anFmt(a.np), 'W'),
     anCell('IF', anFmt(a.IF, 2)),
     anCell('TSS', anFmt(a.TSS, 0)),
-    anCell('Puls', anFmt(r.at(-1)?.hr), 'bpm'),
+    anCell('Puls', anFmt(curHr), 'bpm'),
+    anCell('% Maks puls', pctMaxHrStr),
     anCell('Kadens', anFmt(r.at(-1)?.cad), 'rpm'),
     anCell('Snitt W', anFmt(a.avgW), 'W'),
     anCell('Snitt puls', anFmt(a.avgHr), 'bpm'),
@@ -1552,27 +1599,29 @@ function renderAnalysis() {
     anCell('Tid', anTime(a.elapsed))
   ].join('');
 
-  $('anZoneBody').innerHTML = a.z.map((q, i) => {
+  $('anZones').innerHTML = a.z.map((q, i) => {
     const z = AN_ZONES[i];
     const rng = z.hi === Infinity ? '>150%' : `${z.lo}–${z.hi}%`;
     const lr = q.lr == null ? '–' : `${anFmt(q.lr,0)}/${anFmt(100-q.lr,0)}`;
-    return `<tr class="${curZone === i ? 'active' : ''}">
-      <td><i class="z-badge" style="background:${colors[i]}"></i><b>${z.name}</b></td>
-      <td style="color:var(--mut)">${rng}</td>
-      <td>${anTime(q.sec)}</td>
-      <td>${anFmt(q.j/1000, 0)} kJ</td>
-      <td>${anFmt(q.share, 0)}%</td>
-      <td>${anFmt(q.avgHr, 0)}</td>
-      <td>${anFmt(q.avgCad, 0)}</td>
-      <td>${anFmt(q.ef, 2)}</td>
-      <td>${anFmt(q.coreRate, 2)}</td>
-      <td>${lr}</td>
-    </tr>`;
+    return `
+      <article class="zone-card ${curZone === i ? 'active' : ''}" style="--zc:${colors[i]}">
+        <h3><span>${z.name}</span><small>${rng}</small></h3>
+        <div class="zone-stats">
+          <div><span>Tid</span><b>${anTime(q.sec)}</b></div>
+          <div><span>Arbeid</span><b>${anFmt(q.j/1000, 0)} kJ</b></div>
+          <div><span>Andel</span><b>${anFmt(q.share, 0)} %</b></div>
+          <div><span>Puls</span><b>${anFmt(q.avgHr, 0)} bpm</b></div>
+          <div><span>Kadens</span><b>${anFmt(q.avgCad, 0)} rpm</b></div>
+          <div><span>W/bpm</span><b>${anFmt(q.ef, 2)}</b></div>
+          <div><span>Core/t</span><b>${anFmt(q.coreRate, 2)}</b></div>
+          <div><span>L/R %</span><b>${lr}</b></div>
+        </div>
+      </article>`;
   }).join('');
 
   $('anTemps').innerHTML =
-    anKv('Core (Start / Snitt / Maks)', `${anFmt(a.core.start,2)} / ${anFmt(a.core.avg,2)} / ${anFmt(a.core.max,2)} °C`) +
-    anKv('Hud (Start / Snitt / Maks)', `${anFmt(a.skin.start,1)} / ${anFmt(a.skin.avg,1)} / ${anFmt(a.skin.max,1)} °C`) +
+    anKv('Core (Start/Snitt/Maks)', `${anFmt(a.core.start,2)} / ${anFmt(a.core.avg,2)} / ${anFmt(a.core.max,2)} °C`) +
+    anKv('Hud (Start/Snitt/Maks)', `${anFmt(a.skin.start,1)} / ${anFmt(a.skin.avg,1)} / ${anFmt(a.skin.max,1)} °C`) +
     anKv('Core økning / HSI maks', `${a.core.rise!=null?(a.core.rise>0?'+':'')+anFmt(a.core.rise,2)+' °C':'–'} / ${anFmt(a.hsi.max,1)}`);
 
   const lrTot = a.lrN ? `${anFmt(a.lrLeft,1)}% / ${anFmt(100-a.lrLeft,1)}%` : 'Ikke tilgjengelig';
@@ -1594,7 +1643,7 @@ function renderAnalysis() {
 
   // Tegn HSI-graf
   const c = $('anHsi'), g = c.getContext('2d'), dpr = window.devicePixelRatio || 1;
-  const w = c.clientWidth, h = c.clientHeight || 60;
+  const w = c.clientWidth, h = c.clientHeight || 40;
   if (w > 0 && h > 0) {
     c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
     g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
@@ -1604,12 +1653,12 @@ function renderAnalysis() {
       g.strokeStyle = '#f08c3a'; g.lineWidth = 2; g.beginPath();
       pts.forEach((x, i) => {
         const px = i / (pts.length - 1) * (w - 8) + 4;
-        const py = h - 8 - (x.hsi - lo) / span * (h - 16);
+        const py = h - 6 - (x.hsi - lo) / span * (h - 12);
         i ? g.lineTo(px, py) : g.moveTo(px, py);
       });
       g.stroke();
     } else {
-      g.fillStyle = '#5c6a7e'; g.font = '11px sans-serif';
+      g.fillStyle = '#5c6a7e'; g.font = '10px sans-serif';
       g.fillText('Venter på HSI-data...', 4, h / 2);
     }
   }

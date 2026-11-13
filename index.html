@@ -244,7 +244,7 @@ body.landing #land{display:flex}
  <span><svg width="16" height="12"><defs><pattern id="hp" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#7b8aa0"/><line x1="0" y1="0" x2="0" y2="5" stroke="#161B26" stroke-width="2"/></pattern></defs><rect x="1" y="1" width="14" height="10" rx="3" fill="url(#hp)"/></svg>Fri giring</span>
  <span><svg width="16" height="12"><rect x="1" y="1" width="14" height="10" rx="3" fill="#35d07f" fill-opacity=".5"/><line x1="1" y1="4" x2="15" y2="4" stroke="#fff"/><line x1="1" y1="8" x2="15" y2="8" stroke="#fff"/></svg>Område</span>
  <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#f4f6f8" stroke-opacity=".5" stroke-dasharray="4 3"/></svg>FTP</span>
- <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#fff" stroke-width="2"/></svg>Watt</span>
+ <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#fff" stroke-width="2"/></svg>Watt</span><span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#ff5252" stroke-width="2"/></svg>Puls</span>
 </div><div id="tip"></div></div>
  </div>
  <aside id="lp" aria-label="Rundeliste">
@@ -417,7 +417,7 @@ const D={
     if(dt>0){this.cad=dr/dt*60;this.pc=Date.now()}else if(Date.now()-(this.pc||0)>2500)this.cad=0}
    this.pr=r;this.pt=t}}},
  hr:{svc:0x180D,chr:0x2A37,parse(v){this.hr=(v.getUint8(0)&1)?v.getUint16(1,true):v.getUint8(1)}},
- core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)&&v.byteLength>=5?v.getInt16(3,true)/100:null;this.quality=v.byteLength>5?v.getUint8(5):null;this.reserved=v.byteLength>=8?v.getUint16(6,true):null;this.hsi=v.byteLength>8?v.getUint8(8)/10:null}}
+ core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)&&v.byteLength>=5?v.getInt16(3,true)/100:null;this.quality=v.byteLength>5?v.getUint8(5):null;this.hsi=v.byteLength>8?v.getUint8(8)/10:null}}
 };
 const fresh=(k,f)=>{const c=D[k];return c.ok&&Date.now()-c.t<5000&&c[f]!=null?c[f]:null};
 function status(k,txt,cls){const b=document.querySelector(`[data-k=${k}]`);b.querySelector('small').textContent=txt;b.className='conn '+(cls||'')}
@@ -652,7 +652,7 @@ function tick(){
   {const dt=S.lastNow?Math.min(1,(now-S.lastNow)/1000):0;S.lastNow=now;S.realEl+=dt} /* faktisk syklet tid – pause og hopp telles ikke */
   const hr=hold('h',fresh('hr','hr')),cad=hold('c',fresh('power','cad')??fresh('trainer','cad')),
         core=hold('k',fresh('core','core')),skin=hold('s',fresh('core','skin')),hsi=hold('i',fresh('core','hsi')),
-        quality=hold('q',fresh('core','quality')),reserved=hold('r',fresh('core','reserved')),spd=hold('v',fresh('trainer','speed'));
+        quality=hold('q',fresh('core','quality')),spd=hold('v',fresh('trainer','speed'));
 
   if(!S.lap)lapStart(S.freeLap||0);
   const b=o?o.b:(S.freeLap||0);
@@ -663,7 +663,7 @@ function tick(){
    {const pw=fresh('power','w'),tw=fresh('trainer','w'); /* pedaler ≈ halve Kickr-watt i 30 s = bare én side */
     if(pw!=null&&tw!=null&&tw>100&&pw/tw>.42&&pw/tw<.58){S.halfN=(S.halfN||0)+1;if(S.halfN===30)toast('Pedalene viser omtrent halv watt mot Kickr. Sjekk i Favero-appen at venstre pedal sender samlet watt (ikke bare venstre side).',true)}else S.halfN=0}
    S.acc||accReset();
-   S.log.push({e:t,realEl:S.realEl,ts:now,w,hr,cad,core,skin,hsi,quality,reserved,spd,tgt:S.tgt,lap:S.lapSeq+1});
+   S.log.push({e:t,realEl:S.realEl,ts:now,w,hr,cad,core,skin,hsi,quality,spd,tgt:S.tgt,lap:S.lapSeq+1});
    accAdd(S.log[S.log.length-1]);
    if(hr>S.hrmax)S.hrmax=hr;
    [['w',w],['h',hr],['c',cad]].forEach(([k,v])=>{if(v!=null){S.lap.s[k][0]+=v;S.lap.s[k][1]++}});
@@ -936,7 +936,7 @@ function draw(){
  if(!W||!H)return;
  if(c.width!==Math.round(W*dpr)||c.height!==Math.round(H*dpr)){c.width=W*dpr;c.height=H*dpr}
  const g=c.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
- const padL=44,padB=18,padT=22,plotW=W-padL-6,plotH=H-padT-padB;
+ const padL=44,padB=18,padT=22,padR=38,plotW=W-padL-padR,plotH=H-padT-padB;
  g.font='11px sans-serif';
  if(S.kind!=='workout'){drawCurves(g,W,H);return}
  if(!S.iv.length)return;
@@ -946,7 +946,7 @@ function draw(){
  /* akse: watt-etiketter ved sonegrenser */
  g.fillStyle='#5c6a7e';g.strokeStyle='#232c3b';g.lineWidth=1;
  [55,76,91,106,121].forEach(pz=>{const w=S.ftp*pz/100,y=yW(w);
-  g.beginPath();g.moveTo(padL,y);g.lineTo(W-6,y);g.stroke();
+  g.beginPath();g.moveTo(padL,y);g.lineTo(W-padR,y);g.stroke();
   g.fillText(Math.round(w),4,y+3)});
  /* akse: tid */
  g.strokeStyle='#232c3b';
@@ -969,23 +969,23 @@ function draw(){
  g.globalAlpha=1;
 
  /* pulsakse og puls-kurve */
- g.fillStyle='#5c6a7e';for(let h=80;h<=hHi;h+=20)g.fillText(h,W-32,yH(h)+3);
- g.strokeStyle='#ef5350';g.lineWidth=2;g.beginPath();let hrStarted=false;
- S.log.forEach(r=>{if(r.hr==null||r.e<vs)return;const x=padL+(r.e-vs)/T*plotW,y=yH(r.hr);hrStarted?g.lineTo(x,y):g.moveTo(x,y);hrStarted=true});g.stroke();
+ g.fillStyle='#ef9a9a';for(let h=80;h<=hHi;h+=20)g.fillText(h,W-padR+6,yH(h)+3);
+ const hrPath=()=>{g.beginPath();let on=false;S.log.forEach(r=>{if(r.hr==null||r.e<vs)return;const x=padL+(r.e-vs)/T*plotW,y=yH(r.hr);on?g.lineTo(x,y):g.moveTo(x,y);on=true})};
+ g.lineJoin='round';hrPath();g.strokeStyle='rgba(0,0,0,.55)';g.lineWidth=4.5;g.stroke(); /* mørk kant gir kontrast mot søylene */
+ hrPath();g.strokeStyle='#ff5252';g.lineWidth=2.2;g.stroke();
 
  /* FTP-referanselinje */
  g.strokeStyle='rgba(244,246,248,.25)';g.setLineDash([4,4]);
- g.beginPath();g.moveTo(padL,yW(S.ftp));g.lineTo(W-6,yW(S.ftp));g.stroke();g.setLineDash([]);
+ g.beginPath();g.moveTo(padL,yW(S.ftp));g.lineTo(W-padR,yW(S.ftp));g.stroke();g.setLineDash([]);
 
  if(S.post){const xt=Math.max(padL,padL+(S.total-vs)/T*plotW),xe=padL+(S.el-vs)/T*plotW;if(xe>xt){g.fillStyle='rgba(70,166,255,.22)';g.fillRect(xt,yW(S.fixW),xe-xt,padT+plotH-yW(S.fixW))}}
  /* effektkurve */
  g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();let st=false;
  S.log.forEach(r=>{if(r.w==null||r.e<vs)return;const x=padL+(r.e-vs)/T*plotW,y=yW(r.w);st?g.lineTo(x,y):g.moveTo(x,y);st=true});
  g.stroke();
- g.fillStyle='#c8d2de';g.fillText('Watt (hvit, venstre) · Puls (rød, høyre)',padL,13);
-
+ 
  /* tidsmarkør */
- const px=clamp(padL+(S.el-vs)/T*plotW,padL,W-6);
+ const px=clamp(padL+(S.el-vs)/T*plotW,padL,W-padR);
  g.save();g.shadowColor='rgba(255,214,10,.75)';g.shadowBlur=10;g.strokeStyle='#ffd60a';g.lineWidth=2.5;g.beginPath();g.moveTo(px,padT);g.lineTo(px,padT+plotH);g.stroke();g.restore();
 }
 addEventListener('resize',draw);
@@ -1067,11 +1067,12 @@ function buildFit(r){
   M(2,206,f);
  };
  /* Developer ID and CORE field descriptions. Native overrides match CORE's FIT mapping. */
+ M(0,0,[[0,'e',4],[1,'u16',edge?1:65535],[2,'u16',edge?GARMIN_EDGE840_PRODUCT:0],[3,'z32',devSerial()],[4,'u32',t0]]);
+ M(8,49,[[0,'u16',100]]);
  M(1,207,[[0,'b',Array(16).fill(255),16],[1,'b',appId,16],[2,'u16',65535],[3,'u8',0],[4,'u32',100]]);
  desc(0,'core_temperature','f32','C',20,139);
  desc(10,'skin_temperature','f32','C',20,null);
  desc(19,'core_data_quality','u8','Q',20,null);
- desc(20,'core_reserved','u16','kcal',20,null);
  desc(95,'heat_strain_index','f32','a.u.',20,null);
  desc(81,'CIQ_core_temperature','f32','C',20,null);
  desc(82,'CIQ_skin_temperature','f32','C',20,null);
@@ -1081,8 +1082,6 @@ function buildFit(r){
  desc(5,'avg_core_temperature','f32','C',18,208);
  desc(6,'max_core_temperature','f32','C',18,210);
  desc(7,'min_core_temperature','f32','C',18,209);
- M(0,0,[[0,'e',4],[1,'u16',edge?1:65535],[2,'u16',edge?GARMIN_EDGE840_PRODUCT:0],[3,'z32',devSerial()],[4,'u32',t0]]);
- M(8,49,[[0,'u16',100]]);
  const bst=b=>b==null?null:b>=60?2:b>=30?3:b>=15?4:5;
  const devs=[['trainer','Kickr',7],['power','Wattpedaler',2],['hr','Pulsbelte',1],['core','CORE',null]].filter(d=>D[d[0]].dev).map((d,i)=>({c:D[d[0]],lab:d[1],ty:d[2],ix:i+1}));
  const devInfo=(ts,end)=>{
@@ -1094,7 +1093,7 @@ function buildFit(r){
  M(10,12,[[0,'e',2],[1,'e',SUB],[3,'s','Innesykkel',16]]);
  M(11,7,[[3,'u16',S.sessFtp||S.ftp]]);
  M(3,21,[[253,'u32',t0],[0,'e',0],[1,'e',0]]);
- const times=activeTimes(r),activeEnd=Math.max(S.realEl||0,times[times.length-1]||0),laps=groupLaps(r,endMs,activeEnd),all={w:[],h:[],c:[],spd:[],core:[],skin:[],hsi:[],quality:[],reserved:[]};
+ const times=activeTimes(r),activeEnd=Math.max(S.realEl||0,times[times.length-1]||0),laps=groupLaps(r,endMs,activeEnd),all={w:[],h:[],c:[],spd:[],core:[],skin:[],hsi:[],quality:[]};
  let dist=0,workJ=0,firstPos=null,lastPos=null,accPower=0;
  const distAt=new Map(),workAt=new Map();
  r.forEach((x,i)=>{
@@ -1111,21 +1110,20 @@ function buildFit(r){
   if(x.skin!=null)all.skin.push(x.skin);
   if(x.hsi!=null)all.hsi.push(x.hsi);
   if(x.quality!=null)all.quality.push(x.quality);
-  if(x.reserved!=null)all.reserved.push(x.reserved);
   const f=[[253,'u32',T(x.ts)],[3,'u8',R(x.hr)],[4,'u8',R(x.cad)],[5,'u32',Math.round(distAt.get(x)*100)],
    [6,'u16',speed==null?null:Math.round(speed*1000)],[7,'u16',x.w==null?null:Math.max(0,Math.round(x.w))],
    [29,'u32',Math.round(workAt.get(x))],[73,'u32',speed==null?null:Math.round(speed*1000)]];
   if(gps){const q=pos(distAt.get(x));if(!firstPos)firstPos=q;lastPos=q;f.push([0,'s32',q[0]],[1,'s32',q[1]])}
-  const dv=[[0,'f32',x.core],[10,'f32',x.skin],[19,'u8',x.quality],[20,'u16',x.reserved],[95,'f32',x.hsi],[81,'f32',x.core],[82,'f32',x.skin]];
+  const dv=[[0,'f32',x.core],[10,'f32',x.skin],[19,'u8',x.quality],[95,'f32',x.hsi],[81,'f32',x.core],[82,'f32',x.skin]];
   M(4,20,f,dv);
  });
  laps.forEach((l,li)=>{
   const pts=l.pts,lh=pts.map(x=>x.hr).filter(x=>x!=null),lc=pts.map(x=>x.cad).filter(x=>x!=null&&x>0),
    lw=pts.map(x=>x.w).filter(x=>x!=null),lcore=pts.map(x=>x.core).filter(x=>x!=null);
   const startIndex=r.indexOf(pts[0]),endIndex=startIndex+pts.length;
-  let ld=0;for(let j=startIndex;j<endIndex;j++){const x=r[j],dt=Math.max(0,(times[j+1]??activeEnd)-times[j]);if(x.spd!=null)ld+=x.spd/3.6*dt}
+  let ld=0,lj=0;for(let j=startIndex;j<endIndex;j++){const x=r[j],dt=Math.max(0,(times[j+1]??activeEnd)-times[j]);if(x.spd!=null)ld+=x.spd/3.6*dt;if(x.w!=null)lj+=x.w*dt}
   const lf=[[253,'u32',T(l.endTs)],[2,'u32',T(l.startTs)],[7,'u32',Math.round(l.sec*1000)],[8,'u32',Math.round(l.timerSec*1000)],
-   [9,'u32',Math.round(ld*100)],[0,'e',9],[1,'e',1],
+   [9,'u32',Math.round(ld*100)],[0,'e',9],[1,'e',1],[11,'u16',Math.round(lj/1000)],
    [13,'u16',l.timerSec?Math.round(ld/l.timerSec*1000):null],
    [14,'u16',mx(pts.map(x=>x.spd==null?null:x.spd/3.6*1000))],[15,'u8',R(mean(lh))],[16,'u8',mx(lh)],
    [17,'u8',R(mean(lc))],[18,'u8',mx(lc)],[19,'u16',R(mean(lw))],[20,'u16',mx(lw)],
@@ -1140,7 +1138,7 @@ function buildFit(r){
  const ifv=ftp?np/ftp:null,tss=ifv&&timerMs?(timerMs/1000*np*ifv)/(ftp*3600)*100:null;
  const sf=[[253,'u32',tN],[2,'u32',t0],[7,'u32',Math.round(elapsedMs)],[8,'u32',timerMs],[9,'u32',Math.round(dist*100)],
   [0,'e',8],[1,'e',1],[5,'e',2],[6,'e',SUB],[25,'u16',0],[26,'u16',laps.length],
-  [14,'u16',avgSpeed==null?null:Math.round(avgSpeed*1000)],[15,'u16',maxSpeed==null?null:Math.round(maxSpeed*1000)],
+  [11,'u16',Math.round(workJ/1000)],[14,'u16',avgSpeed==null?null:Math.round(avgSpeed*1000)],[15,'u16',maxSpeed==null?null:Math.round(maxSpeed*1000)],
   [16,'u8',R(avgH)],[17,'u8',mx(all.h)],[18,'u8',R(avgC)],[19,'u8',mx(all.c)],
   [20,'u16',R(avgW)],[21,'u16',mx(all.w)],[34,'u16',R(np)],[35,'u16',tss==null?null:Math.round(tss*10)],
   [36,'u16',ifv==null?null:Math.round(ifv*1000)],[45,'u16',ftp],[48,'u32',Math.round(workJ)],[254,'u16',0]];
@@ -1203,9 +1201,9 @@ $3('bCsv').onclick=()=>{
   const speed=x.spd==null?null:x.spd/3.6;
   if(speed!=null)dist+=speed*dt;
   return [((x.ts-r[0].ts)/1000).toFixed(3),v(x.w),v(x.hr),v(x.cad),speed==null?'':speed.toFixed(3),dist.toFixed(2),
-   v(x.core,2),v(x.skin,2),v(x.hsi,1),v(x.quality),v(x.reserved)].join(',');
+   v(x.core,2),v(x.skin,2),v(x.hsi,1),v(x.quality)].join(',');
  });
- dl(stamp()+'_streams.csv','time,watts,heartrate,cadence,velocity_smooth,distance,core_temperature,skin_temperature,heat_strain_index,core_data_quality,core_reserved\n'+rows.join('\n'),'text/csv');
+ dl(stamp()+'_streams.csv','time,watts,heartrate,cadence,velocity_smooth,distance,core_temperature,skin_temperature,heat_strain_index,core_data_quality\n'+rows.join('\n'),'text/csv');
 };
 
 /* ---------- Moduser: fri tur / treningsøkt / puls-ERG ---------- */

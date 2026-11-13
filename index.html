@@ -884,7 +884,7 @@ function zoneIdx(pct){for(let i=zcol.length-2;i>=0;i--)if(pct>=zcol[i])return i;
 const $3=id=>document.getElementById(id);
 const fm=(v,d=0)=>v==null?(d?'0.0':'0'):v.toFixed(d);
 function render(){
- if(document.body.classList.contains('analysis-open'))renderAnalysis();
+ if(document.body.classList.contains('analysis-open')&&Date.now()-(S.anLast||0)>=900){S.anLast=Date.now();renderAnalysis();}
  const w3=avg(S.wb),hr=fresh('hr','hr'),cad=fresh('power','cad')??fresh('trainer','cad'),
        core=fresh('core','core'),skin=fresh('core','skin'),spd=fresh('trainer','speed');
 
@@ -1381,7 +1381,7 @@ function renderAnalysis(){
   anCell('Tid',anTime(a.elapsed))
  ].join('');
  const colors=['#6b7a8f','#46a6ff','#35d07f','#f1c40f','#f08c3a','#ef5350','#b36be0'];
- $('anZones').innerHTML=a.z.map((q,i)=>'<article class="zone-card '+(S.state==='running'&&anZone(S.log.at(-1)?.w,a.ftp)===i?'active':'')+'" style="--zc:'+colors[i]+'"><h3><span>'+AN_ZONES[i].name+'</span><small>'+(AN_ZONES[i].hi===Infinity?' >150':AN_ZONES[i].lo+'–'+AN_ZONES[i].hi)+' % FTP</small></h3><div class="zone-stats">'+
+ $('anZones').innerHTML=a.z.map((q,i)=>'<article class="zone-card '+(S.state==='running'&&anZone(S.log.at(-1)?.w,a.ftp)===i?'active':'')+'" style="--zc:'+colors[i]+'"><h3><span>'+AN_ZONES[i].name+'</span><small>'+(AN_ZONES[i].hi===Infinity?'>150':AN_ZONES[i].lo+' til <'+AN_ZONES[i].hi)+' % FTP</small></h3><div class="zone-stats">'+
   '<div><span>Tid</span><b>'+anTime(q.sec)+'</b></div><div><span>Arbeid</span><b>'+anFmt(q.j/1000,1)+' kJ</b></div>'+
   '<div><span>Andel arbeid</span><b>'+anFmt(q.share,1)+' %</b></div><div><span>Snittpuls</span><b>'+anFmt(q.avgHr,0)+' bpm</b></div>'+
   '<div><span>Snittkadens</span><b>'+anFmt(q.avgCad,0)+' rpm</b></div><div><span>Watt per bpm</span><b>'+anFmt(q.ef,2)+'</b></div>'+
@@ -1394,7 +1394,7 @@ function renderAnalysis(){
   anCell('Core temperaturøkning',anFmt(a.core.rise,2),'°C')+
   anCell('HSI snitt / maks',anFmt(a.hsi.avg,1)+' / '+anFmt(a.hsi.max,1),'');
  $('anTempNote').textContent='Temperaturverdier vises bare når CORE sensoren leverer målinger. Temperaturøkning per sone er endring mellom første og siste Core prøve i sonen, delt på målt tid. Dette er en enkel trend, ikke en fysiologisk modell.';
- {const c=$('anHsi'),g=c.getContext('2d'),dpr=window.devicePixelRatio||1,w=c.clientWidth,h=120;c.width=Math.max(1,Math.round(w*dpr));c.height=Math.round(h*dpr);g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);const pts=r.filter(x=>x.hsi!=null);if(pts.length>1){const lo=Math.min(...pts.map(x=>x.hsi)),hi=Math.max(...pts.map(x=>x.hsi)),span=hi-lo||1;g.strokeStyle='#f08c3a';g.lineWidth=2;g.beginPath();pts.forEach((x,i)=>{const px=i/(pts.length-1)*Math.max(1,w-8)+4,py=h-12-(x.hsi-lo)/span*(h-24);i?g.lineTo(px,py):g.moveTo(px,py)});g.stroke();g.fillStyle='var(--mut)';g.font='10px sans-serif';g.fillText('Lav '+anFmt(lo,1),4,10);g.fillText('Høy '+anFmt(hi,1),4,h-2)}else{g.fillStyle='#A0AAB8';g.font='12px sans-serif';g.fillText('Venter på HSI målinger',4,20)}}
+ {const c=$('anHsi'),g=c.getContext('2d'),dpr=window.devicePixelRatio||1,w=c.clientWidth,h=120;c.width=Math.max(1,Math.round(w*dpr));c.height=Math.round(h*dpr);g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);const pts=r.filter(x=>x.hsi!=null);if(pts.length>1){const lo=Math.min(...pts.map(x=>x.hsi)),hi=Math.max(...pts.map(x=>x.hsi)),span=hi-lo||1;g.strokeStyle='#f08c3a';g.lineWidth=2;g.beginPath();pts.forEach((x,i)=>{const px=i/(pts.length-1)*Math.max(1,w-8)+4,py=h-12-(x.hsi-lo)/span*(h-24);i?g.lineTo(px,py):g.moveTo(px,py)});g.stroke();g.fillStyle='#A0AAB8';g.font='10px sans-serif';g.fillText('Lav '+anFmt(lo,1),4,10);g.fillText('Høy '+anFmt(hi,1),4,h-2)}else{g.fillStyle='#A0AAB8';g.font='12px sans-serif';g.fillText('Venter på HSI målinger',4,20)}}
  $('anRelations').innerHTML=anCell('Watt og puls',anFmt(a.corrWH,2),'r')+anCell('Watt og Core',anFmt(a.corrWC,2),'r')+anCell('Puls og Core',anFmt(a.corrHC,2),'r');
  $('anDrift').innerHTML=anCell('EF første halvdel',anFmt(a.ef1,3))+anCell('EF andre halvdel',anFmt(a.ef2,3))+anCell('Pw:Hr drift',anFmt(a.drift,1),'%');
  $('anDriftNote').textContent=a.elapsed<1200?'Pw:Hr vises som en foreløpig sammenligning. En mer stabil vurdering krever minst 20 minutter med gyldige watt og pulsdata.':a.drift==null?'Ikke nok gyldige watt og pulsdata til å beregne Pw:Hr.':'Beregningen sammenligner effektivitet, watt delt på puls, i første og andre halvdel. Positiv verdi betyr lavere effektivitet i andre halvdel. Pauser og endringer i intensitet kan påvirke resultatet.';

@@ -356,6 +356,49 @@ body.analysis-open #analysisPage{
  #anZones{grid-template-rows:repeat(4,auto)}
  #anZones .zone-card{height:190px}
 }
+
+/* Hard limits: cards must never stretch to fill viewport height */
+#analysisPage .an-section:has(#anMetrics),
+#analysisPage .an-section:has(#anZones){
+ height:auto !important;
+ min-height:0 !important;
+ align-content:start !important;
+}
+#analysisPage #anMetrics{
+ height:82px !important;
+ min-height:82px !important;
+ max-height:82px !important;
+ grid-template-rows:82px !important;
+ align-content:start !important;
+}
+#analysisPage #anMetrics > .an-metric{
+ height:82px !important;
+ min-height:82px !important;
+ max-height:82px !important;
+ box-sizing:border-box !important;
+}
+#analysisPage #anZones{
+ height:auto !important;
+ min-height:0 !important;
+ max-height:none !important;
+ grid-template-rows:220px !important;
+ align-content:start !important;
+ align-items:start !important;
+}
+#analysisPage #anZones > .zone-card{
+ height:220px !important;
+ min-height:220px !important;
+ max-height:220px !important;
+ box-sizing:border-box !important;
+ align-self:start !important;
+}
+@media(max-width:1250px){
+ #analysisPage #anZones{grid-template-rows:220px 220px !important}
+}
+@media(max-width:700px){
+ #analysisPage #anZones{grid-template-rows:190px 190px 190px 190px !important}
+ #analysisPage #anZones > .zone-card{height:190px !important;min-height:190px !important;max-height:190px !important}
+}
 </style></head>
 <body>
 <div id="warn">Web Bluetooth mangler i denne visningen – åpne i Chrome (Mac/PC) eller Bluefy (iPad) for sensortilkobling.</div>

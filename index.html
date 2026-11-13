@@ -373,7 +373,7 @@ body.analysis-open{overflow:hidden}
  <div class="an-section"><h2>Sone 2. Første og andre halvdel</h2><div class="an-compare" id="anHalves"></div><p class="an-note">Sammenligningen bruker bare registrerte sone 2 prøver i hver halvdel av økten.</p></div>
  <div class="an-section"><h2>Temperatur og varmebelastning</h2><div class="an-temp" id="anTemps"></div><p class="an-note" id="anTempNote"></p></div>
  <div class="an-section"><h2>Pulsdrift</h2><div class="an-grid" id="anDrift"></div><p class="an-note" id="anDriftNote"></p></div>
- <div class="an-section"><h2>Venstre og høyre balanse</h2><div class="an-metric"><b>Ikke tilgjengelig</b><small>Appens nåværende Bluetooth parser leser ikke L/R balanse fra wattpedalene. Verdien vises ikke som null eller som et estimat.</small></div></div>
+ <div class="an-section"><h2>Venstre og høyre balanse</h2><div class="an-metric"><b id="anLR">Ikke tilgjengelig</b><small id="anLRNote">Vises når wattpedalene sender pedal power balance med kjent referanseside.</small></div></div>
 </section>
 <div id="stopdlg" role="dialog" aria-modal="true" aria-label="Økt satt på pause">
  <h2>Økten er satt på pause</h2>
@@ -464,7 +464,7 @@ const D={
   if(!(f&1)){this.speed=v.getUint16(o,true)/100;o+=2}
   if(f&2)o+=2; if(f&4){this.cad=v.getUint16(o,true)/2;o+=2}
   if(f&8)o+=2; if(f&16)o+=3; if(f&32)o+=2; if(f&64)this.w=v.getInt16(o,true)}},
- power:{svc:0x1818,chr:0x2A63,parse(v){const f=v.getUint16(0,true);this.w=v.getInt16(2,true);let o=4;if(f&1)o++;if(f&4)o+=2;if(f&16)o+=6;
+ power:{svc:0x1818,chr:0x2A63,parse(v){const f=v.getUint16(0,true);this.w=v.getInt16(2,true);this.lrLeft=null;let o=4;if(f&1){const balance=v.getUint8(o);o++;if(f&2)this.lrLeft=balance/2}if(f&4)o+=2;if(f&16)o+=6;
   if(f&32){const r=v.getUint16(o,true),t=v.getUint16(o+2,true);
    if(this.pr!=null){const dt=((t-this.pt+65536)%65536)/1024,dr=(r-this.pr+65536)%65536;
     if(dt>0){this.cad=dr/dt*60;this.pc=Date.now()}else if(Date.now()-(this.pc||0)>2500)this.cad=0}
@@ -703,7 +703,7 @@ function tick(){
   if(newSec)S.lastT=t;
   S.wb=[...S.wb,w].slice(-25); /* 25 x 200 ms = 5 s */
   {const dt=S.lastNow?Math.min(1,(now-S.lastNow)/1000):0;S.lastNow=now;S.realEl+=dt} /* faktisk syklet tid – pause og hopp telles ikke */
-  const hr=hold('h',fresh('hr','hr')),cad=hold('c',fresh('power','cad')??fresh('trainer','cad')),
+  const hr=hold('h',fresh('hr','hr')),cad=hold('c',fresh('power','cad')??fresh('trainer','cad')),lrLeft=hold('lr',fresh('power','lrLeft')),
         core=hold('k',fresh('core','core')),skin=hold('s',fresh('core','skin')),hsi=hold('i',fresh('core','hsi')),
         quality=hold('q',fresh('core','quality')),spd=hold('v',fresh('trainer','speed'));
 
@@ -716,7 +716,7 @@ function tick(){
    {const pw=fresh('power','w'),tw=fresh('trainer','w'); /* pedaler ≈ halve Kickr-watt i 30 s = bare én side */
     if(pw!=null&&tw!=null&&tw>100&&pw/tw>.42&&pw/tw<.58){S.halfN=(S.halfN||0)+1;if(S.halfN===30)toast('Pedalene viser omtrent halv watt mot Kickr. Sjekk i Favero-appen at venstre pedal sender samlet watt (ikke bare venstre side).',true)}else S.halfN=0}
    S.acc||accReset();
-   S.log.push({e:t,realEl:S.realEl,ts:now,w,hr,cad,core,skin,hsi,quality,spd,tgt:S.tgt,lap:S.lapSeq+1});
+   S.log.push({e:t,realEl:S.realEl,ts:now,w,hr,cad,lrLeft,core,skin,hsi,quality,spd,tgt:S.tgt,lap:S.lapSeq+1});
    accAdd(S.log[S.log.length-1]);
    if(hr>S.hrmax)S.hrmax=hr;
    [['w',w],['h',hr],['c',cad]].forEach(([k,v])=>{if(v!=null){S.lap.s[k][0]+=v;S.lap.s[k][1]++}});
@@ -1340,24 +1340,24 @@ function anCalc(){
   }
   if(activeZone==null)continue;
   const q=z[activeZone];q.sec+=dt;if(x.w!=null)q.j+=x.w*dt;
-  if(x.hr!=null)q.hr.push(x.hr);if(x.cad!=null&&x.cad>0)q.cad.push(x.cad);
+  if(x.hr!=null)q.hr.push(x.hr);if(x.cad!=null&&x.cad>0)q.cad.push(x.cad);if(x.lrLeft!=null)q.lr.push(x.lrLeft);
   if(x.core!=null){q.core.push(x.core);if(q.firstCore==null){q.firstCore=x.core;q.firstT=x.realEl??0}q.lastCore=x.core;q.lastT=x.realEl??0}
   if(x.skin!=null)q.skin.push(x.skin);if(x.hsi!=null)q.hsi.push(x.hsi);
  }
  const totalJ=z.reduce((a,q)=>a+q.j,0);
- z.forEach(q=>{q.avgHr=anMean(q.hr);q.avgCad=anMean(q.cad);q.ef=q.avgHr&&q.j>0?(q.j/Math.max(q.sec,1))/q.avgHr:null;q.share=totalJ>0?q.j/totalJ*100:null;q.coreRate=q.firstCore!=null&&q.lastCore!=null&&q.lastT-q.firstT>=30?(q.lastCore-q.firstCore)/((q.lastT-q.firstT)/3600):null});
+ z.forEach(q=>{q.avgHr=anMean(q.hr);q.avgCad=anMean(q.cad);q.lr=anMean(q.lr);q.ef=q.avgHr&&q.j>0?(q.j/Math.max(q.sec,1))/q.avgHr:null;q.share=totalJ>0?q.j/totalJ*100:null;q.coreRate=q.firstCore!=null&&q.lastCore!=null&&q.lastT-q.firstT>=30?(q.lastCore-q.firstCore)/((q.lastT-q.firstT)/3600):null});
  const firstTs=r.length?r[0].realEl||0:0,half=elapsed/2,halfStats=[0,1].map(h=>{
   const a=r.filter(x=>x.realEl>=firstTs+(h?half:0)&&x.realEl<firstTs+(h?elapsed:half)&&anZone(x.w,ftp)===1);
   const p=a.filter(x=>x.w!=null).map(x=>x.w),hr=a.filter(x=>x.hr!=null).map(x=>x.hr),c=a.filter(x=>x.core!=null).map(x=>x.core);
   return{w:anMean(p),hr:anMean(hr),ef:anMean(p)!=null&&anMean(hr)?anMean(p)/anMean(hr):null,core:c.length?c[c.length-1]-c[0]:null,n:a.length}
  });
- const temps={core:r.filter(x=>x.core!=null).map(x=>x.core),skin:r.filter(x=>x.skin!=null).map(x=>x.skin),hsi:r.filter(x=>x.hsi!=null).map(x=>x.hsi)};
+ const lrSamples=r.filter(x=>x.lrLeft!=null).map(x=>x.lrLeft);const temps={core:r.filter(x=>x.core!=null).map(x=>x.core),skin:r.filter(x=>x.skin!=null).map(x=>x.skin),hsi:r.filter(x=>x.hsi!=null).map(x=>x.hsi)};
  const tempStats=a=>({start:a.length?a[0]:null,avg:anMean(a),max:a.length?Math.max(...a):null,rise:a.length?a[a.length-1]-a[0]:null});
  const hrFirst=r.filter(x=>x.hr!=null&&x.realEl<elapsed/2).map(x=>x.hr),hrSecond=r.filter(x=>x.hr!=null&&x.realEl>=elapsed/2).map(x=>x.hr);
  const wFirst=r.filter(x=>x.w!=null&&x.realEl<elapsed/2).map(x=>x.w),wSecond=r.filter(x=>x.w!=null&&x.realEl>=elapsed/2).map(x=>x.w);
  const ef1=anMean(wFirst)!=null&&anMean(hrFirst)?anMean(wFirst)/anMean(hrFirst):null,ef2=anMean(wSecond)!=null&&anMean(hrSecond)?anMean(wSecond)/anMean(hrSecond):null;
  const drift=ef1&&ef2?(ef1-ef2)/ef1*100:null;
- return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),np,IF,TSS,z,totalJ,halfStats,core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
+ return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),np,IF,TSS,z,totalJ,halfStats,lrLeft:anMean(lrSamples),lrN:lrSamples.length,core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
 }
 function anCell(label,value,unit='',sub=''){return '<div class="an-metric"><span>'+label+'</span><b>'+value+(unit?' '+unit:'')+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</div>'}
 function renderAnalysis(){
@@ -1383,8 +1383,9 @@ function renderAnalysis(){
   '<div><span>Tid</span><b>'+anTime(q.sec)+'</b></div><div><span>Arbeid</span><b>'+anFmt(q.j/1000,1)+' kJ</b></div>'+
   '<div><span>Andel arbeid</span><b>'+anFmt(q.share,1)+' %</b></div><div><span>Snittpuls</span><b>'+anFmt(q.avgHr,0)+' bpm</b></div>'+
   '<div><span>Snittkadens</span><b>'+anFmt(q.avgCad,0)+' rpm</b></div><div><span>Watt per bpm</span><b>'+anFmt(q.ef,2)+'</b></div>'+
-  '<div><span>Innganger</span><b>'+q.entries+'</b></div><div><span>Core °C/time</span><b>'+anFmt(q.coreRate,2)+'</b></div></div>'+
+  '<div><span>Innganger</span><b>'+q.entries+'</b></div><div><span>Core °C/time</span><b>'+anFmt(q.coreRate,2)+'</b></div><div><span>L/R</span><b>'+(q.lr==null?'–':anFmt(q.lr,1)+' / '+anFmt(100-q.lr,1))+'</b></div></div>'+
   '<details><summary>Flere sonedata</summary><p class="an-note">Core start '+anFmt(q.firstCore,2)+' °C · slutt '+anFmt(q.lastCore,2)+' °C</p><p class="an-note">Hud snitt '+anFmt(anMean(q.skin),2)+' °C · HSI snitt '+anFmt(anMean(q.hsi),1)+'</p><p class="an-note">L/R balanse: ikke tilgjengelig fra gjeldende pedalparser</p></details></article>').join('');
+ $('anLR').textContent=a.lrN?anFmt(a.lrLeft,1)+' % / '+anFmt(100-a.lrLeft,1)+' %':'Ikke tilgjengelig';$('anLRNote').textContent=a.lrN?'Gjennomsnitt fra '+a.lrN+' målinger. Første verdi er venstre side.':'Pedalene har ikke sendt balanse med kjent venstre referanse.';
  $('anHalves').innerHTML=a.halfStats.map((q,i)=>'<div class="an-half"><h3>'+(i?'Andre halvdel':'Første halvdel')+'</h3><p>Snitt watt: <b>'+anFmt(q.w,0)+' W</b></p><p>Snitt puls: <b>'+anFmt(q.hr,0)+' bpm</b></p><p>Watt per bpm: <b>'+anFmt(q.ef,2)+'</b></p><p>Core endring: <b>'+anFmt(q.core,2)+' °C</b></p><p>Prøver i sone 2: '+q.n+'</p></div>').join('');
  $('anTemps').innerHTML=anCell('Core start / snitt / maks',anFmt(a.core.start,2)+' / '+anFmt(a.core.avg,2)+' / '+anFmt(a.core.max,2),'°C')+
   anCell('Hud start / snitt / maks',anFmt(a.skin.start,2)+' / '+anFmt(a.skin.avg,2)+' / '+anFmt(a.skin.max,2),'°C')+

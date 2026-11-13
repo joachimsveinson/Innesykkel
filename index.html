@@ -236,6 +236,11 @@ body.analysis-open #analysisPage{
 .an-sub{font-size:11px;margin-top:2px}
 .an-head .big{min-height:34px;padding:0 10px}
 #analysisPage>.an-section{width:100%;max-width:none;margin:0;min-height:0}
+#analysisPage>.an-section:nth-of-type(2){
+ display:grid;
+ grid-template-rows:auto auto minmax(0,1fr);
+ overflow:hidden;
+}
 #analysisPage>.an-section:nth-of-type(n+3){display:none}
 #analysisPage>.an-section h2{font-size:13px;margin:0 0 5px}
 #analysisPage>.an-section:nth-of-type(2)>.an-sub{font-size:10px;margin-bottom:5px}

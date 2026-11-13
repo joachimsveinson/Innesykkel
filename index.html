@@ -371,7 +371,8 @@ body.analysis-open{overflow:hidden}
  <div class="an-section"><h2>Belastning og effekt</h2><div class="an-grid" id="anMetrics"></div></div>
  <div class="an-section"><h2>Wattsoner basert på FTP</h2><div class="an-sub">Sonebytte krever tre sekunder i ny sone for å redusere raske skift rundt en grense.</div><div class="zone-grid" id="anZones"></div></div>
  <div class="an-section"><h2>Sone 2. Første og andre halvdel</h2><div class="an-compare" id="anHalves"></div><p class="an-note">Sammenligningen bruker bare registrerte sone 2 prøver i hver halvdel av økten.</p></div>
- <div class="an-section"><h2>Temperatur og varmebelastning</h2><div class="an-temp" id="anTemps"></div><p class="an-note" id="anTempNote"></p></div>
+ <div class="an-section"><h2>Temperatur og varmebelastning</h2><div class="an-temp" id="anTemps"></div><p class="an-note" id="anTempNote"></p><div class="an-metric"><span>HSI gjennom økten</span><canvas id="anHsi" height="120" style="width:100%;height:120px;display:block;margin-top:8px"></canvas></div></div>
+ <div class="an-section"><h2>Sammenheng mellom watt, puls og temperatur</h2><div class="an-grid" id="anRelations"></div><p class="an-note">Korrelasjon viser om to måleserier øker eller faller sammen. Den viser ikke at den ene målingen forårsaker den andre.</p></div>
  <div class="an-section"><h2>Pulsdrift</h2><div class="an-grid" id="anDrift"></div><p class="an-note" id="anDriftNote"></p></div>
  <div class="an-section"><h2>Venstre og høyre balanse</h2><div class="an-metric"><b id="anLR">Ikke tilgjengelig</b><small id="anLRNote">Vises når wattpedalene sender pedal power balance med kjent referanseside.</small></div></div>
 </section>
@@ -1322,7 +1323,7 @@ function anCalc(){
  const validW=r.filter(x=>x.w!=null),ws=validW.map(x=>x.w),hrs=r.filter(x=>x.hr!=null).map(x=>x.hr);
  const avgW=anMean(ws),avgHr=anMean(hrs),cad=r.filter(x=>x.cad!=null&&x.cad>0).map(x=>x.cad);
  const roll=n=>{const a=ws.slice(-n);return a.length?anMean(a):null};
- let n4=0,nN=0;for(let i=29;i<ws.length;i++){const m=anMean(ws.slice(i-29,i+1));if(m!=null){n4+=Math.pow(m,4);nN++}}
+ let n4=0,nN=0,windowW=[];for(const x of r){if(x.w==null){windowW=[];continue}windowW.push(x.w);if(windowW.length>30)windowW.shift();if(windowW.length===30){const m=anMean(windowW);n4+=Math.pow(m,4);nN++}}
  const np=nN?Math.pow(n4/nN,.25):null,IF=np!=null&&ftp?np/ftp:null,TSS=IF!=null?elapsed*np*IF/(ftp*3600)*100:null;
  const z=AN_ZONES.map(()=>({sec:0,j:0,hr:[],cad:[],core:[],skin:[],hsi:[],entries:0,firstCore:null,lastCore:null,firstT:null,lastT:null}));
  let activeZone=null,candidate=null,candidateSec=0;
@@ -1353,11 +1354,12 @@ function anCalc(){
  });
  const lrSamples=r.filter(x=>x.lrLeft!=null).map(x=>x.lrLeft);const temps={core:r.filter(x=>x.core!=null).map(x=>x.core),skin:r.filter(x=>x.skin!=null).map(x=>x.skin),hsi:r.filter(x=>x.hsi!=null).map(x=>x.hsi)};
  const tempStats=a=>({start:a.length?a[0]:null,avg:anMean(a),max:a.length?Math.max(...a):null,rise:a.length?a[a.length-1]-a[0]:null});
+ const corr=(keyA,keyB)=>{const pairs=r.filter(x=>Number.isFinite(x[keyA])&&Number.isFinite(x[keyB]));if(pairs.length<10)return null;const aa=anMean(pairs.map(x=>x[keyA])),bb=anMean(pairs.map(x=>x[keyB]));let n=0,d1=0,d2=0;for(const x of pairs){const da=x[keyA]-aa,db=x[keyB]-bb;n+=da*db;d1+=da*da;d2+=db*db}return d1&&d2?n/Math.sqrt(d1*d2):null};
  const hrFirst=r.filter(x=>x.hr!=null&&x.realEl<elapsed/2).map(x=>x.hr),hrSecond=r.filter(x=>x.hr!=null&&x.realEl>=elapsed/2).map(x=>x.hr);
  const wFirst=r.filter(x=>x.w!=null&&x.realEl<elapsed/2).map(x=>x.w),wSecond=r.filter(x=>x.w!=null&&x.realEl>=elapsed/2).map(x=>x.w);
  const ef1=anMean(wFirst)!=null&&anMean(hrFirst)?anMean(wFirst)/anMean(hrFirst):null,ef2=anMean(wSecond)!=null&&anMean(hrSecond)?anMean(wSecond)/anMean(hrSecond):null;
  const drift=ef1&&ef2?(ef1-ef2)/ef1*100:null;
- return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),np,IF,TSS,z,totalJ,halfStats,lrLeft:anMean(lrSamples),lrN:lrSamples.length,core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
+ return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),np,IF,TSS,z,totalJ,halfStats,lrLeft:anMean(lrSamples),lrN:lrSamples.length,corrWH:corr('w','hr'),corrWC:corr('w','core'),corrHC:corr('hr','core'),core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
 }
 function anCell(label,value,unit='',sub=''){return '<div class="an-metric"><span>'+label+'</span><b>'+value+(unit?' '+unit:'')+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</div>'}
 function renderAnalysis(){
@@ -1392,6 +1394,8 @@ function renderAnalysis(){
   anCell('Core temperaturøkning',anFmt(a.core.rise,2),'°C')+
   anCell('HSI snitt / maks',anFmt(a.hsi.avg,1)+' / '+anFmt(a.hsi.max,1),'');
  $('anTempNote').textContent='Temperaturverdier vises bare når CORE sensoren leverer målinger. Temperaturøkning per sone er endring mellom første og siste Core prøve i sonen, delt på målt tid. Dette er en enkel trend, ikke en fysiologisk modell.';
+ {const c=$('anHsi'),g=c.getContext('2d'),dpr=window.devicePixelRatio||1,w=c.clientWidth,h=120;c.width=Math.max(1,Math.round(w*dpr));c.height=Math.round(h*dpr);g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);const pts=r.filter(x=>x.hsi!=null);if(pts.length>1){const lo=Math.min(...pts.map(x=>x.hsi)),hi=Math.max(...pts.map(x=>x.hsi)),span=hi-lo||1;g.strokeStyle='#f08c3a';g.lineWidth=2;g.beginPath();pts.forEach((x,i)=>{const px=i/(pts.length-1)*Math.max(1,w-8)+4,py=h-12-(x.hsi-lo)/span*(h-24);i?g.lineTo(px,py):g.moveTo(px,py)});g.stroke();g.fillStyle='var(--mut)';g.font='10px sans-serif';g.fillText('Lav '+anFmt(lo,1),4,10);g.fillText('Høy '+anFmt(hi,1),4,h-2)}else{g.fillStyle='#A0AAB8';g.font='12px sans-serif';g.fillText('Venter på HSI målinger',4,20)}}
+ $('anRelations').innerHTML=anCell('Watt og puls',anFmt(a.corrWH,2),'r')+anCell('Watt og Core',anFmt(a.corrWC,2),'r')+anCell('Puls og Core',anFmt(a.corrHC,2),'r');
  $('anDrift').innerHTML=anCell('EF første halvdel',anFmt(a.ef1,3))+anCell('EF andre halvdel',anFmt(a.ef2,3))+anCell('Pw:Hr drift',anFmt(a.drift,1),'%');
  $('anDriftNote').textContent=a.elapsed<1200?'Pw:Hr vises som en foreløpig sammenligning. En mer stabil vurdering krever minst 20 minutter med gyldige watt og pulsdata.':a.drift==null?'Ikke nok gyldige watt og pulsdata til å beregne Pw:Hr.':'Beregningen sammenligner effektivitet, watt delt på puls, i første og andre halvdel. Positiv verdi betyr lavere effektivitet i andre halvdel. Pauser og endringer i intensitet kan påvirke resultatet.';
 }

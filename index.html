@@ -254,7 +254,7 @@ body.analysis-open{overflow:hidden}
      <div class="th"><span class="wl"><span id="wtl">Watt · 5 s snitt</span><i class="chip off" id="wchip">Fri giring</i></span><em id="tgtl">Mål 0</em></div>
      <strong id="w3s">0</strong>
      <div id="hrstat" hidden><span id="hrstxt"></span><button class="conn" id="hrToggle" style="min-width:0;min-height:30px;padding:2px 10px">⚙ Innstillinger</button></div>
-     <div class="zonebar" id="wz" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+     <div class="zonebar" id="wz" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
    </div>
    <div class="t">
      <div class="th"><span>Puls · bpm</span><em>Maks <b id="hrmax">0</b> · <b id="hrz">0%</b></em></div>
@@ -465,7 +465,7 @@ const D={
   if(!(f&1)){this.speed=v.getUint16(o,true)/100;o+=2}
   if(f&2)o+=2; if(f&4){this.cad=v.getUint16(o,true)/2;o+=2}
   if(f&8)o+=2; if(f&16)o+=3; if(f&32)o+=2; if(f&64)this.w=v.getInt16(o,true)}},
- power:{svc:0x1818,chr:0x2A63,parse(v){const f=v.getUint16(0,true);this.w=v.getInt16(2,true);this.lrLeft=null;let o=4;if(f&1){const balance=v.getUint8(o);o++;if(f&2)this.lrLeft=balance/2}if(f&4)o+=2;if(f&16)o+=6;
+ power:{svc:0x1818,chr:0x2A63,parse(v){const f=v.getUint16(0,true);this.w=v.getInt16(2,true);this.lrLeft=null;let o=4;if(f&1){const balance=v.getUint8(o);o++;if((f&2)&&balance!==255)this.lrLeft=balance/2}if(f&4)o+=2;if(f&16)o+=6;
   if(f&32){const r=v.getUint16(o,true),t=v.getUint16(o+2,true);
    if(this.pr!=null){const dt=((t-this.pt+65536)%65536)/1024,dr=(r-this.pr+65536)%65536;
     if(dt>0){this.cad=dr/dt*60;this.pc=Date.now()}else if(Date.now()-(this.pc||0)>2500)this.cad=0}
@@ -876,7 +876,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- Soner ---------- */
 const col=p=>p<55?'#6b7a8f':p<76?'#46a6ff':p<91?'#35d07f':p<106?'#f1c40f':p<121?'#f08c3a':'#ef5350';
-const zcol=[0,55,76,91,106,121,200];
+const zcol=[0,55,76,91,106,121,151];
 function zoneIdx(pct){for(let i=zcol.length-2;i>=0;i--)if(pct>=zcol[i])return i;return 0}
 </script>
 <script>
@@ -1000,7 +1000,7 @@ function draw(){
 
  /* akse: watt-etiketter ved sonegrenser */
  g.fillStyle='#5c6a7e';g.strokeStyle='#232c3b';g.lineWidth=1;
- [55,76,91,106,121].forEach(pz=>{const w=S.ftp*pz/100,y=yW(w);
+ [55,76,91,106,121,151].forEach(pz=>{const w=S.ftp*pz/100,y=yW(w);
   g.beginPath();g.moveTo(padL,y);g.lineTo(W-padR,y);g.stroke();
   g.fillText(Math.round(w),4,y+3)});
  /* akse: tid */
@@ -1307,12 +1307,12 @@ function hrUi(){
 /* ---------- Treningsanalyse ---------- */
 const AN_ZONES=[
  {name:'Z1',lo:0,hi:55,color:'#6b7a8f'},
- {name:'Z2',lo:55,hi:75,color:'#46a6ff'},
- {name:'Z3',lo:75,hi:90,color:'#35d07f'},
- {name:'Z4',lo:90,hi:105,color:'#f1c40f'},
- {name:'Z5',lo:105,hi:120,color:'#f08c3a'},
- {name:'Z6',lo:120,hi:150,color:'#ef5350'},
- {name:'Z7',lo:150,hi:Infinity,color:'#b36be0'}
+ {name:'Z2',lo:55,hi:76,color:'#46a6ff'},
+ {name:'Z3',lo:76,hi:91,color:'#35d07f'},
+ {name:'Z4',lo:91,hi:106,color:'#f1c40f'},
+ {name:'Z5',lo:106,hi:121,color:'#f08c3a'},
+ {name:'Z6',lo:121,hi:151,color:'#ef5350'},
+ {name:'Z7',lo:151,hi:Infinity,color:'#b36be0'}
 ];
 const anFmt=(v,d=0)=>v==null||!Number.isFinite(v)?'–':v.toFixed(d);
 const anTime=v=>{if(!Number.isFinite(v))return '–';const n=Math.round(v);return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')};

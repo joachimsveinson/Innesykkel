@@ -703,7 +703,7 @@ function tick(){
   if(newSec)S.lastT=t;
   S.wb=[...S.wb,w].slice(-25); /* 25 x 200 ms = 5 s */
   {const dt=S.lastNow?Math.min(1,(now-S.lastNow)/1000):0;S.lastNow=now;S.realEl+=dt} /* faktisk syklet tid – pause og hopp telles ikke */
-  const hr=hold('h',fresh('hr','hr')),cad=hold('c',fresh('power','cad')??fresh('trainer','cad')),lrLeft=hold('lr',fresh('power','lrLeft')),
+  const hr=hold('h',fresh('hr','hr')),cad=hold('c',fresh('power','cad')??fresh('trainer','cad')),lrLeft=fresh('power','lrLeft'),
         core=hold('k',fresh('core','core')),skin=hold('s',fresh('core','skin')),hsi=hold('i',fresh('core','hsi')),
         quality=hold('q',fresh('core','quality')),spd=hold('v',fresh('trainer','speed'));
 

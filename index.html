@@ -574,7 +574,7 @@ body.analysis-open { overflow: hidden; }
   <span>Nedkjøring (0 = av)</span><span><input id="hrCool" type="number" min="0" max="30"> min</span>
   <span>Regulator</span><span><select id="hrMode"><option value="auto">Auto</option><option value="warn">Varsel</option><option value="off">Av</option></select></span>
  </div>
- <div class="row"><button class="big" id="hrHelp">? Hjelp</button><button class="big" id="hrDone">Ferdig</button></div>
+ <div class="row"><button class="big" id="hrHelp">? Hjelp</button><button class="big go" id="hrDone">Ferdig</button></div>
 </div></div>
 <div id="sumdlg" class="modal" hidden><div class="mbox">
  <h2>Økten er ferdig</h2>
@@ -609,7 +609,7 @@ body.analysis-open { overflow: hidden; }
  <li><b>Regulering:</b> appen ser på pulsen siste 10 s og hvor fort den stiger, og regner ut hvor den er på vei om ca. 30 s. Er den på vei over taket, senkes watten (2–12 W, høyst hvert 15. s). Er den på vei under båndet, økes den (1–4 W, høyst hvert 20. s).</li>
  <li><b>Wattområdet</b> (% av FTP) er harde grenser – watten går aldri utenfor, uansett puls.</li>
  <li><b>Regulator:</b> «Varsel» farger bare pulsen, «Av» holder watten. Du kan justere med ±5 W når som helst.</li></ol>
- <button class="big" id="helpOk" style="font-size:13px;min-height:40px">Skjønner</button></div></div>
+ <button class="big go" id="helpOk" style="font-size:13px;min-height:40px">Skjønner</button></div></div>
 
 <section id="analysisPage" aria-label="Treningsanalyse">
   <div class="an-head">
@@ -677,7 +677,7 @@ body.analysis-open { overflow: hidden; }
 <div id="cfmdlg" role="dialog" aria-modal="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:18px">
  <div id="cfmtxt" style="font:400 italic clamp(32px, 4vw, 48px) var(--font-serif);max-width:80%;text-align:center"></div>
  <div style="display:flex;gap:12px">
-  <button class="big" id="cfmYes" style="min-height:48px;padding:0 28px">Ja</button>
+  <button class="big go" id="cfmYes" style="min-height:48px;padding:0 28px">Ja</button>
   <button class="big" id="cfmNo" style="min-height:48px;padding:0 28px">Nei</button>
  </div>
 </div>
@@ -797,9 +797,9 @@ async function pair(k){
   c.dev=await navigator.bluetooth.requestDevice(BT_ALL?{acceptAllDevices:true,optionalServices:[U(c.svc),U(0x180F)]}:{filters:[{services:[U(c.svc)]}],optionalServices:[U(c.svc),U(0x180F)]});
   if(BT_ALL)BT_ALL=false;
   const dup=Object.keys(D).find(o=>o!==k&&D[o].dev&&D[o].dev.id===c.dev.id);
-  if(dup){c.dev=null;status(k,'Ikke tilkoblet');toast(`Dette er samme enhet som ${cName(dup)}. Velg riktig enhet for ${cName(k)} i listen.`,true);return}
-  if(k==='power'&&/assioma.*r$/i.test(c.dev.name||'')){c.dev=null;status(k,'Ikke tilkoblet');toast('Dette er høyre pedal. Velg pedalen som slutter på L (venstre).',true);return}
-  if(k==='power'&&/assioma.*l$/i.test(c.dev.name||''))toast('Assioma venstre pedal valgt.');
+  if(dup){c.dev=null;status(k,'Ikke tilkoblet');toast(`Dette er samme enhet som ${cName(dup)}. Velg riktig enhet for ${cName(k)} i listen. (Kickr kobles bare i Kickr-knappen – appen bruker Kickrens egen watt når du ikke har pedaler.)`,true);return}
+  if(k==='power'&&/assioma.*r$/i.test(c.dev.name||'')){c.dev=null;status(k,'Ikke tilkoblet');toast('Dette er høyre pedal. Den sender bare til venstre pedal – velg pedalen som slutter på L (venstre).',true);return}
+  if(k==='power'&&/assioma.*l$/i.test(c.dev.name||''))toast('Assioma venstre pedal valgt. Den sender samlet watt når pedalene er paret i Favero-appen.');
   c.manual=false;
   c.dev.addEventListener('gattserverdisconnected',()=>lost(k));
   await link(k);
@@ -809,7 +809,7 @@ async function pair(k){
   try{c.dev&&c.dev.gatt.disconnect()}catch(_){}
   c.dev=null;status(k,'Feil – se melding');
   let ekstra='';
-  if(c.stage==='velge enhet'&&e&&e.name!=='NotFoundError'&&!BT_ALL){BT_ALL=true;ekstra=' · Trykk på knappen igjen for å vise alle Bluetooth-enheter'}
+  if(c.stage==='velge enhet'&&e&&e.name!=='NotFoundError'&&!BT_ALL){BT_ALL=true;ekstra=' · Trykk på knappen igjen: da vises alle Bluetooth-enheter i nærheten'}
   toast(`${cName(k)} – ${d}${ekstra}`,true)}
 }
 function cName(k){return{trainer:'Kickr Core',power:'Wattpedaler',hr:'pulsbeltet',core:'CORE-sensoren'}[k]||k}
@@ -1003,7 +1003,7 @@ function tick(){
   if(newSec){
    S.pb=[...S.pb,t>=(S.settleUntil||0)?pp:null].slice(-PM_WINDOW_S);
    {const pw=fresh('power','w'),tw=fresh('trainer','w');
-    if(pw!=null&&tw!=null&&tw>100&&pw/tw>.42&&pw/tw<.58){S.halfN=(S.halfN||0)+1;if(S.halfN===30)toast('Pedalene viser omtrent halv watt mot Kickr. Sjekk at venstre pedal sender samlet watt.',true)}else S.halfN=0}
+    if(pw!=null&&tw!=null&&tw>100&&pw/tw>.42&&pw/tw<.58){S.halfN=(S.halfN||0)+1;if(S.halfN===30)toast('Pedalene viser omtrent halv watt mot Kickr. Sjekk i Favero-appen at venstre pedal sender samlet watt (ikke bare venstre side).',true)}else S.halfN=0}
    S.acc||accReset();
    S.log.push({e:t,realEl:S.realEl,ts:now,w,hr,cad,lrLeft,core,skin,hsi,quality,spd,tgt:S.tgt,lap:S.lapSeq+1});
    accAdd(S.log[S.log.length-1]);
@@ -1646,17 +1646,16 @@ function anCalc(){
  }
  const totalJ=z.reduce((a,q)=>a+q.j,0);
  z.forEach(q=>{q.avgHr=anMean(q.hr);q.avgCad=anMean(q.cad);q.avgNm=anMean(q.nm);q.lr=anMean(q.lr);q.ef=q.avgHr&&q.j>0?(q.j/Math.max(q.sec,1))/q.avgHr:null;q.share=totalJ>0?q.j/totalJ*100:null});
- const firstTs=r.length?r[0].realEl||0:0,half=elapsed/2,halfStats=[0,1].map(h=>{
-  const a=r.filter(x=>x.realEl>=firstTs+(h?half:0)&&x.realEl<firstTs+(h?elapsed:half)&&anZone(x.w,ftp)===1);
+ const firstTs=r.length?r[0].realEl||0:0,mid=firstTs+(elapsed-firstTs)/2,halfStats=[0,1].map(h=>{
+  const a=r.filter(x=>x.realEl>=(h?mid:firstTs)&&(h?x.realEl<=elapsed:x.realEl<mid)&&anZone(x.w,ftp)===1);
   const p=a.filter(x=>x.w!=null).map(x=>x.w),hr=a.filter(x=>x.hr!=null).map(x=>x.hr),nm=a.map(x=>calcNm(x.w,x.cad)).filter(v=>v!=null),c=a.filter(x=>x.core!=null).map(x=>x.core);
-  return{w:anMean(p),hr:anMean(hr),nm:anMean(nm),ef:anMean(p)!=null&&anMean(hr)?anMean(p)/anMean(hr):null,core:c.length?c[c.length-1]-c[0]:null,n:a.length}
+  return{w:anMean(p),hr:anMean(hr),nm:anMean(nm),core:c.length?c[c.length-1]-c[0]:null,n:a.length}
  });
  const lrSamples=r.filter(x=>x.lrLeft!=null).map(x=>x.lrLeft);const temps={core:r.filter(x=>x.core!=null).map(x=>x.core),skin:r.filter(x=>x.skin!=null).map(x=>x.skin),hsi:r.filter(x=>x.hsi!=null).map(x=>x.hsi)};
  const tempStats=a=>({start:a.length?a[0]:null,avg:anMean(a),max:a.length?Math.max(...a):null,rise:a.length?a[a.length-1]-a[0]:null});
  const corr=(fnA,fnB)=>{const pairs=r.map(x=>[fnA(x),fnB(x)]).filter(([a,b])=>Number.isFinite(a)&&Number.isFinite(b));if(pairs.length<10)return null;const aa=anMean(pairs.map(p=>p[0])),bb=anMean(pairs.map(p=>p[1]));let n=0,d1=0,d2=0;for(const[a,b]of pairs){const da=a-aa,db=b-bb;n+=da*db;d1+=da*da;d2+=db*db}return d1&&d2?n/Math.sqrt(d1*d2):null};
- const hrFirst=r.filter(x=>x.hr!=null&&x.realEl<elapsed/2).map(x=>x.hr),hrSecond=r.filter(x=>x.hr!=null&&x.realEl>=elapsed/2).map(x=>x.hr);
- const wFirst=r.filter(x=>x.w!=null&&x.realEl<elapsed/2).map(x=>x.w),wSecond=r.filter(x=>x.w!=null&&x.realEl>=elapsed/2).map(x=>x.w);
- const ef1=anMean(wFirst)!=null&&anMean(hrFirst)?anMean(wFirst)/anMean(hrFirst):null,ef2=anMean(wSecond)!=null&&anMean(hrSecond)?anMean(wSecond)/anMean(hrSecond):null;
+ const efPairs=r.filter(x=>x.w!=null&&x.w>0&&x.hr!=null),p1=efPairs.filter(x=>x.realEl<mid),p2=efPairs.filter(x=>x.realEl>=mid);
+ const efOf=p=>p.length?anMean(p.map(x=>x.w))/anMean(p.map(x=>x.hr)):null,ef1=efOf(p1),ef2=efOf(p2);
  const drift=ef1&&ef2?(ef1-ef2)/ef1*100:null;
  return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),avgNm:anMean(nms),np,IF,TSS,z,totalJ,halfStats,lrLeft:anMean(lrSamples),lrN:lrSamples.length,corrWH:corr(x=>x.w,x=>x.hr),corrWC:corr(x=>x.w,x=>x.core),corrHC:corr(x=>x.hr,x=>x.core),corrNH:corr(x=>calcNm(x.w,x.cad),x=>x.hr),core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
 }
@@ -1687,8 +1686,8 @@ function renderAnalysis() {
         </div>
       </article>`).join('');
     $('anTemps').innerHTML = anKv('Core (Start/Snitt/Maks)', '–') + anKv('Hud (Start/Snitt/Maks)', '–') + anKv('Core økning / HSI maks', '–');
-    $('anDrift').innerHTML = anKv('EF 1. halvdel', '–') + anKv('EF 2. halvdel', '–') + anKv('Pw:Hr drift', '–') + anKv('L/R balanse', '–');
-    $('anHalves').innerHTML = anKv('1. halvdel (W / bpm / Nm)', '–') + anKv('2. halvdel (W / bpm / Nm)', '–') + anKv('EF (1. / 2. halvdel)', '–');
+    $('anDrift').innerHTML = anKv('EF (1. → 2. halvdel)', '–') + anKv('Pw:Hr drift', '–') + anKv('L/R pedalbalanse', '–');
+    $('anHalves').innerHTML = anKv('1. halvdel (W / bpm / Nm)', '–') + anKv('2. halvdel (W / bpm / Nm)', '–');
     $('anRelations').innerHTML = anKv('Watt ↔ Puls (r)', '–') + anKv('Torque ↔ Puls (r)', '–') + anKv('Watt ↔ Core (r)', '–') + anKv('Puls ↔ Core (r)', '–');
     return;
   }
@@ -1744,7 +1743,8 @@ function renderAnalysis() {
   $('anZones').innerHTML = a.z.map((q, i) => {
     const z = AN_ZONES[i];
     const rng = z.hi === Infinity ? '>150%' : `${z.lo}–${z.hi}%`;
-    const lr = q.lr == null ? '–' : `${anFmt(q.lr,0)}/${anFmt(100-q.lr,0)}`;
+    const lrL = q.lr == null ? null : Math.round(q.lr);
+    const lr = lrL == null ? '–' : `${lrL}/${100-lrL}`;
     return `
       <article class="zone-card ${curZone === i ? 'active' : ''}" style="--zc:${colors[i]}">
         <h3><span>${z.name}</span><small>${rng}</small></h3>
@@ -1766,17 +1766,17 @@ function renderAnalysis() {
     anKv('Hud (Start/Snitt/Maks)', `${anFmt(a.skin.start,1)} / ${anFmt(a.skin.avg,1)} / ${anFmt(a.skin.max,1)} °C`) +
     anKv('Core økning / HSI maks', `${a.core.rise!=null?(a.core.rise>0?'+':'')+anFmt(a.core.rise,2)+' °C':'–'} / ${anFmt(a.hsi.max,2)}`);
 
-  const lrTot = a.lrN ? `${anFmt(a.lrLeft,1)}% / ${anFmt(100-a.lrLeft,1)}%` : 'Ikke tilgjengelig';
+  const lrL1 = Math.round(a.lrLeft*10)/10;
+  const lrTot = a.lrN && Number.isFinite(lrL1) ? `${lrL1.toFixed(1)}% / ${(Math.round((100-lrL1)*10)/10).toFixed(1)}%` : 'Ikke tilgjengelig';
   $('anDrift').innerHTML =
     anKv('EF (1. → 2. halvdel)', `${anFmt(a.ef1, 2)} → ${anFmt(a.ef2, 2)}`) +
-    anKv('Pw:Hr drift', `${anFmt(a.drift, 1)} % ${a.elapsed < 1200 ? '(foreløpig)' : ''}`) +
+    anKv('Pw:Hr drift', a.drift != null ? `${anFmt(a.drift, 1)} %${a.elapsed < 1200 ? ' (foreløpig)' : ''}` : 'Venter på data') +
     anKv('L/R pedalbalanse', lrTot);
 
   const h1 = a.halfStats[0], h2 = a.halfStats[1];
   $('anHalves').innerHTML =
     anKv('1. halvdel (W / bpm / Nm)', `${anFmt(h1.w,0)} W · ${anFmt(h1.hr,0)} bpm · ${anFmt(h1.nm,1)} Nm`) +
-    anKv('2. halvdel (W / bpm / Nm)', `${anFmt(h2.w,0)} W · ${anFmt(h2.hr,0)} bpm · ${anFmt(h2.nm,1)} Nm`) +
-    anKv('EF (1. / 2. halvdel)', `${anFmt(h1.ef,2)} / ${anFmt(h2.ef,2)}`);
+    anKv('2. halvdel (W / bpm / Nm)', `${anFmt(h2.w,0)} W · ${anFmt(h2.hr,0)} bpm · ${anFmt(h2.nm,1)} Nm`);
 
   $('anRelations').innerHTML =
     anKv('Watt ↔ Puls (r)', anFmt(a.corrWH, 2)) +

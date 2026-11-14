@@ -786,7 +786,7 @@ function openSensorDlg(k,b){
  sdK=k;const r=b.getBoundingClientRect(),d=$('sensordlg');d.hidden=false;
  d.style.left=Math.max(8,Math.min(r.left,innerWidth-296))+'px';d.style.top=(r.bottom+6)+'px';sensorDlgUpdate();
 }
-document.querySelectorAll('.conn[data-k]').forEach(b=>b.onclick=async()=>{const k=b.dataset.k,c=D[k];if(c.dev&&c.ok){openSensorDlg(k,b);return}if(c.dev){c.manual=false;try{await link(k)}catch(e){status(k,'Trykk for å koble til');toast(cName(k)+' – kunne ikke koble til: '+(e.message||e),true)}return}pair(k)});
+document.querySelectorAll('.conn[data-k]').forEach(b=>b.onclick=async()=>{const k=b.dataset.k,c=D[k];if(c.dev&&c.ok){openSensorDlg(k,b);return}if(c.dev){c.manual=false;try{await link(k);return}catch(e){console.warn('Kunne ikke koble til lagret Bluetooth-enhet',e);try{c.dev.gatt&&c.dev.gatt.disconnect()}catch(_){}c.dev=null;c.ok=false;status(k,'Velg sensor på nytt');toast(cName(k)+' – tidligere lagret tilkobling virket ikke. Velg sensoren på nytt.',true)}}pair(k)});
 
 const U=n=>typeof n==='number'?`0000${n.toString(16).padStart(4,'0')}-0000-1000-8000-00805f9b34fb`:n;
 let BT_ALL=false;try{localStorage.removeItem('btall')}catch(e){}

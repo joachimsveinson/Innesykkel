@@ -6,6 +6,13 @@
   "workout_count": 26,
   "workouts": [
     {
+      "id": 1930,
+      "name": "i-2 - 6x20min",
+      "duration_seconds": 9720,
+      "training_load": null,
+      "description_raw": "- 5m z1\n- 6m ramp z2\n- 4m z1\n\n6x\n- 20m 75%\n- 2m 50%\n\n- 15m z2"
+    },
+    {
       "id": 1506,
       "name": "i-3 - 2x30min",
       "duration_seconds": 5220,
@@ -179,13 +186,6 @@
       "duration_seconds": 2540,
       "training_load": 44,
       "description_raw": "Kan legge til rolig langtur etter denne.\n\n- 5m 50%\n- 6m 74%\n- 3m 87.5%\n- 3m 50%\n\n8x\n-MAX! 10s 300%\n-3m 50%"
-    },
-    {
-      "id": 1930,
-      "name": "i-2 - 6x20min",
-      "duration_seconds": 9720,
-      "training_load": null,
-      "description_raw": "- 5m z1\n- 6m ramp z2\n- 4m z1\n\n6x\n- 20m 75%\n- 2m 50%\n\n- 15m z2"
     }
   ]
 }

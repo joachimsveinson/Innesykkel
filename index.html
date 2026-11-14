@@ -5,168 +5,226 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Innesykkel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0D1017;--card:#161B26;--card2:#222938;--ctrl:#222938;--line:#262B38;--off:#1A1E29;--offfg:#4A5268;--nil:#2A3040;
-  --fg:#f4f6f8;--mut:#A0AAB8;--mut2:#5c6a7e;
-  --ok:#35d07f;--bad:#ef5350;--warn:#f1c40f;--acc:#46a6ff;
-  --z1:#6b7a8f;--z2:#46a6ff;--z3:#35d07f;--z4:#f1c40f;--z5:#f08c3a;--z6:#ef5350;
+  --bg:#000000;--obsidian:#010101;--card:#191919;--card2:#282828;--charcoal:#363636;--slate:#3f3f3f;
+  --line:#282828;--line-hi:#3f3f3f;--off:#0e0e0e;--offfg:#4a4a4a;--nil:#282828;
+  --fg:#ffffff;--mut:#7f7f7f;--ghost:#c0c0c0;
+  --cyan:#19d0e8;--sky:#44ccff;--teal:#062f34;--teal-mid:#0e5d66;
+  --ok:#369E9A;--bad:#AD5358;--warn:#B89F5D;
+  --z1:#5A6266;--z2:#2B7A8C;--z3:#369E9A;--z4:#B89F5D;--z5:#B87352;--z6:#AD5358;--z7:#7D659E;
+  --font-serif:"Instrument Serif",Georgia,serif;
+  --font-mono:"DM Mono",ui-monospace,monospace;
+  --font-body:"Geist","Inter",system-ui,sans-serif;
+  --rad-card:18px;
+  --rad-pill:100000px;
   color-scheme:dark;
 }
 *{box-sizing:border-box;margin:0;font-variant-numeric:tabular-nums!important}
 html,body{height:100%}
 body{
   background:var(--bg);color:var(--fg);
-  font:15px/1.3 "Inter","Plus Jakarta Sans","Avenir Next","Segoe UI",system-ui,sans-serif;
+  font:14px/1.4 var(--font-mono);
   display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;
   gap:8px;padding:10px;overflow:hidden;
+  -webkit-font-smoothing:antialiased;
 }
+h1,h2,h3{font-family:var(--font-serif);font-style:italic;font-weight:400;letter-spacing:-0.03em}
 button{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+:focus-visible{outline:1px solid var(--cyan);outline-offset:2px}
 [hidden]{display:none!important}
 
-/* ---------- felles flater: kort, kontroller, rammer (ett sett regler) */
-.t,.clk,.grp,#lp,.card,.mbox,canvas,#recov,#sensordlg{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
-.conn,.file,button.big{border-radius:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
-.conn,.file,input,select,#tip{border:1px solid var(--line);border-radius:8px}
+/* ---------- felles flater: myke mørke gradienter på kort og paneler */
+.t,.clk,#lp,.card,.mbox,#recov,#sensordlg{
+  background:linear-gradient(180deg, #1d1d1d 0%, var(--card) 50%, #111111 100%);
+  border:1px solid var(--line);
+  border-radius:var(--rad-card);
+}
+.grp,canvas{
+  background:linear-gradient(180deg, #161616 0%, #0d0d0d 100%);
+  border:1px solid var(--line);
+  border-radius:var(--rad-card);
+}
+.conn,.file,button.big{
+  border-radius:var(--rad-pill);
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:0.015em;
+}
+.conn,.file,input,select,#tip{border:1px solid var(--line)}
+input,select,#tip{border-radius:8px}
 .nil{color:var(--nil)!important}
-.empty{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mut);padding:16px}
+.empty{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mut);padding:16px;font-family:var(--font-mono);font-size:12px}
 
 /* ---------- topp */
-#warn{background:#7a2c2c;padding:6px 12px;border-radius:8px;display:none;font-size:14px}
-header{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#warn{background:linear-gradient(180deg, #2a1415 0%, #1b0c0d 100%);border:1px solid #592629;color:#e09b9f;padding:6px 14px;border-radius:12px;display:none;font-size:12px;font-family:var(--font-mono)}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;position:relative;z-index:2}
 #warn{grid-row:1}header{grid-row:2}.mid{grid-row:3}.bar{grid-row:4}
-.brand{font-weight:800;font-size:17px;letter-spacing:.4px;margin-right:4px}
-.conn{display:flex;align-items:center;gap:8px;background:var(--card);padding:7px 12px;text-align:left;cursor:pointer;min-height:40px;min-width:140px;transition:border-color .15s}
-.conn:hover{border-color:#343b4d}
-.conn i{width:10px;height:10px;border-radius:50%;background:#4a5568;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.04)}
-.conn.on i{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.brand{font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:30px;letter-spacing:-0.02em;margin-right:8px;color:var(--fg);line-height:1}
+.conn{display:flex;align-items:center;gap:8px;background:linear-gradient(180deg, #1f1f1f 0%, var(--card) 100%);padding:6px 14px;text-align:left;cursor:pointer;min-height:38px;min-width:136px;transition:border-color .15s, background .15s}
+.conn:hover{border-color:var(--slate);background:linear-gradient(180deg, #2b2b2b 0%, var(--card2) 100%)}
+.conn i{width:7px;height:7px;border-radius:50%;background:var(--slate);flex:none}
+.conn.on{border-color:var(--slate)}
+.conn.on i{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
 .conn.try i{background:var(--warn);animation:pulse 1s infinite}
 @keyframes pulse{50%{opacity:.35}}
-.conn b{display:block;font-size:14px}
-.conn small{color:var(--mut);font-size:11px;display:block;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#toast{margin-left:auto;display:flex;gap:8px;align-items:center;color:var(--mut);font-size:13px;min-width:0}
+.conn b{display:block;font-size:12px;font-weight:500;color:var(--fg)}
+.conn small{color:var(--mut);font-size:10px;display:block;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#toast{margin-left:auto;display:flex;gap:8px;align-items:center;color:var(--mut);font-size:12px;font-family:var(--font-mono);min-width:0}
 #toast .tmsg{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
-#toast .tmsg.err{color:var(--bad);white-space:normal;max-width:min(60vw,520px)}
-#toast a{color:var(--acc)}
-.set{display:flex;gap:8px;align-items:center;color:var(--mut);font-size:14px}
-.set input[type=number]{width:72px;font-size:18px;font-weight:700;font-family:inherit;padding:4px 8px;background:var(--card);color:var(--fg);text-align:center}
-.file{background:var(--card);padding:8px 12px;color:var(--fg);cursor:pointer;font-weight:600;white-space:nowrap}
-.file:hover{border-color:var(--acc)}
+#toast .tmsg.err{color:#e09b9f;white-space:normal;max-width:min(60vw,520px)}
+#toast a{color:var(--cyan)}
+.set{display:flex;gap:8px;align-items:center;color:var(--mut);font-size:12px;font-family:var(--font-mono)}
+.set input[type=number]{width:66px;font-size:14px;font-weight:500;font-family:var(--font-mono);padding:4px 8px;background:var(--card);color:var(--fg);text-align:center}
+.set input[type=number]:focus{border-color:var(--fg)}
+.file{background:linear-gradient(180deg, #2a2a2a 0%, var(--card2) 100%);padding:8px 16px;color:var(--fg);cursor:pointer;white-space:nowrap}
+.file:hover{border-color:var(--slate)}
 .file input{display:none}
-input:disabled{opacity:.55;cursor:not-allowed}
+input:disabled{opacity:.45;cursor:not-allowed}
 
 /* ---------- midt: tallkort, klokker, graf og rundeliste */
-.mid{display:grid;grid-template-columns:1fr minmax(280px,32vw);gap:8px;min-height:0}
+.mid{display:grid;grid-template-columns:1fr minmax(280px,32vw);gap:8px;min-height:0;position:relative;z-index:1}
 .left{display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0}
 .tiles{flex:1;min-height:0;display:grid;grid-template-columns:1.2fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:8px}
-.t{padding:10px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:0;overflow:hidden;position:relative}
+.t{padding:14px 18px;display:flex;flex-direction:column;justify-content:space-between;min-height:0;overflow:hidden;position:relative}
 #wt{grid-row:1/3}
-.t.ergon{background:#142235}
-.t.stale{opacity:.55}
+/* Hovedproduktkortet beholder kompleks inset/outset elevation og teal gradient */
+.t.ergon{
+  background:linear-gradient(180deg, rgba(25, 208, 232, 0.14) 0%, var(--teal) 55%, #111617 100%);
+  border-color:rgba(25, 208, 232, 0.35);
+  box-shadow:rgba(0, 0, 0, 0.63) 0px 0px 0px 1px, rgb(14, 93, 102) 0px 1px 12px 0px inset;
+}
+.t.stale{opacity:.5}
 .th{display:flex;justify-content:space-between;align-items:baseline;gap:8px;min-width:0}.th>*{min-width:0}.th em{overflow:hidden;text-overflow:ellipsis}#wt .th{align-items:flex-start;flex-wrap:wrap}#wt .wl{flex:1;flex-wrap:wrap}#wt #tgtl{max-width:100%;text-align:right}
-.th span{text-transform:uppercase;font-size:12px;font-weight:600;color:var(--mut);letter-spacing:.06em;white-space:nowrap}
-.th em{font-style:normal;font-size:clamp(13px,1.5vw,18px);color:var(--fg);font-weight:600;white-space:nowrap}
+.th span{font-family:var(--font-mono);text-transform:uppercase;font-size:11px;font-weight:400;color:var(--mut);letter-spacing:0.02em;white-space:nowrap}
+.th em{font-style:normal;font-family:var(--font-mono);font-size:clamp(12px,1.3vw,16px);color:var(--fg);font-weight:400;white-space:nowrap}
 .wl{display:flex;align-items:center;gap:8px;min-width:0}
-.chip{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:999px;white-space:nowrap}
-.chip.on{background:rgba(70,166,255,.18);color:#7cc0ff;border:1px solid var(--acc)}
-.chip.off{background:var(--nil);color:var(--mut);border:1px solid var(--line)}
-.t strong{font-size:clamp(56px,min(6vw,9vh),64px);line-height:1;font-weight:700;margin:auto 0;transition:color .3s}
-#wt strong{font-size:clamp(80px,min(9vw,13vh),96px);color:var(--fg)}
-.zonebar{position:absolute;left:0;right:0;bottom:0;height:4px;display:flex}
-.zonebar i{flex:1;opacity:.15}
-.zonebar i.lit{opacity:1}
-.offchip{font-size:11px;color:var(--warn);cursor:pointer;border:1px dashed var(--warn);border-radius:6px;padding:1px 6px}
-.offchip:hover{background:rgba(241,196,15,.15)}
-#wt #hrstat{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin:4px 0;padding:6px 10px;font-size:clamp(14px,1.5vw,19px);font-weight:600;line-height:1.25;border-left:4px solid var(--acc);border-radius:8px;background:var(--card2)}
+.chip{font-family:var(--font-mono);font-style:normal;font-size:10px;font-weight:400;letter-spacing:0.02em;text-transform:uppercase;padding:2px 10px;border-radius:var(--rad-pill);white-space:nowrap}
+.chip.on{background:rgba(25, 208, 232, 0.12);color:var(--cyan);border:1px solid rgba(25, 208, 232, 0.4)}
+.chip.off{background:var(--card2);color:var(--mut);border:1px solid var(--line)}
+.t strong{font-family:var(--font-mono);font-size:clamp(48px,min(5.5vw,8.5vh),60px);line-height:1;font-weight:500;letter-spacing:-0.03em;margin:auto 0;transition:color .3s}
+#wt strong{font-family:var(--font-mono);font-size:clamp(74px,min(8.5vw,12vh),90px);color:var(--fg);letter-spacing:-0.04em}
 
-.ministats{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:8px;flex:1;min-height:0;margin-top:6px}
+/* Sonebar med sonefarger */
+.zonebar{position:absolute;left:18px;right:18px;bottom:0;height:3px;display:flex;border-radius:3px;overflow:hidden;gap:2px}
+.zonebar i{flex:1;opacity:.22;border-radius:2px;transition:opacity .2s}
+.zonebar i:nth-child(1){background:var(--z1)}
+.zonebar i:nth-child(2){background:var(--z2)}
+.zonebar i:nth-child(3){background:var(--z3)}
+.zonebar i:nth-child(4){background:var(--z4)}
+.zonebar i:nth-child(5){background:var(--z5)}
+.zonebar i:nth-child(6){background:var(--z6)}
+.zonebar i:nth-child(7){background:var(--z7)}
+.zonebar i.lit{opacity:1}
+
+.offchip{font-family:var(--font-mono);font-size:10px;color:var(--warn);cursor:pointer;border:1px dashed var(--warn);border-radius:var(--rad-pill);padding:1px 8px}
+.offchip:hover{background:rgba(184, 159, 93, 0.15)}
+#wt #hrstat{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin:4px 0;padding:8px 12px;font-size:12px;font-family:var(--font-mono);line-height:1.35;border-left:2px solid var(--slate);border-radius:8px;background:rgba(0,0,0,0.45)}
+
+.ministats{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:6px;flex:1;min-height:0;margin-top:6px}
 .ministats.sum{grid-template-columns:repeat(3,1fr)}
-.ministats div{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:2px;background:rgba(255,255,255,.03);border-radius:8px;padding:4px 10px;min-height:0;overflow:hidden}
-.ministats span{font-size:11px;text-transform:uppercase;font-weight:600;color:var(--mut);letter-spacing:.04em;white-space:nowrap;line-height:1.1;overflow:hidden;text-overflow:clip}
-.ministats b{font-size:clamp(18px,min(2vw,3.4vh),26px);line-height:1}
+.ministats div{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:2px;background:linear-gradient(180deg, #0d0d0d 0%, var(--obsidian) 100%);border:1px solid var(--line);border-radius:10px;padding:4px 10px;min-height:0;overflow:hidden}
+.ministats span{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--mut);letter-spacing:0.02em;white-space:nowrap;line-height:1.1;overflow:hidden;text-overflow:clip}
+.ministats b{font-family:var(--font-mono);font-size:clamp(16px,min(1.8vw,3vh),22px);line-height:1;font-weight:500}
 
 .clks{display:flex;gap:8px;flex:none}
-.clk{flex:1;padding:6px 12px;min-width:140px;display:flex;flex-direction:column;justify-content:center}
-.clk span{text-transform:uppercase;font-size:12px;font-weight:600;color:var(--mut);letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.clk b{font-size:clamp(22px,3vw,36px);line-height:1.05}
+.clk{flex:1;padding:10px 18px;min-width:140px;display:flex;flex-direction:column;justify-content:center}
+.clk span{font-family:var(--font-mono);text-transform:uppercase;font-size:11px;color:var(--mut);letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clk b{font-family:var(--font-mono);font-size:clamp(22px,2.6vw,32px);line-height:1.05;font-weight:500;letter-spacing:-0.02em}
 .pulse{animation:pulsebox 1s ease-in-out infinite}
-@keyframes pulsebox{0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 0 0 rgba(241,196,15,0)}50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 0 4px rgba(241,196,15,.75)}}
+@keyframes pulsebox{0%,100%{border-color:var(--line)}50%{border-color:var(--fg)}}
 
 #chartwrap{position:relative;flex:none;min-height:0;height:clamp(96px,21vh,230px)}
 canvas{width:100%;height:100%;min-height:70px;display:block}
 #pick{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
-#legend{position:absolute;top:4px;left:48px;display:flex;gap:14px;align-items:center;font-size:11px;color:var(--mut);pointer-events:none}
+#legend{position:absolute;top:6px;left:48px;display:flex;gap:14px;align-items:center;font-family:var(--font-mono);font-size:10px;color:var(--mut);pointer-events:none}
 #legend span{display:flex;align-items:center;gap:5px}
-#tip{position:absolute;z-index:3;pointer-events:none;background:#0b0f16ee;padding:6px 10px;font-size:14px;max-width:340px;display:none}
+#tip{position:absolute;z-index:3;pointer-events:none;background:#0a0a0af2;padding:8px 12px;font-family:var(--font-mono);font-size:12px;max-width:340px;display:none}
 
-#lp{padding:8px 10px;display:flex;flex-direction:column;min-height:0}
+#lp{padding:12px 14px;display:flex;flex-direction:column;min-height:0}
 #lrows{overflow-y:auto;flex:1;display:flex;flex-direction:column}
-.lr{display:grid;grid-template-columns:.5fr 1.3fr 1fr 1fr 1fr 1.3fr;gap:4px;padding:4px 6px;font-size:clamp(14px,1.7vw,21px);text-align:right;border-radius:6px}
+.lr{display:grid;grid-template-columns:.5fr 1.3fr 1fr 1fr 1fr 1.3fr;gap:4px;padding:4px 8px;font-family:var(--font-mono);font-size:clamp(12px,1.4vw,18px);text-align:right;border-radius:8px}
 .lr>:first-child{text-align:left}
-.lr.h{text-transform:uppercase;font-size:12px;font-weight:600;color:var(--mut);letter-spacing:.06em;border-bottom:1px solid var(--line);margin-bottom:4px;padding-bottom:6px}
-.lr.cur{background:#173049;color:var(--acc)}
-.lr.tot{color:var(--acc);font-weight:700;border-top:1px solid var(--line);margin-top:4px;padding-top:6px}
+.lr.h{font-family:var(--font-mono);text-transform:uppercase;font-size:10.5px;color:var(--mut);letter-spacing:0.02em;border-bottom:1px solid var(--line);margin-bottom:4px;padding-bottom:6px}
+.lr.cur{background:linear-gradient(180deg, rgba(25, 208, 232, 0.14) 0%, rgba(6, 47, 52, 0.4) 100%);color:var(--fg);border:1px solid rgba(25, 208, 232, 0.35)}
+.lr.tot{color:var(--fg);font-weight:500;border-top:1px solid var(--line);margin-top:4px;padding-top:6px}
 
 /* ---------- bunn: kontroller */
-.bar{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.bar{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;position:relative;z-index:2}
 .ctr{flex:1;display:flex;gap:8px;justify-content:center;align-items:stretch;flex-wrap:wrap}
 .rt{display:flex;gap:8px}
-.grp{display:flex;align-items:stretch;padding:4px;gap:4px}
-.grp val{align-self:center;min-width:66px;text-align:center;padding:0 4px}
-.glbl{align-self:center;padding:0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600}
-button.big{border:0;background:var(--ctrl);color:var(--fg);padding:0 14px;min-height:48px;cursor:pointer;white-space:nowrap}
-button.big:active{background:#3a4a60}
-button.big:hover{filter:brightness(1.15)}
-.go{background:#1f8f57!important}.pa{background:#a8741a!important}.st{background:#a63a3a!important}
-button.big:disabled,.big.go:disabled,.big.pa:disabled,.big.st:disabled{background:var(--off)!important;color:var(--offfg)!important;opacity:1!important;box-shadow:none!important;filter:none;cursor:default}
-kbd{font-family:inherit;font-weight:600;font-size:11px;color:var(--fg);background:var(--ctrl);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 7px;margin-right:4px;min-width:22px;text-align:center;display:inline-block}
-.vg{display:flex;align-items:center;gap:6px;color:var(--mut);font-size:13px;padding:0 6px;cursor:pointer}
+.grp{display:flex;align-items:stretch;padding:3px;gap:3px;border-radius:var(--rad-pill)}
+.grp val{align-self:center;min-width:64px;text-align:center;padding:0 4px;font-family:var(--font-mono);font-size:13px}
+.glbl{align-self:center;padding:0 10px;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.02em;color:var(--mut)}
+button.big{border:1px solid var(--line);background:linear-gradient(180deg, #2c2c2c 0%, var(--card2) 100%);color:var(--fg);padding:0 18px;min-height:44px;cursor:pointer;white-space:nowrap;transition:background .15s, border-color .15s}
+button.big:active{background:var(--charcoal)}
+button.big:hover{background:linear-gradient(180deg, #3a3a3a 0%, var(--charcoal) 100%);border-color:var(--slate)}
+/* Solitary white pill CTA fra Monologue */
+.go{background:#ffffff!important;border-color:#ffffff!important;color:#000000!important;font-weight:500!important}
+.go:hover{background:#e6e6e6!important}
+.pa{background:linear-gradient(180deg, #2a2518 0%, var(--card2) 100%)!important;border-color:var(--warn)!important;color:var(--warn)!important}
+.st{background:linear-gradient(180deg, #2b1a1b 0%, var(--card2) 100%)!important;border-color:var(--bad)!important;color:#e09b9f!important}
+button.big:disabled,.big.go:disabled,.big.pa:disabled,.big.st:disabled{background:var(--off)!important;border-color:var(--line)!important;color:var(--offfg)!important;opacity:1!important;cursor:default}
+kbd{font-family:var(--font-mono);font-size:10.5px;color:var(--fg);background:var(--card2);border:1px solid var(--slate);border-bottom-width:2px;border-radius:6px;padding:1px 6px;margin-right:4px;min-width:20px;text-align:center;display:inline-block}
+.vg{display:flex;align-items:center;gap:6px;color:var(--mut);font-family:var(--font-mono);font-size:12px;padding:0 6px;cursor:pointer}
 
-/* ---------- landing */
+/* ---------- landing med ghost wordmark i bakgrunnen */
 body.landing .mid,body.landing .bar{display:none}
-#land{display:none;grid-row:3/5;align-items:center;justify-content:center;flex-direction:column;gap:20px;text-align:center}
+#land{display:none;grid-row:3/5;align-items:center;justify-content:center;flex-direction:column;gap:28px;text-align:center;position:relative;overflow:hidden}
 body.landing #land{display:flex}
-#land h1{font-size:30px}#land p{color:var(--mut)}
+#land::before{
+  content:"Innesykkel";
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-family:var(--font-serif);font-style:italic;font-size:clamp(260px, 32vw, 403px);
+  letter-spacing:-0.04em;line-height:0.9;white-space:nowrap;
+  background:linear-gradient(180deg, rgba(192,192,192,0.08) 0%, rgba(255,255,255,0.02) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  pointer-events:none;z-index:0;
+}
+#land > *{position:relative;z-index:1}
+#land h1{font-size:clamp(64px, 6vw, 96px);color:var(--fg);line-height:1;letter-spacing:-0.04em}
+#land > p{font-family:var(--font-body);color:var(--mut);font-size:16px;max-width:520px}
 .cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
-.card{padding:22px;width:min(30vw,310px);min-width:230px;cursor:pointer;text-align:left;color:var(--fg);border-radius:16px}
-.card:hover,.card.last{border-color:var(--acc)}
-.card h3{font-size:24px;margin-bottom:8px}.card p{font-size:15px}
-#recov{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;padding:14px 18px;border-color:var(--acc)}
-#recov .mut{color:var(--mut);font-size:14px}
+.card{padding:24px;width:min(30vw,310px);min-width:230px;cursor:pointer;text-align:left;color:var(--fg);border-radius:var(--rad-card);transition:border-color .2s, background .2s}
+.card:hover,.card.last{border-color:rgba(25, 208, 232, 0.45);background:linear-gradient(180deg, rgba(25, 208, 232, 0.1) 0%, var(--teal) 70%, #111617 100%)}
+.card h3{font-size:32px;margin-bottom:8px;color:var(--fg)}.card p{font-family:var(--font-body);font-size:15px;color:var(--mut);line-height:1.45}
+#recov{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;padding:16px 22px;border-color:var(--slate)}
+#recov .mut{color:var(--mut);font-family:var(--font-mono);font-size:12px}
 
 /* ---------- modaler og lag */
-.modal{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:16px}
-.mbox{padding:22px;max-width:min(94vw,640px);max-height:94vh;overflow:auto;font-size:16px;line-height:1.45}
-.mbox h2{font-size:22px;margin-bottom:12px}
-.mbox .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;margin-top:16px}
+.modal{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px}
+.mbox{padding:24px;max-width:min(94vw,640px);max-height:94vh;overflow:auto;font-family:var(--font-mono);font-size:13px;line-height:1.45}
+.mbox h2{font-size:48px;margin-bottom:14px;color:var(--fg);line-height:1}
+.mbox .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:18px}
 #helpdlg{z-index:11}
-#helpdlg ol{margin:10px 0 14px 22px}
+#helpdlg .mbox{font-family:var(--font-body);font-size:15px}
+#helpdlg ol{margin:10px 0 14px 22px;color:var(--mut)}
+#helpdlg b{color:var(--fg)}
 #hrset{display:grid;grid-template-columns:1fr auto;gap:10px 16px;align-items:center}
-#hrset>span:nth-child(odd){color:var(--mut)}
-#hrset>span:nth-child(even){display:flex;align-items:center;gap:6px;justify-content:flex-end}
-#hrset input,#hrset select{width:70px;font-size:16px;font-family:inherit;padding:5px 8px;background:var(--card2);color:var(--fg)}
-#hrset select{width:auto}#hrset b{color:var(--fg)}
+#hrset>span:nth-child(odd){color:var(--mut);font-family:var(--font-mono);font-size:13px}
+#hrset>span:nth-child(even){display:flex;align-items:center;gap:6px;justify-content:flex-end;font-family:var(--font-mono);font-size:13px}
+#hrset input,#hrset select{width:70px;font-size:14px;font-family:var(--font-mono);padding:5px 8px;background:var(--obsidian);color:var(--fg)}
+#hrset select{width:auto}#hrset b{color:var(--ok)}
 .sumgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.sumgrid div{background:rgba(255,255,255,.03);border-radius:8px;padding:8px 12px}
-.sumgrid span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600}
-.sumgrid b{font-size:22px}
+.sumgrid div{background:linear-gradient(180deg, #0d0d0d 0%, var(--obsidian) 100%);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.sumgrid span{display:block;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:0.02em;color:var(--mut)}
+.sumgrid b{font-family:var(--font-mono);font-size:22px;font-weight:500}
 #exp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px}
-#exp select{font-family:inherit;font-size:14px;padding:6px 8px;background:var(--card2);color:var(--fg)}
-.keylist{display:grid;grid-template-columns:auto 1fr;gap:10px 18px;align-items:center}
-#sensordlg{position:fixed;z-index:12;width:280px;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 12px 30px #000a}
-.sd-row{display:flex;justify-content:space-between;color:var(--mut);font-size:14px}.sd-row b{color:var(--fg)}
+#exp select{font-family:var(--font-mono);font-size:12px;padding:6px 10px;background:var(--obsidian);color:var(--fg)}
+.keylist{display:grid;grid-template-columns:auto 1fr;gap:10px 18px;align-items:center;font-family:var(--font-mono);font-size:13px}
+#sensordlg{position:fixed;z-index:12;width:280px;padding:18px;display:flex;flex-direction:column;gap:8px}
+.sd-row{display:flex;justify-content:space-between;color:var(--mut);font-family:var(--font-mono);font-size:12px}.sd-row b{color:var(--fg);font-weight:400}
 #sensordlg .row{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
-#steps{position:fixed;top:0;right:0;bottom:0;width:min(92vw,430px);z-index:8;background:var(--card);border-left:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:-8px 0 24px #0008}
-#steps h2{font-size:20px;display:flex;justify-content:space-between;align-items:center}
+#steps{position:fixed;top:0;right:0;bottom:0;width:min(92vw,420px);z-index:8;background:linear-gradient(180deg, #1d1d1d 0%, var(--card) 50%, #111111 100%);border-left:1px solid var(--line);padding:18px;display:flex;flex-direction:column;gap:8px}
+#steps h2{font-size:36px;display:flex;justify-content:space-between;align-items:center;color:var(--fg)}
 #stl{overflow-y:auto;flex:1}
-.sr{display:grid;grid-template-columns:30px 60px 60px 1fr;gap:6px;padding:7px 6px;border-radius:8px;font-size:16px}
-.sr.cur{background:#18304d}.sr.done{opacity:.45}.sr small{display:block;color:var(--mut);font-size:12px}
-#stopdlg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9;align-items:center;justify-content:center;flex-direction:column;gap:24px}
-#stopdlg h2{font:700 34px sans-serif}
-#stopdlg .row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
-#stopdlg .big{height:90px;font-size:28px;padding:0 28px}
+.sr{display:grid;grid-template-columns:30px 60px 60px 1fr;gap:6px;padding:7px 8px;border-radius:8px;font-family:var(--font-mono);font-size:13px}
+.sr.cur{background:linear-gradient(180deg, rgba(25, 208, 232, 0.14) 0%, rgba(6, 47, 52, 0.4) 100%);border:1px solid rgba(25, 208, 232, 0.35)}.sr.done{opacity:.45}.sr small{display:block;font-family:var(--font-mono);color:var(--mut);font-size:11px}
+#stopdlg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9;align-items:center;justify-content:center;flex-direction:column;gap:24px}
+#stopdlg h2{font:400 italic clamp(48px, 5vw, 64px) var(--font-serif);color:var(--fg);letter-spacing:-0.03em}
+#stopdlg .row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+#stopdlg .big{height:64px;font-size:14px;padding:0 28px}
 
 /* ---------- smale skjermer */
 @media (max-width:900px){
@@ -182,6 +240,230 @@ body.landing #land{display:flex}
   .tiles{grid-template-columns:1fr}
   #wt{grid-column:auto}
 }
+
+/* ---------- treningsanalyse */
+#analysisPage {
+  position: fixed;
+  inset: 0;
+  z-index: 7;
+  background: var(--bg);
+  color: var(--fg);
+  padding: 10px 14px;
+  display: none;
+  overflow: hidden;
+}
+body.analysis-open #analysisPage {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 8px;
+}
+body.analysis-open { overflow: hidden; }
+
+.an-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.an-head h1 { font-size: clamp(48px, 4.5vw, 64px); color: var(--fg); line-height: 1; }
+.an-sub { font-family: var(--font-mono); color: var(--mut); font-size: 11px; margin-top: 4px; }
+#anClose { min-height: 36px; padding: 0 16px; font-size: 12px; }
+
+.an-mid-groups {
+  display: grid;
+  grid-template-columns: 4fr 5fr;
+  gap: 8px;
+}
+.an-group {
+  background: linear-gradient(180deg, #1d1d1d 0%, var(--card) 55%, #111111 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--rad-card);
+  padding: 8px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.an-group-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--mut);
+  padding-left: 2px;
+}
+.an-group.hr-grp .an-group-title { color: #AD5358; }
+.an-group.sess-grp .an-group-title { color: #369E9A; }
+
+.an-group-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
+  gap: 5px;
+}
+.an-metric {
+  background: linear-gradient(180deg, #0d0d0d 0%, var(--obsidian) 100%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 5px 8px;
+  min-width: 0;
+}
+.an-metric span {
+  display: block;
+  font-family: var(--font-mono);
+  color: var(--mut);
+  font-size: 9px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.an-metric b {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: clamp(13px, 1.3vw, 18px);
+  margin-top: 1px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.an-zones-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  min-height: 0;
+}
+.zone-card {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--zc) 16%, #191919) 0%, var(--card) 42%, #111111 100%);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--zc, var(--slate));
+  border-radius: var(--rad-card);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.zone-card.active {
+  border-color: var(--zc);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--zc) 28%, #191919) 0%, #141a1b 55%, #0e1213 100%);
+}
+.zone-card h3 {
+  font-family: var(--font-mono);
+  font-style: normal;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+.zone-card h3 small {
+  font-size: 9.5px;
+  color: var(--mut);
+}
+.zone-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 3px;
+  flex: 1;
+  min-height: 0;
+}
+.zone-stats div {
+  background: rgba(1, 1, 1, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 2px 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+.zone-stats span {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  text-transform: uppercase;
+  color: var(--mut);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zone-stats b {
+  font-family: var(--font-mono);
+  font-size: clamp(10.5px, 1vw, 13px);
+  line-height: 1.1;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.an-bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  min-height: 0;
+}
+.an-panel {
+  background: linear-gradient(180deg, #1d1d1d 0%, var(--card) 55%, #111111 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--rad-card);
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.an-panel h2 {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--mut);
+  margin-bottom: 4px;
+}
+.an-kv {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2.5px 0;
+  border-bottom: 1px solid var(--line);
+  gap: 4px;
+}
+.an-kv span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--mut);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.an-kv b {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.an-kv:last-child { border-bottom: 0; }
+#anHsi {
+  width: 100%;
+  flex: 1;
+  min-height: 24px;
+  margin-top: 4px;
+  border-radius: 8px;
+  background: var(--obsidian);
+}
+
+@media (max-width: 820px) {
+  .an-mid-groups { grid-template-columns: 1fr; }
+  .an-group-grid { grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)) !important; }
+  .an-zones-grid { grid-template-columns: repeat(4, 1fr); overflow-y: auto; }
+  .an-bottom-grid { grid-template-columns: repeat(2, 1fr); }
+  #analysisPage { overflow-y: auto; }
+}
 </style></head>
 <body>
 <div id="warn">Web Bluetooth mangler i denne visningen – åpne i Chrome (Mac/PC) eller Bluefy (iPad) for sensortilkobling.</div>
@@ -195,8 +477,10 @@ body.landing #land{display:flex}
  <span id="toast"></span>
  <div class="set">
   <label>FTP <input id="ftp" type="number" min="50" max="600" value="300" aria-label="FTP i watt"> W</label>
+  <label>Maks puls <input id="maxHrSet" type="number" min="80" max="230" value="188" aria-label="Maksimal puls"> bpm</label>
   <label class="file" id="fileLbl" hidden>Last økt (.zwo / .mrc)<input id="file" type="file"></label>
  </div>
+ <button class="conn" id="bAnalysis" style="min-width:0;justify-content:center"><b>Analyse</b></button>
  <button class="conn" id="bKeys" title="Hurtigtaster (?)" style="min-width:0;justify-content:center"><b>?</b></button>
 </header>
 <div id="land">
@@ -215,7 +499,7 @@ body.landing #land{display:flex}
      <div class="th"><span class="wl"><span id="wtl">Watt · 5 s snitt</span><i class="chip off" id="wchip">Fri giring</i></span><em id="tgtl">Mål 0</em></div>
      <strong id="w3s">0</strong>
      <div id="hrstat" hidden><span id="hrstxt"></span><button class="conn" id="hrToggle" style="min-width:0;min-height:30px;padding:2px 10px">⚙ Innstillinger</button></div>
-     <div class="zonebar" id="wz" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+     <div class="zonebar" id="wz" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
    </div>
    <div class="t">
      <div class="th"><span>Puls · bpm</span><em>Maks <b id="hrmax">0</b> · <b id="hrz">0%</b></em></div>
@@ -240,11 +524,11 @@ body.landing #land{display:flex}
    <div class="clk"><span id="totl">Tid totalt</span><b id="tot">00:00</b></div>
   </div>
   <div id="chartwrap"><canvas id="tl" role="img" aria-label="Tidsdiagram over økten"></canvas><button class="big go" id="pick" hidden>Velg øktfil (.zwo / .mrc)</button><div id="legend" hidden>
- <span><svg width="16" height="12"><defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#46a6ff" stop-opacity=".9"/><stop offset="1" stop-color="#46a6ff" stop-opacity=".3"/></linearGradient></defs><rect x="1" y="1" width="14" height="10" rx="3" fill="url(#lg)"/></svg>ERG-steg</span>
- <span><svg width="16" height="12"><defs><pattern id="hp" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#7b8aa0"/><line x1="0" y1="0" x2="0" y2="5" stroke="#161B26" stroke-width="2"/></pattern></defs><rect x="1" y="1" width="14" height="10" rx="3" fill="url(#hp)"/></svg>Fri giring</span>
- <span><svg width="16" height="12"><rect x="1" y="1" width="14" height="10" rx="3" fill="#35d07f" fill-opacity=".5"/><line x1="1" y1="4" x2="15" y2="4" stroke="#fff"/><line x1="1" y1="8" x2="15" y2="8" stroke="#fff"/></svg>Område</span>
- <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#f4f6f8" stroke-opacity=".5" stroke-dasharray="4 3"/></svg>FTP</span>
- <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#fff" stroke-width="2"/></svg>Watt</span><span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#ff5252" stroke-width="2"/></svg>Puls</span>
+ <span><svg width="16" height="12"><defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#19d0e8" stop-opacity=".9"/><stop offset="1" stop-color="#062f34" stop-opacity=".5"/></linearGradient></defs><rect x="1" y="1" width="14" height="10" rx="2" fill="url(#lg)"/></svg>ERG-steg</span>
+ <span><svg width="16" height="12"><defs><pattern id="hp" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#5A6266"/><line x1="0" y1="0" x2="0" y2="5" stroke="#000000" stroke-width="2"/></pattern></defs><rect x="1" y="1" width="14" height="10" rx="2" fill="url(#hp)"/></svg>Fri giring</span>
+ <span><svg width="16" height="12"><rect x="1" y="1" width="14" height="10" rx="2" fill="#369E9A" fill-opacity=".5"/><line x1="1" y1="4" x2="15" y2="4" stroke="#fff"/><line x1="1" y1="8" x2="15" y2="8" stroke="#fff"/></svg>Område</span>
+ <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#ffffff" stroke-opacity=".35" stroke-dasharray="4 3"/></svg>FTP</span>
+ <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#fff" stroke-width="2"/></svg>Watt</span><span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#AD5358" stroke-width="2"/></svg>Puls</span>
 </div><div id="tip"></div></div>
  </div>
  <aside id="lp" aria-label="Rundeliste">
@@ -312,20 +596,76 @@ body.landing #land{display:flex}
  <div class="row"><button class="big" id="keysClose">Lukk</button></div>
 </div></div>
 <div id="sensordlg" hidden>
- <b id="sdName"></b>
+ <b id="sdName" style="font-family:var(--font-mono);font-size:13px"></b>
  <div class="sd-row"><span>Batteri</span><b id="sdBat"></b></div>
  <div class="sd-row"><span>Pakker</span><b id="sdPk"></b></div>
  <div class="sd-row"><span>Siste signal</span><b id="sdLast"></b></div>
  <div class="sd-row"><span>CORE rådata</span><b id="sdRaw">–</b></div>
  <div class="row"><button class="big" id="sdClose">Lukk</button><button class="big st" id="sdOff">Koble fra sensor</button></div>
 </div>
-<aside id="steps" hidden aria-label="Steg i økten"><h2><span>Steg i økten</span><button class="big" id="stClose" style="font-size:16px;min-width:0;padding:6px 12px;height:auto">Lukk</button></h2><div id="stl"></div></aside>
+<aside id="steps" hidden aria-label="Steg i økten"><h2><span>Steg i økten</span><button class="big" id="stClose" style="font-size:12px;min-width:0;padding:4px 12px;min-height:32px">Lukk</button></h2><div id="stl"></div></aside>
 <div id="helpdlg" class="modal" hidden><div class="mbox"><b>Slik fungerer Puls-ERG</b><ol>
  <li><b>Oppvarming:</b> fast watt (standard 50 % av FTP). Juster med ±5 W hvis starten blir for hard. Regulatoren er av.</li>
  <li><b>Regulering:</b> appen ser på pulsen siste 10 s og hvor fort den stiger, og regner ut hvor den er på vei om ca. 30 s. Er den på vei over taket, senkes watten (2–12 W, høyst hvert 15. s). Er den på vei under båndet, økes den (1–4 W, høyst hvert 20. s).</li>
  <li><b>Wattområdet</b> (% av FTP) er harde grenser – watten går aldri utenfor, uansett puls.</li>
  <li><b>Regulator:</b> «Varsel» farger bare pulsen, «Av» holder watten. Du kan justere med ±5 W når som helst.</li></ol>
- <button class="big go" id="helpOk" style="font-size:18px;height:44px">Skjønner</button></div></div>
+ <button class="big go" id="helpOk" style="font-size:13px;min-height:40px">Skjønner</button></div></div>
+
+<section id="analysisPage" aria-label="Treningsanalyse">
+  <div class="an-head">
+    <div>
+      <h1>Treningsanalyse</h1>
+      <div class="an-sub" id="anStatus">Sanntidsanalyse.</div>
+    </div>
+    <button class="big" id="anClose">Tilbake til økten</button>
+  </div>
+
+  <!-- Rad 1: Watt og arbeid i full bredde -->
+  <div class="an-group">
+    <div class="an-group-title">Watt og arbeid</div>
+    <div class="an-group-grid" id="anPowerMetrics" style="--cols:10"></div>
+  </div>
+
+  <!-- Rad 2: Puls og Økt side om side (5 kolonner i Økt for Kadens + Torque + Tid) -->
+  <div class="an-mid-groups">
+    <div class="an-group hr-grp">
+      <div class="an-group-title">Puls</div>
+      <div class="an-group-grid" id="anHrMetrics" style="--cols:4"></div>
+    </div>
+    <div class="an-group sess-grp">
+      <div class="an-group-title">Økt</div>
+      <div class="an-group-grid" id="anSessMetrics" style="--cols:5"></div>
+    </div>
+  </div>
+
+  <!-- Rad 3: Wattsoner -->
+  <div class="an-zones-grid" id="anZones"></div>
+
+  <!-- Rad 4: Detaljbokser -->
+  <div class="an-bottom-grid">
+    <div class="an-panel">
+      <h2>Temperatur og HSI</h2>
+      <div id="anTemps"></div>
+      <canvas id="anHsi"></canvas>
+    </div>
+
+    <div class="an-panel">
+      <h2>Pulsdrift og Balanse</h2>
+      <div id="anDrift"></div>
+    </div>
+
+    <div class="an-panel">
+      <h2>Sone 2 (1. vs 2. halvdel)</h2>
+      <div id="anHalves"></div>
+    </div>
+
+    <div class="an-panel">
+      <h2>Korrelasjoner (r)</h2>
+      <div id="anRelations"></div>
+    </div>
+  </div>
+</section>
+
 <div id="stopdlg" role="dialog" aria-modal="true" aria-label="Økt satt på pause">
  <h2>Økten er satt på pause</h2>
  <div class="row">
@@ -334,16 +674,16 @@ body.landing #land{display:flex}
   <button class="big" id="dNew">Ny økt (forkast)</button>
  </div>
 </div>
-<div id="cfmdlg" role="dialog" aria-modal="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:18px">
- <div id="cfmtxt" style="font:600 22px sans-serif;max-width:80%;text-align:center"></div>
- <div style="display:flex;gap:14px">
-  <button class="big go" id="cfmYes" style="height:60px;font-size:22px;padding:0 22px">Ja</button>
-  <button class="big" id="cfmNo" style="height:60px;font-size:22px;padding:0 22px">Nei</button>
+<div id="cfmdlg" role="dialog" aria-modal="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:18px">
+ <div id="cfmtxt" style="font:400 italic clamp(32px, 4vw, 48px) var(--font-serif);max-width:80%;text-align:center"></div>
+ <div style="display:flex;gap:12px">
+  <button class="big go" id="cfmYes" style="min-height:48px;padding:0 28px">Ja</button>
+  <button class="big" id="cfmNo" style="min-height:48px;padding:0 28px">Nei</button>
  </div>
 </div>
 <script>
-/* ---------- intern bekreftelsesdialog (erstattet confirm()) ---------- */
-function uiConfirm(msg,key){ /* key: N/Enter kan godkjenne denne dialogen */
+/* ---------- intern bekreftelsesdialog ---------- */
+function uiConfirm(msg,key){
  return new Promise(res=>{
   $('cfmtxt').textContent=msg;$('cfmtxt').dataset.key=key?'1':'';
   $('cfmdlg').style.display='flex';
@@ -359,39 +699,42 @@ const avg=a=>{a=a.filter(x=>x!=null);return a.length?a.reduce((s,x)=>s+x,0)/a.le
 const fmt=s=>{s=Math.max(0,Math.round(s));const h=s/3600|0,m=(s%3600)/60|0,x=s%60,p=n=>String(n).padStart(2,'0');return (h?h+':':'')+p(m)+':'+p(x)};
 
 /* ---------- tilstandsobjekt ---------- */
-/* ---- Innstillinger du kan justere ---- */
-const DEFAULT_FTP=310;     /* standard FTP (W) første gang appen åpnes */
-const PM_JUMP_PCT=10;      /* sprang i mål-watt større enn dette (% av FTP) starter innsvingning */
-const PM_SETTLE_S=6;       /* Power Match venter så mange sekunder etter et slikt sprang */
-const CURVE_WINDOW_S=1200; /* bredde på kurvevinduet i Fri tur / Puls-ERG (sekunder) */
-const PEDAL_START_W=20;    /* økten starter når kadens > 0 eller watt over dette – første tråkk */
-const VIRTUAL_GPS_DEFAULT=true; /* FIT: syntetisk GPS-rute + økten merkes som «Virtual» (sub_sport 58) */
-const VIRTUAL_LAT=-20.1338,VIRTUAL_LON=-67.4891,VIRTUAL_RADIUS_M=5000; /* Salar de Uyuni (Bolivia): sirkel rundt punktet */
-const GARMIN_EDGE840_PRODUCT=4062; /* garmin_product edge840 i FIT-profilen (produsent garmin = 1) */
-const VIRTUAL_ROUTE_M=40000; /* lengden på én runde i den virtuelle ruten (m) */
-const PM_WINDOW_S=20;      /* Power Match: snitt av pedal-watt over så mange sekunder */
-const PM_EVERY_S=10;       /* ...og justerer høyst hvert så mange sekunder */
-const PM_STEP_W=4;         /* maks justering per gang (W) */
-const PM_DEADBAND_W=3;     /* ingen justering hvis avviket er mindre enn dette (W) */
-const PM_MAX_PCT=15;       /* maks samlet justering i % av mål-watt */
-const CURVE_SMOOTH_S=10;   /* glatting av wattkurven i grafen (sekunder) */
-const HR_AIM_FRAC=.5;      /* pulsregulatoren sikter mot dette punktet i båndet: 0 = bunnen, 1 = taket (0.5 = midten) */
-const HR_UP_TOL=1;         /* øk watt først når projisert puls er så mange slag under målpunktet */
-const HR_DOWN_TOL=.5;      /* senk watt når projisert puls er så mange slag over taket */
-const PM_MIN_STEP_S=20;    /* Power Match er av i steg kortere enn dette (sekunder) */
-/* --------------------------------------- */
-const HC={cap:130,band:5,lo:56,hi:75,warm:10,wp:50,cool:0,mode:'auto'}; /* wp = oppvarmingswatt i % av FTP */ /* Puls-ERG-innstillinger */
+const DEFAULT_FTP=310;
+const PM_JUMP_PCT=10;
+const PM_SETTLE_S=6;
+const CURVE_WINDOW_S=1200;
+const PEDAL_START_W=20;
+const VIRTUAL_GPS_DEFAULT=true;
+const VIRTUAL_LAT=-20.1338,VIRTUAL_LON=-67.4891,VIRTUAL_RADIUS_M=5000;
+const GARMIN_EDGE840_PRODUCT=4062;
+const VIRTUAL_ROUTE_M=40000;
+const PM_WINDOW_S=20;
+const PM_EVERY_S=10;
+const PM_STEP_W=4;
+const PM_DEADBAND_W=3;
+const PM_MAX_PCT=15;
+const CURVE_SMOOTH_S=10;
+const HR_AIM_FRAC=.5;
+const HR_UP_TOL=1;
+const HR_DOWN_TOL=.5;
+const PM_MIN_STEP_S=20;
+
+const HC={cap:130,band:5,lo:56,hi:75,warm:10,wp:50,cool:0,mode:'auto'};
 try{Object.assign(HC,JSON.parse(localStorage.getItem('hrcfg')||'{}'))}catch(e){}
 const S={kind:null,hrb:[],hd:{},laps:[],erg:true,ftp:DEFAULT_FTP,scale:100,iv:[],blocks:{},total:0,maxp:100,state:'idle',el:0,log:[],
  off:0,lastErg:null,pb:[],wb:[],hrmax:0,lap:null,tgt:null,prev:null,i:-1,lapSeq:0,grade:0,startTime:null,mode:null,realEl:0};
 try{S.ftp=+localStorage.getItem('ftp')||DEFAULT_FTP}catch(e){}
 $('ftp').value=S.ftp;
+S.maxHrSetting=188;try{S.maxHrSetting=clamp(+localStorage.getItem('maxhr')||188,80,230)}catch(e){}
+$('maxHrSet').value=S.maxHrSetting;
+$('maxHrSet').onchange=()=>{if(S.state==='running'||S.state==='paused')return;S.maxHrSetting=clamp(+$('maxHrSet').value||188,80,230);$('maxHrSet').value=S.maxHrSetting;try{localStorage.setItem('maxhr',S.maxHrSetting)}catch(e){}render();if(document.body.classList.contains('analysis-open'))renderAnalysis()};
+
 try{S.fixW=+localStorage.getItem('fixw')}catch(e){}
 S.fixW=S.fixW||Math.round(S.ftp*.5/5)*5;
 $('ftp').onchange=()=>{S.ftp=clamp(+$('ftp').value||DEFAULT_FTP,50,600);try{localStorage.setItem('ftp',S.ftp)}catch(e){}render()};
 if(!navigator.bluetooth){$('warn').style.display='block'}
 
-/* ---------- toast (frie statusmeldinger, kolliderer ikke) ---------- */
+/* ---------- toast ---------- */
 let toastTimer=null;
 function toast(txt,err){
  const t=$('toast');
@@ -404,20 +747,20 @@ function toastClear(){$('toast').dataset.sticky='';toast('')}
 
 window.addEventListener('beforeunload',e=>{if(S.state==='running'||S.state==='paused'){save();e.preventDefault();e.returnValue=''}});
 
-/* ---------- Bluetooth (uforandret protokoll) ---------- */
+/* ---------- Bluetooth ---------- */
 const CORE_SVC='00002100-5b1e-4347-b07c-97b514dae121',CORE_CHR='00002101-5b1e-4347-b07c-97b514dae121';
 const D={
  trainer:{svc:0x1826,chr:0x2AD2,parse(v){let f=v.getUint16(0,true),o=2;
   if(!(f&1)){this.speed=v.getUint16(o,true)/100;o+=2}
   if(f&2)o+=2; if(f&4){this.cad=v.getUint16(o,true)/2;o+=2}
   if(f&8)o+=2; if(f&16)o+=3; if(f&32)o+=2; if(f&64)this.w=v.getInt16(o,true)}},
- power:{svc:0x1818,chr:0x2A63,parse(v){const f=v.getUint16(0,true);this.w=v.getInt16(2,true);let o=4;if(f&1)o++;if(f&4)o+=2;if(f&16)o+=6;
+ power:{svc:0x1818,chr:0x2A63,parse(v){const f=v.getUint16(0,true);this.w=v.getInt16(2,true);this.lrLeft=null;let o=4;if(f&1){const balance=v.getUint8(o);o++;if((f&2)&&balance!==255)this.lrLeft=balance/2}if(f&4)o+=2;if(f&16)o+=6;
   if(f&32){const r=v.getUint16(o,true),t=v.getUint16(o+2,true);
    if(this.pr!=null){const dt=((t-this.pt+65536)%65536)/1024,dr=(r-this.pr+65536)%65536;
     if(dt>0){this.cad=dr/dt*60;this.pc=Date.now()}else if(Date.now()-(this.pc||0)>2500)this.cad=0}
    this.pr=r;this.pt=t}}},
  hr:{svc:0x180D,chr:0x2A37,parse(v){this.hr=(v.getUint8(0)&1)?v.getUint16(1,true):v.getUint8(1)}},
- core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)&&v.byteLength>=5?v.getInt16(3,true)/100:null;this.quality=v.byteLength>5?v.getUint8(5):null;this.hsi=v.byteLength>8?v.getUint8(8)/10:null}}
+ core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)&&v.byteLength>=5?v.getInt16(3,true)/100:null;this.quality=v.byteLength>5?v.getUint8(5):null;this.hsi=v.byteLength>=10?v.getUint16(8,true)/100:null}}
 };
 const fresh=(k,f)=>{const c=D[k];return c.ok&&Date.now()-c.t<5000&&c[f]!=null?c[f]:null};
 function status(k,txt,cls){const b=document.querySelector(`[data-k=${k}]`);b.querySelector('small').textContent=txt;b.className='conn '+(cls||'')}
@@ -433,12 +776,11 @@ function openSensorDlg(k,b){
  sdK=k;const r=b.getBoundingClientRect(),d=$('sensordlg');d.hidden=false;
  d.style.left=Math.max(8,Math.min(r.left,innerWidth-296))+'px';d.style.top=(r.bottom+6)+'px';sensorDlgUpdate();
 }
-document.querySelectorAll('.conn[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(D[k].dev)openSensorDlg(k,b);else pair(k)}); /* tilkoblet sensor: vis status i stedet for å koble fra */
+document.querySelectorAll('.conn[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(D[k].dev)openSensorDlg(k,b);else pair(k)});
 
-/* UUID-er som lange, små strenger (noen nettlesere, bl.a. Bluefy, takler tall dårlig) */
 const U=n=>typeof n==='number'?`0000${n.toString(16).padStart(4,'0')}-0000-1000-8000-00805f9b34fb`:n;
-let BT_ALL=false;try{localStorage.removeItem('btall')}catch(e){} /* «vis alle enheter» brukes bare som reserve etter en feil, og huskes ikke */
-async function readBattery(c,srv){ /* batterinivå fra Battery Service, hvis sensoren har den */
+let BT_ALL=false;try{localStorage.removeItem('btall')}catch(e){}
+async function readBattery(c,srv){
  try{
   const bs=await srv.getPrimaryService(U(0x180F)),bc=await bs.getCharacteristic(U(0x2A19)),v=await bc.readValue();
   c.bat=v.getUint8(0);c.batT=Date.now();if(c.bat0==null)c.bat0=c.bat;c.batCh=bc;
@@ -453,7 +795,7 @@ async function pair(k){
  c.stage='velge enhet';
  try{
   c.dev=await navigator.bluetooth.requestDevice(BT_ALL?{acceptAllDevices:true,optionalServices:[U(c.svc),U(0x180F)]}:{filters:[{services:[U(c.svc)]}],optionalServices:[U(c.svc),U(0x180F)]});
-  if(BT_ALL)BT_ALL=false; /* reserve-modus brukes bare én gang */
+  if(BT_ALL)BT_ALL=false;
   const dup=Object.keys(D).find(o=>o!==k&&D[o].dev&&D[o].dev.id===c.dev.id);
   if(dup){c.dev=null;status(k,'Ikke tilkoblet');toast(`Dette er samme enhet som ${cName(dup)}. Velg riktig enhet for ${cName(k)} i listen. (Kickr kobles bare i Kickr-knappen – appen bruker Kickrens egen watt når du ikke har pedaler.)`,true);return}
   if(k==='power'&&/assioma.*r$/i.test(c.dev.name||'')){c.dev=null;status(k,'Ikke tilkoblet');toast('Dette er høyre pedal. Den sender bare til venstre pedal – velg pedalen som slutter på L (venstre).',true);return}
@@ -461,7 +803,7 @@ async function pair(k){
   c.manual=false;
   c.dev.addEventListener('gattserverdisconnected',()=>lost(k));
   await link(k);
- }catch(e){ /* full feilmelding + hvilket trinn som feilet, så vi kan feilsøke */
+ }catch(e){
   console.error(e);
   const d=`${e&&e.name||'Feil'}: ${e&&e.message||e} (trinn: ${c.stage})`;
   try{c.dev&&c.dev.gatt.disconnect()}catch(_){}
@@ -476,7 +818,7 @@ async function link(k){
  c.stage='koble til (gatt.connect)';const srv=await c.dev.gatt.connect();
  c.stage='finne tjeneste';const svc=await srv.getPrimaryService(U(c.svc));
  c.stage='finne karakteristikk';const ch=await svc.getCharacteristic(U(c.chr));
- c.srv=srv;c.svcObj=svc;c.ch=ch;c.n=0; /* behold referansene så de ikke ryddes bort */
+ c.srv=srv;c.svcObj=svc;c.ch=ch;c.n=0;
  ch.addEventListener('characteristicvaluechanged',e=>{c.t=Date.now();c.n=(c.n||0)+1;try{if(k==='core'){const v=e.target.value;c.rawHex=Array.from(new Uint8Array(v.buffer,v.byteOffset,v.byteLength)).map(x=>x.toString(16).padStart(2,'0')).join(' ')}c.parse(e.target.value)}catch(err){c.err=String(err)}});
  c.stage='slå på varsler (startNotifications)';await ch.startNotifications();
  await readBattery(c,srv);
@@ -501,11 +843,11 @@ async function lost(k){
 let q=Promise.resolve();
 function cpWrite(a){const c=D.trainer;if(!c.cp)return q;q=q.then(()=>c.cp.writeValueWithResponse(new Uint8Array(a))).catch(()=>{});return q}
 function setErg(w){w=Math.round(clamp(w,0,2000));if(w===S.lastErg||!D.trainer.cp)return;S.lastErg=w;cpWrite([0x05,w&255,(w>>8)&255])}
-function setGrade(gPct){const v=Math.round(gPct*100);cpWrite([0x11,0,0,v&255,(v>>8)&255,40,51])} /* vind(2) stigning(2) crr cw */
+function setGrade(gPct){const v=Math.round(gPct*100);cpWrite([0x11,0,0,v&255,(v>>8)&255,40,51])}
 
 /* ---------- Økter (ZWO / MRC) ---------- */
 let bid=0;
-function ramp(out,d,a,b,fr,mode){ /* mode 'range': steady på snittet, området vises */
+function ramp(out,d,a,b,fr,mode){
  const bl=++bid,rng=mode==='range';
  if(rng&&a!==b){const lo=Math.min(a,b),hi=Math.max(a,b),m=(lo+hi)/2;out.push({d:Math.round(d),p:m,p0:m,p1:m,b:bl,free:fr,rg:[lo,hi],rp:0});return}
  const n=a===b?1:Math.max(1,Math.round(d/5));
@@ -552,7 +894,7 @@ function validateWorkout(o){
  o.forEach((x,i)=>{if(!(x.d>0)||!isFinite(x.p)||x.p<0||x.p>400)throw new Error('Ugyldig verdi i steg '+(i+1));tot+=x.d});
  if(tot>12*3600)throw new Error('Økten er lengre enn 12 timer');
 }
-function readWorkout(t){ /* filtypen avgjøres av innholdet, ikke filendelsen */
+function readWorkout(t){
  t=t.replace(/^\uFEFF/,'');
  if(/[\x00-\x08\x0E-\x1F]/.test(t.slice(0,4000)))throw new Error('Dette ser ikke ut som en tekstfil');
  if(/<!DOCTYPE|<!ENTITY/i.test(t))throw new Error('Filen avvist: DOCTYPE/ENTITY er ikke tillatt');
@@ -582,16 +924,16 @@ document.addEventListener('visibilitychange',()=>{
  if(S.state==='running')lock();
  const away=S.hiddenAt?Date.now()-S.hiddenAt:0;S.hiddenAt=null;
  if(away>3000&&(S.state==='running'||S.state==='paused')){
-  S.hrb=[];S.pb=[];S.wb=[]; /* gamle målinger skal ikke brukes i regulering og snitt etter pausen */
+  S.hrb=[];S.pb=[];S.wb=[];
   toast(`Appen var i bakgrunnen i ${Math.round(away/1000)} s – sensordata mangler i den perioden. Kobler til på nytt …`,true);
   resumeSensors();
  }
 });
-async function resumeSensors(){ /* ny varsel-abonnering og kontroll av alle tilkoblede sensorer */
+async function resumeSensors(){
  for(const k of Object.keys(D)){const c=D[k];if(!c.dev||c.manual)continue;
   try{if(c.ok&&c.ch){await c.ch.stopNotifications();await c.ch.startNotifications()}else if(!c.retrying)lost(k)}catch(e){}
  }
- setTimeout(()=>{Object.keys(D).forEach(k=>{const c=D[k];if(c.ok&&c.dev&&Date.now()-(c.t||0)>6000){try{c.dev.gatt.disconnect()}catch(e){}}})},7000); /* fortsatt stille: koble om */
+ setTimeout(()=>{Object.keys(D).forEach(k=>{const c=D[k];if(c.ok&&c.dev&&Date.now()-(c.t||0)>6000){try{c.dev.gatt.disconnect()}catch(e){}}})},7000);
 }
 
 /* ---------- Ny runde / hopp ---------- */
@@ -603,7 +945,7 @@ function closeLap(){
  if(sec>=1)S.laps.push({sec,w:lapAvg(L,'w'),h:lapAvg(L,'h'),c:lapAvg(L,'c'),mx:L.mx});
 }
 function accReset(){S.acc={dist:0,j:0,hrS:0,hrN:0,q:[],qs:0,np4:0,npN:0}}
-function accAdd(x){ /* 1 Hz: distanse, energi, pulssnitt og normalisert watt (30 s glidende snitt^4) */
+function accAdd(x){
  const a=S.acc;a.dist+=(x.spd||0)/3.6;const w=x.w==null?0:x.w;a.j+=w;
  if(x.hr!=null){a.hrS+=x.hr;a.hrN++}
  a.q.push(w);a.qs+=w;if(a.q.length>30)a.qs-=a.q.shift();
@@ -615,7 +957,7 @@ function lapAvg(L,k){return L.s[k][1]?L.s[k][0]/L.s[k][1]:null}
 /* ---------- Hovedtick ---------- */
 function tick(){
  if(S.state==='running'){
-  if(S.armed){ /* økten er «klar» men tiden går ikke før første tråkk */
+  if(S.armed){
    const cd=fresh('power','cad')??fresh('trainer','cad'),pw=fresh('power','w')??fresh('trainer','w');
    if((cd!=null&&cd>0)||(pw!=null&&pw>=PEDAL_START_W)){S.armed=false;S.startTime=Date.now();S.lastNow=null;S.lastT=-1;ui();toast('Økten startet')}
    else{render();return}
@@ -627,7 +969,7 @@ function tick(){
   let i=-1,o=null;
   if(S.iv.length){i=S.iv.findIndex(x=>t>=x.s&&t<x.s+x.d);if(i>=0)o=S.iv[i]}
   const post=S.kind==='workout'&&S.iv.length>0&&t>=S.total;
-  if(post&&!S.post){ /* programmet er ferdig: fortsett ERG på siste målwatt, kan justeres med fast-watt-knappene */
+  if(post&&!S.post){
    S.post=true;const last=[...S.iv].reverse().find(x=>!x.free);
    if(last)S.fixW=Math.round(S.ftp*(last.p1!=null?last.p1:last.p)/100*S.scale/100);
    setErgBtn(true);S.wasFree=true;toast(`Programmet er ferdig – fortsetter ERG på ${S.fixW} W. Trykk Stopp når du er ferdig.`);
@@ -646,11 +988,11 @@ function tick(){
   S.prev=S.tgt;
 
   const pp=fresh('power','w'),w=hold('pw',pp)??hold('tw',fresh('trainer','w'));
-  const newSec=t!==S.lastT; /* tick går 5 Hz for visning; logg, Power Match, lyd og lagring kjører 1 Hz */
+  const newSec=t!==S.lastT;
   if(newSec)S.lastT=t;
-  S.wb=[...S.wb,w].slice(-25); /* 25 x 200 ms = 5 s */
-  {const dt=S.lastNow?Math.min(1,(now-S.lastNow)/1000):0;S.lastNow=now;S.realEl+=dt} /* faktisk syklet tid – pause og hopp telles ikke */
-  const hr=hold('h',fresh('hr','hr')),cad=hold('c',fresh('power','cad')??fresh('trainer','cad')),
+  S.wb=[...S.wb,w].slice(-25);
+  {const dt=S.lastNow?Math.min(1,(now-S.lastNow)/1000):0;S.lastNow=now;S.realEl+=dt}
+  const hr=hold('h',fresh('hr','hr')),cad=hold('c',fresh('power','cad')??fresh('trainer','cad')),lrLeft=fresh('power','lrLeft'),
         core=hold('k',fresh('core','core')),skin=hold('s',fresh('core','skin')),hsi=hold('i',fresh('core','hsi')),
         quality=hold('q',fresh('core','quality')),spd=hold('v',fresh('trainer','speed'));
 
@@ -659,11 +1001,11 @@ function tick(){
   if(o&&S.lap.b!==b&&S.iv.length){closeLap();S.lapSeq++;lapStart(b)}
 
   if(newSec){
-   S.pb=[...S.pb,t>=(S.settleUntil||0)?pp:null].slice(-PM_WINDOW_S); /* ingen pedalverdier brukes under innsvingning */
-   {const pw=fresh('power','w'),tw=fresh('trainer','w'); /* pedaler ≈ halve Kickr-watt i 30 s = bare én side */
+   S.pb=[...S.pb,t>=(S.settleUntil||0)?pp:null].slice(-PM_WINDOW_S);
+   {const pw=fresh('power','w'),tw=fresh('trainer','w');
     if(pw!=null&&tw!=null&&tw>100&&pw/tw>.42&&pw/tw<.58){S.halfN=(S.halfN||0)+1;if(S.halfN===30)toast('Pedalene viser omtrent halv watt mot Kickr. Sjekk i Favero-appen at venstre pedal sender samlet watt (ikke bare venstre side).',true)}else S.halfN=0}
    S.acc||accReset();
-   S.log.push({e:t,realEl:S.realEl,ts:now,w,hr,cad,core,skin,hsi,quality,spd,tgt:S.tgt,lap:S.lapSeq+1});
+   S.log.push({e:t,realEl:S.realEl,ts:now,w,hr,cad,lrLeft,core,skin,hsi,quality,spd,tgt:S.tgt,lap:S.lapSeq+1});
    accAdd(S.log[S.log.length-1]);
    if(hr>S.hrmax)S.hrmax=hr;
    [['w',w],['h',hr],['c',cad]].forEach(([k,v])=>{if(v!=null){S.lap.s[k][0]+=v;S.lap.s[k][1]++}});
@@ -696,10 +1038,10 @@ function save(){try{localStorage.setItem('sess',JSON.stringify({log:S.log,el:S.e
 function start(){
  if(S.state==='idle'||S.state==='done'){
   S.log=[];S.el=0;S.lastT=-1;S.startTime=null;S.off=0;S.pb=[];S.wb=[];S.hrmax=0;S.lap=null;S.lapSeq=0;
-  S.prev=null;S.settleUntil=0;S.lastErg=null;S.mode=null;S.wasFree=undefined;S.ergSaved=null;S.laps=[];S.hd={};S.freeLap=0;S.grade=0;S.realEl=0;S.sessFtp=S.ftp;accReset();Object.keys(D).forEach(k=>{D[k].bat0=D[k].bat});S.hrW=null;S.hrPhase=null;S.hrb=[];S.hrT=null;S.hr30=null;
+  S.prev=null;S.settleUntil=0;S.lastErg=null;S.mode=null;S.wasFree=undefined;S.ergSaved=null;S.laps=[];S.hd={};S.freeLap=0;S.grade=0;S.realEl=0;S.sessFtp=S.ftp;accReset();Object.keys(D).forEach(k=>{D[k].bat0=D[k].bat});S.hrPhase=null;S.hrb=[];S.hrT=null;S.hr30=null;
   try{localStorage.removeItem('sess')}catch(e){}
   $('sumdlg').hidden=true;S.post=false;
-  S.armed=!!(D.trainer.ok||D.power.ok); /* vent på første tråkk hvis vi har en kadens-/wattkilde */
+  S.armed=!!(D.trainer.ok||D.power.ok);
  }
  try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){}
  S.state='running';S.lastNow=null;
@@ -709,7 +1051,7 @@ function start(){
  if(S.armed)toast('Venter på første tråkk …');
 }
 function newSession(){
- Object.assign(S,{state:'idle',post:false,armed:false,sessFtp:null,acc:null,hrW:null,hrPhase:null,hrb:[],hrT:null,hr30:null,log:[],el:0,lastT:-1,startTime:null,laps:[],lap:null,lapSeq:0,hrmax:0,off:0,pb:[],wb:[],hd:{},mode:null,lastErg:null,wasFree:undefined,ergSaved:null,tgt:null,i:-1,freeLap:0,grade:0,realEl:0});
+ Object.assign(S,{state:'idle',post:false,armed:false,sessFtp:null,acc:null,hrW:null,warmW:null,hrPhase:null,hrb:[],hrT:null,hr30:null,log:[],el:0,lastT:-1,startTime:null,laps:[],lap:null,lapSeq:0,hrmax:0,off:0,pb:[],wb:[],hd:{},mode:null,lastErg:null,wasFree:undefined,ergSaved:null,tgt:null,i:-1,freeLap:0,grade:0,realEl:0});
  cpWrite([0x08,0x01]);unlock();try{localStorage.removeItem('sess')}catch(e){}
  $('sumdlg').hidden=true;ui();render();
 }
@@ -726,7 +1068,7 @@ function ui(){
  $('bLap').disabled=!r;$('bSkip').disabled=!S.iv.length;
  $('bBack').hidden=!(S.kind&&(S.state==='idle'||S.state==='done'));
  $('pick').hidden=!(S.kind==='workout'&&!S.iv.length);$('bExp').hidden=!(S.state==='done'&&S.log.length>0);
- $('ftp').disabled=(S.state==='running'||S.state==='paused');$('ftp').title=$('ftp').disabled?'FTP er låst mens økten pågår':'';$('bCool').disabled=!(r&&S.hrPhase==='reg'&&HC.cool>0);
+ $('ftp').disabled=(S.state==='running'||S.state==='paused');$('ftp').title=$('ftp').disabled?'FTP er låst mens økten pågår':'';$('maxHrSet').disabled=(S.state==='running'||S.state==='paused');$('maxHrSet').title=$('maxHrSet').disabled?'Maks puls er låst mens økten pågår':'';$('bCool').disabled=!(r&&S.hrPhase==='reg'&&HC.cool>0);
 }
 $('bGo').onclick=start;$('bPa').onclick=pause;
 $('bSt').onclick=()=>{if(S.state==='running')pause();$('stopdlg').style.display='flex'};
@@ -734,13 +1076,11 @@ $('dRes').onclick=()=>{$('stopdlg').style.display='none';start()};
 $('dFin').onclick=()=>{$('stopdlg').style.display='none';finish()};
 $('dNew').onclick=async()=>{if(S.log.length>60&&!(await uiConfirm('Forkaste økten uten å lagre?')))return;$('stopdlg').style.display='none';newSession()};
 
-/* Runde: kun markering – hopper ALDRI i programmet lenger */
 $('bLap').onclick=()=>{
  if(S.state!=='running')return;
  closeLap();S.lapSeq++;if(!S.iv.length)S.freeLap=(S.freeLap||0)-1;const ci=S.iv.findIndex(x=>S.el>=x.s&&S.el<x.s+x.d);lapStart(S.iv.length&&ci>=0?S.iv[ci].b:(S.freeLap||0));
  render();
 };
-/* Hopp: eksplisitt separat handling med bekreftelse */
 $('bSkip').onclick=async()=>{
  try{
   if(!S.iv.length)return;
@@ -757,7 +1097,7 @@ $('bSkip').onclick=async()=>{
  }catch(e){toast('Hopp-feil: '+(e.message||e),true)}
 };
 
-/* ---------- fortsattelse: ERG / intensitet / tastatur ---------- */
+/* ---------- ERG / intensitet / tastatur ---------- */
 const $2=id=>document.getElementById(id);
 function setErgBtn(v){
  S.erg=v;$2('bErg').textContent=v?'ERG på':'ERG av';S.pb=[];
@@ -765,17 +1105,39 @@ function setErgBtn(v){
 }
 function fxLabel(){
  const L=$2('fxlbl'),dn=$2('fDn'),up=$2('fUp'),val=$2('fixw');
- if(S.kind==='hr'&&S.hrPhase!=='warm'&&HC.mode==='auto'){L.textContent='Pulstak';up.textContent='+1';dn.textContent='−1';val.textContent=HC.cap+' bpm'}
- else if(S.erg){L.textContent=(S.kind==='hr'&&S.hrPhase==='warm')?'Oppv.watt':'Målwatt';up.textContent='+5 W';dn.textContent='−5 W';val.textContent=(S.kind==='hr'?(()=>{const v=S.hrPhase==='warm'?S.warmW:S.hrW;return v!=null?Math.round(v):'0'})():S.fixW)+' W'}
- else{L.textContent='Stigning';up.textContent='+0.5%';dn.textContent='−0.5%';val.textContent=(S.grade>0?'+':'')+S.grade.toFixed(1)+'%'}
+ if(S.kind==='hr'){
+  const isWarm=S.hrPhase==='warm'||(S.hrPhase==null&&HC.warm>0);
+  const lo=S.ftp*HC.lo/100,hi=S.ftp*HC.hi/100,w0=S.ftp*HC.wp/100;
+  if(isWarm){
+   L.textContent='Oppv.watt';up.text='+5 W';dn.text='−5 W';
+   val.textContent=Math.round(S.warmW??w0)+' W';
+  }else if(HC.mode==='auto'){
+   L.textContent='Pulstak';up.text='+1';dn.text='−1';
+   val.textContent=HC.cap+' bpm';
+  }else{
+   L.textContent='Målwatt';up.text='+5 W';dn.text='−5 W';
+   val.textContent=Math.round(S.hrW??clamp(w0,lo,hi))+' W';
+  }
+ }else if(S.erg){
+  L.textContent='Målwatt';up.text='+5 W';dn.text='−5 W';
+  val.textContent=Math.round(S.fixW)+' W';
+ }else{
+  L.textContent='Stigning';up.text='+0.5%';dn.text='−0.5%';
+  val.text=(S.grade>0?'+':'')+S.grade.toFixed(1)+'%';
+ }
 }
 function fx(d){
  if(S.kind==='hr'){
-  if(S.hrPhase==='warm'&&S.warmW!=null)S.warmW=clamp(S.warmW+d,S.ftp*.3,S.ftp*HC.hi/100);
-  else if(HC.mode==='auto'){HC.cap=clamp(HC.cap+(d>0?1:-1),80,210);hcSave()} /* Auto: knappene justerer pulstaket */
-  else if(S.hrW!=null)S.hrW=clamp(S.hrW+d,S.ftp*HC.lo/100,S.ftp*HC.hi/100)
- }
- else if(S.erg){
+  const lo=S.ftp*HC.lo/100,hi=S.ftp*HC.hi/100,w0=S.ftp*HC.wp/100;
+  const isWarm=S.hrPhase==='warm'||(S.hrPhase==null&&HC.warm>0);
+  if(isWarm){
+   S.warmW=clamp((S.warmW??w0)+d,S.ftp*.25,hi);
+  }else if(HC.mode==='auto'){
+   HC.cap=clamp(HC.cap+(d>0?1:-1),80,210);hcSave();
+  }else{
+   S.hrW=clamp((S.hrW??clamp(w0,lo,hi))+d,lo,hi);
+  }
+ }else if(S.erg){
   S.fixW=clamp(S.fixW+d,30,2000);
   try{localStorage.setItem('fixw',S.fixW)}catch(e){}
  }else{
@@ -798,15 +1160,13 @@ mkHold($2('dn'),()=>{S.scale=clamp(S.scale-1,40,200);$2('scl').textContent=S.sca
 mkHold($2('fUp'),()=>fx(5));
 mkHold($2('fDn'),()=>fx(-5));
 
-/* Offset-chip: vis og nullstill ERG-drift */
 $2('wt').addEventListener('click',e=>{
  if(e.target.classList&&e.target.classList.contains('offchip')){S.off=0;render();toast('ERG-justering nullstilt')}
 });
 
-/* ---------- Tastatur ---------- */
 document.addEventListener('keydown',e=>{
  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||!S.kind)return;
- if($('cfmdlg').style.display==='flex'){ /* dialog åpen: bare Esc, og N/Enter/PageDown for hopp-dialogen */
+ if($('cfmdlg').style.display==='flex'){
   if(e.repeat)return;
   if(e.key==='Escape'){e.preventDefault();$('cfmNo').click()}
   else if($('cfmtxt').dataset.key==='1'&&(e.key==='n'||e.key==='N'||e.key==='Enter'||e.key==='PageDown')){e.preventDefault();$('cfmYes').click()}
@@ -821,19 +1181,19 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ---------- Soner ---------- */
-const col=p=>p<55?'#6b7a8f':p<76?'#46a6ff':p<91?'#35d07f':p<106?'#f1c40f':p<121?'#f08c3a':'#ef5350';
-const zcol=[0,55,76,91,106,121,200];
-function zoneIdx(pct){for(let i=zcol.length-2;i>=0;i--)if(pct>=zcol[i])return i;return 0}
+const col=p=>p<55?'#5A6266':p<76?'#2B7A8C':p<91?'#369E9A':p<106?'#B89F5D':p<121?'#B87352':p<151?'#AD5358':'#7D659E';
+const zcol=[0,55,76,91,106,121,151];
+function zoneIdx(pct){for(let i=zcol.length-1;i>=1;i--)if(pct>=zcol[i])return i;return 0}
 </script>
 <script>
 /* ---------- Visning ---------- */
 const $3=id=>document.getElementById(id);
 const fm=(v,d=0)=>v==null?(d?'0.0':'0'):v.toFixed(d);
 function render(){
+ if(document.body.classList.contains('analysis-open')&&Date.now()-(S.anLast||0)>=900){S.anLast=Date.now();renderAnalysis();}
  const w3=avg(S.wb),hr=fresh('hr','hr'),cad=fresh('power','cad')??fresh('trainer','cad'),
        core=fresh('core','core'),skin=fresh('core','skin'),spd=fresh('trainer','speed');
 
- /* watt-flis: farge etter treff på mål, sone-farge på målet */
  const curO=S.iv.length?(S.i>=0?S.iv[S.i]:(S.el<S.total?S.iv[0]:null)):null;
  const curPc=curO?(curO.p0!=null?curO.p0+(curO.p1-curO.p0)*clamp(S.el-curO.s,0,curO.d)/curO.d:curO.p):null;
  const stepW=S.kind==='hr'?(S.tgt!=null?Math.round(S.tgt):null):curO&&!curO.free?Math.round(S.ftp*curPc/100*S.scale/100):(S.erg?S.fixW:null);
@@ -841,24 +1201,22 @@ function render(){
  $3('w3s').style.color='';
  $3('tgtl').innerHTML=stepW!=null?`Mål ${stepW} W`+(curO&&curO.rg?` <small>(${Math.round(S.ftp*curO.rg[0]/100*S.scale/100)}–${Math.round(S.ftp*curO.rg[1]/100*S.scale/100)})</small>`:''):'Fri giring';
  if(Math.abs(S.off)>5)$3('tgtl').innerHTML+=` <span class="offchip" title="ERG-autokorreksjon. Trykk for å nullstille.">${S.off>0?'+':''}${Math.round(S.off)} W</span>`;
- {const bs=curO?S.blocks[curO.b].s:0,settled=(curO?S.el-bs:S.realEl)>=5,d=w3!=null&&stepW&&settled&&S.state==='running'?Math.abs(w3-stepW)/stepW:null; /* avvikfarge på målet, først etter 5 s i et steg */
+ {const bs=curO?S.blocks[curO.b].s:0,settled=(curO?S.el-bs:S.realEl)>=5,d=w3!=null&&stepW&&settled&&S.state==='running'?Math.abs(w3-stepW)/stepW:null;
   $3('tgtl').style.color=d==null?'':d<.05?'var(--ok)':d<.1?'var(--warn)':'var(--bad)';$3('tgtl').title=d==null?'':`Avvik fra mål: ${(d*100).toFixed(0)}%`}
  const on=S.state==='running'?S.mode==='erg':S.erg;
  $3('wt').className='t '+((on?'ergon':'ergoff')+(Date.now()-(S.hd.pw?.t||0)>8000&&w3==null?' stale':''));
  $3('wtl').textContent='Watt · 5 s snitt';$3('wchip').textContent=on?'ERG på':'Fri giring';$3('wchip').className='chip '+(on?'on':'off');
- const zc=curO&&!curO.free?zoneIdx(curPc):null;
+ const zc=curO&&!curO.free?zoneIdx(curPc*S.scale/100):null;
  [...$3('wz').children].forEach((el,i)=>el.className=i===zc?'lit':'');
 
- /* puls-flis med sone indikert i tekst (basert på FTP-ekvivalent dersom ukjent maks) */
  $3('hr').textContent=fm(hr);$3('hrmax').textContent=S.hrmax||'0';
- const hrpct=S.hrmax?hr/S.hrmax:null;
+ const hrpct=S.maxHrSetting?hr/S.maxHrSetting:null;
  $3('hrz').textContent=hrpct?Math.round(hrpct*100)+'%':'0%';
- $3('hr').style.color=hrpct?(hrpct>.9?'var(--bad)':hrpct>.8?'#f1c40f':''):'';
+ $3('hr').style.color=hrpct?(hrpct>.9?'var(--bad)':hrpct>.8?'var(--warn)':''):'';
 
  $3('cad').textContent=fm(cad);$3('spd').textContent=fm(spd,1)+' km/t';
  $3('core').textContent=fm(core,1);$3('skin').textContent=fm(skin,1);
 
- /* pågående runde */
  const L=S.lap,m=k=>L&&L.s[k][1]?L.s[k][0]/L.s[k][1]:null;
  [['w3s',w3],['hr',hr],['cad',cad],['core',core],['skin',skin],['hrmax',S.hrmax||null],['hrz',hrpct]].forEach(([id,v])=>$3(id).classList.toggle('nil',v==null));
  {const a=S.acc||(accReset(),S.acc),np=accNP(),ah=a.hrN?a.hrS/a.hrN:null,avgW=S.log.length?a.j/S.log.length:null,ef=ah?((np!=null?np:avgW)/ah):null;
@@ -866,7 +1224,6 @@ function render(){
   $3('sEf').textContent=ef!=null?ef.toFixed(2):'0.00';const F=S.sessFtp||S.ftp,tss=np!=null&&F?(S.log.length*np*(np/F))/(F*3600)*100:null;$3('sTss').textContent=tss!=null?Math.round(tss):'0';$3('sNp').textContent=np!=null?Math.round(np):'0';$3('sAh').textContent=ah!=null?Math.round(ah):'0';
   [['sDist',a.dist>0],['sKj',a.j>0],['sEf',ef!=null],['sTss',tss!=null&&tss>=.5],['sNp',np!=null],['sAh',ah!=null]].forEach(([id,v])=>$3(id).classList.toggle('nil',!v))}
 
- /* klokker */
  {const wOf=x=>x.free?'Fri':Math.round(S.ftp*(x.p0!=null?(x.p0+x.p1)/2:x.p)/100*S.scale/100)+' W';
   let pulse=false;
   if(S.iv.length&&S.el<S.total){
@@ -874,7 +1231,7 @@ function render(){
    $3('ivtl').textContent='Steg igjen ('+wOf(o)+')'+(nx?' · Neste: '+wOf(nx)+' · '+fmt(nb.e-nb.s):' · siste steg');
    $3('ivt').textContent=fmt(b.e-S.el);
    $3('totl').textContent='Tid syklet · prog. igjen '+fmt(S.total-S.el);$3('tot').textContent=fmt(S.realEl);
-   pulse=S.state==='running'&&b.e-S.el>0&&b.e-S.el<=5; /* varsler overgangen uten lyd */
+   pulse=S.state==='running'&&b.e-S.el>0&&b.e-S.el<=5;
   }else{
    $3('ivtl').textContent=S.post?'Etter programmet · rundetid':'Rundetid';
    $3('ivt').textContent=S.lap?fmt(S.realEl-S.lap.startReal):'00:00';
@@ -882,7 +1239,6 @@ function render(){
   }
   $3('clkI').classList.toggle('pulse',pulse);$3('wt').classList.toggle('pulse',pulse)}
 
- /* rundeliste: pågående runde øverst, deretter lukkede runder, deretter total */
  const rw=(n,sec,w,h,c,mx,cls)=>`<div class="lr ${cls||''}"><span>${n}</span><span>${fmt(sec)}</span><span>${fm(w)}</span><span>${fm(h)}</span><span>${fm(c)}</span><span>${mx||'0'}</span></div>`;
  let html='';
  if(L)html+=rw('→',S.realEl-L.startReal,m('w'),m('h'),m('c'),L.mx,'cur');
@@ -891,7 +1247,7 @@ function render(){
   const allW=S.log.map(x=>x.w).filter(x=>x!=null),allH=S.log.map(x=>x.hr).filter(x=>x!=null);
   const totW=allW.length?avg(allW):null,totH=allH.length?avg(allH):null;
   const kj=allW.length?Math.round(allW.reduce((a,b)=>a+b,0)/1000):null;
-  html+=`<div class="lr tot"><span>Tot</span><span>${fmt(S.el)}</span><span>${fm(totW)}</span><span>${fm(totH)}</span><span></span><span>${kj!=null?kj+' kJ':''}</span></div>`;
+  html+=`<div class="lr tot"><span>Tot</span><span>${fmt(S.realEl)}</span><span>${fm(totW)}</span><span>${fm(totH)}</span><span></span><span>${kj!=null?kj+' kJ':''}</span></div>`;
  }
  $3('lrows').innerHTML=html||'<div class="empty">Ingen runder ennå – trykk «Runde» for å markere</div>';
  draw();
@@ -899,8 +1255,7 @@ function render(){
 
 /* ---------- Diagram med akser og FTP-linje ---------- */
 let _h;
-function hatch(g){if(!_h){const c=document.createElement('canvas');c.width=c.height=8;const k=c.getContext('2d');k.strokeStyle='rgba(0,0,0,.6)';k.lineWidth=2;k.beginPath();k.moveTo(0,8);k.lineTo(8,0);k.stroke();_h=g.createPattern(c,'repeat')}return _h}
-/* Overvåker sensorer som er «tilkoblet» men ikke sender: først nytt varsel-abonnement, deretter ny tilkobling */
+function hatch(g){if(!_h){const c=document.createElement('canvas');c.width=c.height=8;const k=c.getContext('2d');k.strokeStyle='rgba(0,0,0,.7)';k.lineWidth=2;k.beginPath();k.moveTo(0,8);k.lineTo(8,0);k.stroke();_h=g.createPattern(c,'repeat')}return _h}
 function watchdog(){
  Object.keys(D).forEach(k=>{
   const c=D[k];if(!c.ok||!c.ch||c.fixing)return;
@@ -909,7 +1264,7 @@ function watchdog(){
   if(idle>12000&&Date.now()-(c.fixT||0)>20000){
    c.fixT=Date.now();c.fixing=true;
    (async()=>{try{
-    if(c.fixN>=1){c.fixN=0;c.dev.gatt.disconnect()} /* gattserverdisconnected -> lost() kobler til igjen */
+    if(c.fixN>=1){c.fixN=0;c.dev.gatt.disconnect()}
     else{c.fixN=1;await c.ch.stopNotifications();await c.ch.startNotifications()}
    }catch(e){console.error('watchdog',k,e)}finally{c.fixing=false}})();
   }
@@ -937,56 +1292,55 @@ function draw(){
  if(c.width!==Math.round(W*dpr)||c.height!==Math.round(H*dpr)){c.width=W*dpr;c.height=H*dpr}
  const g=c.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
  const padL=44,padB=18,padT=22,padR=38,plotW=W-padL-padR,plotH=H-padT-padB;
- g.font='11px sans-serif';
+ g.font='10px "DM Mono", monospace';
  if(S.kind!=='workout'){drawCurves(g,W,H);return}
  if(!S.iv.length)return;
- const ym=S.maxp*1.15,T=S.post?S.total:Math.max(S.total,S.el,1),vs=S.post?Math.max(0,S.el-S.total):0,hHi=Math.max(180,(S.hrmax||0)+5),hLo=60; /* etter programmet glir diagrammet mot venstre */
+ const ym=Math.max(100,S.maxp*S.scale/100)*1.15,T=S.post?S.total:Math.max(S.total,S.el,1),vs=S.post?Math.max(0,S.el-S.total):0,hHi=Math.max(180,(S.hrmax||0)+5),hLo=60;
  const yW=w=>padT+plotH-clamp(w/(S.ftp*ym/100),0,1)*plotH,yH=h=>padT+plotH-clamp((h-hLo)/(hHi-hLo),0,1)*plotH;
 
- /* akse: watt-etiketter ved sonegrenser */
- g.fillStyle='#5c6a7e';g.strokeStyle='#232c3b';g.lineWidth=1;
- [55,76,91,106,121].forEach(pz=>{const w=S.ftp*pz/100,y=yW(w);
+ g.fillStyle='#7f7f7f';g.strokeStyle='#282828';g.lineWidth=1;
+ [55,76,91,106,121,151].forEach(pz=>{const w=S.ftp*pz/100,y=yW(w);
   g.beginPath();g.moveTo(padL,y);g.lineTo(W-padR,y);g.stroke();
   g.fillText(Math.round(w),4,y+3)});
- /* akse: tid */
- g.strokeStyle='#232c3b';
+ g.strokeStyle='#282828';
  const stepMin=T>3600?15:T>1200?10:5;
  for(let m=Math.max(stepMin,Math.ceil(vs/60/stepMin)*stepMin);m*60<=vs+T;m+=stepMin){const x=padL+(m*60-vs)/T*plotW;
   g.beginPath();g.moveTo(x,padT);g.lineTo(x,padT+plotH);g.stroke();
   g.fillText(m+'′',x-8,H-4)}
 
  S.iv.forEach(o=>{
-  const x1=padL+(o.s+o.d-vs)/T*plotW;if(x1<=padL)return;const x=Math.max(padL,padL+(o.s-vs)/T*plotW),w=Math.max(1.5,x1-x),h=plotH-(yW(S.ftp*o.p/100)-padT);
+  const sp=o.free?o.p:o.p*S.scale/100;
+  const x1=padL+(o.s+o.d-vs)/T*plotW;if(x1<=padL)return;const x=Math.max(padL,padL+(o.s-vs)/T*plotW),w=Math.max(1.5,x1-x),h=plotH-(yW(S.ftp*sp/100)-padT);
   const done=o.s+o.d<=S.el,cur=S.i>=0&&S.iv[S.i]===o;
-  g.globalAlpha=done?.35:cur?1:.8;
-  const by=yW(S.ftp*o.p/100),c0=o.free?'#7b8aa0':col(o.p),gr=g.createLinearGradient(0,by,0,by+h);
-  gr.addColorStop(0,hexA(c0,.9));gr.addColorStop(1,hexA(c0,.3));
-  g.fillStyle=gr;rrTop(g,x,by,w,h,3);g.fill();
-  if(o.free){g.fillStyle=hatch(g);rrTop(g,x,by,w,h,3);g.fill()}
-  if(o.rg){g.strokeStyle='rgba(255,255,255,.85)';g.lineWidth=1.5;o.rg.forEach(v=>{const yy=yW(S.ftp*v/100);g.beginPath();g.moveTo(x,yy);g.lineTo(x+w,yy);g.stroke()});g.lineWidth=1}
-  if(cur){g.strokeStyle='rgba(255,255,255,.5)';g.strokeRect(x+.5,yW(S.ftp*o.p/100)+.5,w-1,h-1)}
+  g.globalAlpha=done?.32:cur?1:.82;
+  const by=yW(S.ftp*sp/100),c0=o.free?'#5A6266':col(sp),gr=g.createLinearGradient(0,by,0,by+h);
+  gr.addColorStop(0,hexA(c0,.85));gr.addColorStop(1,hexA(c0,.22));
+  g.fillStyle=gr;rrTop(g,x,by,w,h,4);g.fill();
+  if(o.free){g.fillStyle=hatch(g);rrTop(g,x,by,w,h,4);g.fill()}
+  if(o.rg){g.strokeStyle='rgba(255,255,255,.8)';g.lineWidth=1.5;o.rg.forEach(v=>{const yy=yW(S.ftp*(v*S.scale/100)/100);g.beginPath();g.moveTo(x,yy);g.lineTo(x+w,yy);g.stroke()});g.lineWidth=1}
+  if(cur){g.strokeStyle='rgba(25,208,232,.65)';g.strokeRect(x+.5,yW(S.ftp*sp/100)+.5,w-1,h-1)}
  });
  g.globalAlpha=1;
 
  /* pulsakse og puls-kurve */
- g.fillStyle='#ef9a9a';for(let h=80;h<=hHi;h+=20)g.fillText(h,W-padR+6,yH(h)+3);
+ g.fillStyle='#AD5358';for(let h=80;h<=hHi;h+=20)g.fillText(h,W-padR+6,yH(h)+3);
  const hrPath=()=>{g.beginPath();let on=false;S.log.forEach(r=>{if(r.hr==null||r.e<vs)return;const x=padL+(r.e-vs)/T*plotW,y=yH(r.hr);on?g.lineTo(x,y):g.moveTo(x,y);on=true})};
- g.lineJoin='round';hrPath();g.strokeStyle='rgba(0,0,0,.55)';g.lineWidth=4.5;g.stroke(); /* mørk kant gir kontrast mot søylene */
- hrPath();g.strokeStyle='#ff5252';g.lineWidth=2.2;g.stroke();
+ g.lineJoin='round';hrPath();g.strokeStyle='rgba(0,0,0,.75)';g.lineWidth=4.5;g.stroke();
+ hrPath();g.strokeStyle='#AD5358';g.lineWidth=2.2;g.stroke();
 
  /* FTP-referanselinje */
- g.strokeStyle='rgba(244,246,248,.25)';g.setLineDash([4,4]);
+ g.strokeStyle='rgba(255,255,255,.22)';g.setLineDash([4,4]);
  g.beginPath();g.moveTo(padL,yW(S.ftp));g.lineTo(W-padR,yW(S.ftp));g.stroke();g.setLineDash([]);
 
- if(S.post){const xt=Math.max(padL,padL+(S.total-vs)/T*plotW),xe=padL+(S.el-vs)/T*plotW;if(xe>xt){g.fillStyle='rgba(70,166,255,.22)';g.fillRect(xt,yW(S.fixW),xe-xt,padT+plotH-yW(S.fixW))}}
+ if(S.post){const xt=Math.max(padL,padL+(S.total-vs)/T*plotW),xe=padL+(S.el-vs)/T*plotW;if(xe>xt){g.fillStyle='rgba(25,208,232,.18)';g.fillRect(xt,yW(S.fixW),xe-xt,padT+plotH-yW(S.fixW))}}
  /* effektkurve */
- g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();let st=false;
+ g.strokeStyle='#ffffff';g.lineWidth=2;g.beginPath();let st=false;
  S.log.forEach(r=>{if(r.w==null||r.e<vs)return;const x=padL+(r.e-vs)/T*plotW,y=yW(r.w);st?g.lineTo(x,y):g.moveTo(x,y);st=true});
  g.stroke();
  
- /* tidsmarkør */
+ /* tidsmarkør: Electric Cyan gnist */
  const px=clamp(padL+(S.el-vs)/T*plotW,padL,W-padR);
- g.save();g.shadowColor='rgba(255,214,10,.75)';g.shadowBlur=10;g.strokeStyle='#ffd60a';g.lineWidth=2.5;g.beginPath();g.moveTo(px,padT);g.lineTo(px,padT+plotH);g.stroke();g.restore();
+ g.save();g.shadowColor='rgba(25,208,232,.85)';g.shadowBlur=10;g.strokeStyle='#19d0e8';g.lineWidth=2;g.beginPath();g.moveTo(px,padT);g.lineTo(px,padT+plotH);g.stroke();g.restore();
 }
 addEventListener('resize',draw);
 
@@ -1000,24 +1354,24 @@ async function dl(name,text,mime){
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:mime}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}
 const stamp=()=>'okt_'+oslo(S.log[0].ts).f;
 
-/* ---------- FIT-eksport (kjernetemp som felt 139, hudtemp som utviklerfelt – slik Intervals.icu leser CORE-data) ---------- */
+/* ---------- FIT-eksport ---------- */
 function activeTimes(r){let t=0,prevTs=null;return r.map((x,i)=>{if(Number.isFinite(x.realEl))t=x.realEl;else if(i)t+=Math.min(1.5,Math.max(0,(x.ts-prevTs)/1000));else t=0;prevTs=x.ts;return t})}
 function groupLaps(r,endTs,endRealEl){const times=activeTimes(r),idx=new Map(r.map((x,i)=>[x,i])),L=[];let c=null;r.forEach(x=>{if(!c||x.lap!==c.lapNo){if(c)L.push(c);c={lapNo:x.lap,pts:[],startTs:x.ts,startEl:times[idx.get(x)]}}c.pts.push(x)});if(c)L.push(c);L.forEach((l,i)=>{const next=L[i+1],last=l.pts[l.pts.length-1],lastIndex=idx.get(last),end=next?next.startTs:endTs??(last.ts+1000),endEl=next?next.startEl:(endRealEl??times[lastIndex]);l.endTs=end;l.endEl=endEl;l.sec=Math.max(0,(end-l.startTs)/1000);l.timerSec=Math.max(0,endEl-l.startEl)});return L}
 function fitCrc(b){const T=[0x0000,0xCC01,0xD801,0x1400,0xF001,0x3C00,0x2800,0xE401,0xA001,0x6C00,0x7800,0xB401,0x5000,0x9C01,0x8801,0x4400];let c=0;for(const x of b){let t=T[c&15];c=(c>>4)&0xFFF;c=c^t^T[x&15];t=T[c&15];c=(c>>4)&0xFFF;c=c^t^T[(x>>4)&15]}return c}
 let _route=null;
-function buildRoute(shape){ /* 'loop': svingete lukket vei (kursen dreier én runde + slyngninger). 'circle': ren sirkel */
+function buildRoute(shape){
  const N=4000,L=VIRTUAL_ROUTE_M,ds=L/N,pts=[];
  if(shape==='circle'){const R0=L/(2*Math.PI);for(let i=0;i<=N;i++){const a=i/N*2*Math.PI;pts.push([R0*Math.sin(a),-R0*Math.cos(a)])}}
  else{
   const A=[[3,.9,.4],[5,.6,2.1],[8,.45,4.2],[13,.3,1.3],[21,.2,5.0]];let x=0,y=0;pts.push([0,0]);
   for(let i=0;i<N;i++){const u=(i+.5)/N;let th=2*Math.PI*u;for(const[k,a,ph]of A)th+=a*Math.sin(2*Math.PI*k*u+ph);x+=Math.cos(th)*ds;y+=Math.sin(th)*ds;pts.push([x,y])}
-  const dx=x,dy=y;for(let i=0;i<=N;i++){pts[i][0]-=dx*i/N;pts[i][1]-=dy*i/N} /* lukk løkka */
+  const dx=x,dy=y;for(let i=0;i<=N;i++){pts[i][0]-=dx*i/N;pts[i][1]-=dy*i/N}
  }
  const cum=[0];for(let i=1;i<=N;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
  let cx=0,cy=0;for(const q of pts){cx+=q[0];cy+=q[1]}
  return{pts,cum,len:cum[N],cx:cx/pts.length,cy:cy/pts.length,N,shape}
 }
-function routePos(d){ /* posisjon (semicircles) etter tilbakelagt distanse d langs ruten */
+function routePos(d){
  const shape=($('vRoute')&&$('vRoute').value)||'loop';
  if(!_route||_route.shape!==shape)_route=buildRoute(shape);
  const r=_route,sd=((d%r.len)+r.len)%r.len;let lo=0,hi=r.N;
@@ -1066,7 +1420,6 @@ function buildFit(r){
   f.push([8,'s',units||'',16],[14,'u16',nativeMsg==null?65535:nativeMsg],[15,'u8',nativeField==null?255:nativeField]);
   M(2,206,f);
  };
- /* Developer ID and CORE field descriptions. Native overrides match CORE's FIT mapping. */
  M(0,0,[[0,'e',4],[1,'u16',edge?1:65535],[2,'u16',edge?GARMIN_EDGE840_PRODUCT:0],[3,'z32',devSerial()],[4,'u32',t0]]);
  M(8,49,[[0,'u16',100]]);
  M(1,207,[[0,'b',Array(16).fill(255),16],[1,'b',appId,16],[2,'u16',65535],[3,'u8',0],[4,'u32',100]]);
@@ -1094,7 +1447,7 @@ function buildFit(r){
  M(11,7,[[3,'u16',S.sessFtp||S.ftp]]);
  M(3,21,[[253,'u32',t0],[0,'e',0],[1,'e',0]]);
  const times=activeTimes(r),activeEnd=Math.max(S.realEl||0,times[times.length-1]||0),laps=groupLaps(r,endMs,activeEnd),all={w:[],h:[],c:[],spd:[],core:[],skin:[],hsi:[],quality:[]};
- let dist=0,workJ=0,firstPos=null,lastPos=null,accPower=0;
+ let dist=0,workJ=0,firstPos=null,lastPos=null;
  const distAt=new Map(),workAt=new Map();
  r.forEach((x,i)=>{
   distAt.set(x,dist);workAt.set(x,workJ);
@@ -1149,7 +1502,6 @@ function buildFit(r){
  const hc=fitCrc(h.slice(0,12));h[12]=hc&255;h[13]=hc>>8;
  const body=h.concat(d),c=fitCrc(body);body.push(c&255,c>>8);return new Uint8Array(body);
 }
-/* END FIT */
 
 {let on=VIRTUAL_GPS_DEFAULT;try{const v=localStorage.getItem('vgps');if(v!=null)on=v==='1'}catch(e){}
  $3('vGps').checked=on;$3('vGps').onchange=()=>{try{localStorage.setItem('vgps',$3('vGps').checked?'1':'0')}catch(e){}}}
@@ -1160,8 +1512,7 @@ $3('vRoute').onchange=()=>{try{localStorage.setItem('vroute',$3('vRoute').value)
 $3('bFit').onclick=()=>{if(!S.log.length)return;dl(stamp()+'.fit',buildFit(S.log),'application/octet-stream')};
 $3('bTcx').onclick=()=>{
  const r=S.log;if(!r.length)return;
-  const times=activeTimes(r),activeEnd=Math.max(S.realEl||0,times[times.length-1]||0),allLaps=groupLaps(r,undefined,activeEnd),indexOf=new Map(r.map((x,i)=>[x,i]));
-
+ const times=activeTimes(r),activeEnd=Math.max(S.realEl||0,times[times.length-1]||0),allLaps=groupLaps(r,undefined,activeEnd),indexOf=new Map(r.map((x,i)=>[x,i]));
  const lapsXml=allLaps.map(l=>{
   const hrs=l.pts.map(p=>p.hr).filter(v=>v!=null);
   const lapHr=hrs.length?`<AverageHeartRateBpm><Value>${Math.round(avg(hrs))}</Value></AverageHeartRateBpm><MaximumHeartRateBpm><Value>${Math.max(...hrs)}</Value></MaximumHeartRateBpm>`:'';
@@ -1172,7 +1523,7 @@ $3('bTcx').onclick=()=>{
      (x.w!=null?`<ns3:Watts>${Math.round(x.w)}</ns3:Watts>`:'')+
      (x.core!=null?`<ns3:CoreTemp>${x.core.toFixed(2)}</ns3:CoreTemp>`:'')+
      (x.skin!=null?`<ns3:SkinTemp>${x.skin.toFixed(2)}</ns3:SkinTemp>`:'')+
-     (x.hsi!=null?`<ns3:HeatStrainIndex>${x.hsi.toFixed(1)}</ns3:HeatStrainIndex>`:'')+
+     (x.hsi!=null?`<ns3:HeatStrainIndex>${x.hsi.toFixed(2)}</ns3:HeatStrainIndex>`:'')+
      `</ns3:TPX></Extensions>`;
    }
    return `<Trackpoint><Time>${oslo(x.ts).s}</Time>`+
@@ -1191,7 +1542,6 @@ ${lapsXml}
  dl(stamp()+'.tcx',xml,'application/vnd.garmin.tcx+xml');
 };
 
-/* CSV i formatet til Intervals.icu «streams» (engelske kolonnenavn = navn på innebygde strømmer) */
 $3('bCsv').onclick=()=>{
  if(!S.log.length)return;
  const v=(x,d=0)=>x==null?'':(d?x.toFixed(d):Math.round(x));
@@ -1201,21 +1551,20 @@ $3('bCsv').onclick=()=>{
   const speed=x.spd==null?null:x.spd/3.6;
   if(speed!=null)dist+=speed*dt;
   return [((x.ts-r[0].ts)/1000).toFixed(3),v(x.w),v(x.hr),v(x.cad),speed==null?'':speed.toFixed(3),dist.toFixed(2),
-   v(x.core,2),v(x.skin,2),v(x.hsi,1),v(x.quality)].join(',');
+   v(x.core,2),v(x.skin,2),v(x.hsi,2),v(x.quality)].join(',');
  });
  dl(stamp()+'_streams.csv','time,watts,heartrate,cadence,velocity_smooth,distance,core_temperature,skin_temperature,heat_strain_index,core_data_quality\n'+rows.join('\n'),'text/csv');
 };
 
 /* ---------- Moduser: fri tur / treningsøkt / puls-ERG ---------- */
 function hcSave(){$('hrCap').value=HC.cap;try{localStorage.setItem('hrcfg',JSON.stringify(HC))}catch(e){}}
-function hrTick(newSec,hr){ /* kjører hvert tick i puls-ERG; returnerer true hvis økten ble avsluttet */
+function hrTick(newSec,hr){
  const lo=S.ftp*HC.lo/100,hi=S.ftp*HC.hi/100,re=S.realEl,w0=S.ftp*HC.wp/100;
- if(S.hrW==null){S.warmW=w0;S.hrW=clamp(w0,lo,hi);S.hrW0=S.hrW;S.hrPhase=HC.warm>0?'warm':'reg';S.hrLastAdj=re}
+ if(S.hrPhase==null){S.warmW=S.warmW??w0;S.hrW=S.hrW??clamp(S.warmW,lo,hi);S.hrW0=S.hrW;S.hrPhase=HC.warm>0?'warm':'reg';S.hrLastAdj=re}
  if(newSec)S.hrb=[...S.hrb,hr].slice(-30);
  if(S.hrPhase==='warm'&&re>=HC.warm*60){S.hrPhase='reg';S.hrLastAdj=re;S.hrW=clamp(S.warmW,lo,hi);S.hrW0=S.hrW;closeLap();S.lapSeq++;lapStart(S.freeLap||0)}
  if(S.hrPhase==='cool'&&re-S.coolT0>=HC.cool*60){finish();return true}
  const hs=S.hrb.filter(x=>x!=null);S.hr30=hs.length>=15?avg(hs):null;
- /* prediktiv regulator: projiserer pulsen ca. 30 s frem (siste 10 s mot 20 s tidligere) og justerer i proporsjonale steg */
  S.hrProj=null;
  if(S.hrb.length>=30&&S.hr30!=null){const h10=avg(S.hrb.slice(-10)),hOld=avg(S.hrb.slice(0,10));if(h10!=null&&hOld!=null)S.hrProj=h10+1.5*(h10-hOld)}
  if(S.hrPhase==='reg'&&newSec&&HC.mode==='auto'&&S.hrProj!=null){
@@ -1234,7 +1583,7 @@ function hrUi(){
  const lo=S.ftp*HC.lo/100,hi=S.ftp*HC.hi/100,cl=HC.cap-HC.band,W=S.tgt!=null?Math.round(S.tgt):null,h30=S.hr30,pv=S.hrProj!=null?S.hrProj:S.hr30;
  $('wRange').textContent=Math.round(lo)+'–'+Math.round(hi)+' W';$('hBand').textContent=cl+'–'+HC.cap;
  let m;
- if(S.armed)m='Venter på første tråkk …';else if(S.state==='idle'||S.hrPhase==null)m=`Klar · oppvarming ${HC.warm} min på ${Math.round(S.ftp*HC.wp/100)} W, deretter regulering mot ${cl}–${HC.cap} bpm`;
+ if(S.armed)m='Venter på første tråkk …';else if(S.state==='idle'||S.hrPhase==null)m=`Klar · oppvarming ${HC.warm} min på ${Math.round(S.warmW??(S.ftp*HC.wp/100))} W, deretter regulering mot ${cl}–${HC.cap} bpm`;
  else if(S.hrPhase==='warm')m=`Oppvarming · ${fmt(HC.warm*60-S.realEl)} igjen · fast ${W} W`;
  else if(S.hrPhase==='cool')m=`Nedkjøring · ${fmt(HC.cool*60-(S.realEl-S.coolT0))} igjen · ${W} W`;
  else{
@@ -1246,30 +1595,236 @@ function hrUi(){
   else m=`Puls i bånd · holder ${W} W (${trs})`;
  }
  $('hrstxt').textContent=m;
- const h=fresh('hr','hr');if(h!=null)$('hr').style.color=h>HC.cap+2?'var(--bad)':h>HC.cap?'var(--warn)':h>=cl?'var(--ok)':'var(--acc)';
+ const h=fresh('hr','hr');if(h!=null)$('hr').style.color=h>HC.cap+2?'var(--bad)':h>HC.cap?'var(--warn)':h>=cl?'var(--ok)':'var(--cyan)';
 }
-function drawCurves(g,W,H){ /* rullerende watt- og pulskurve (siste 20 min) */
+
+/* ---------- Treningsanalyse ---------- */
+const AN_ZONES=[
+ {name:'Z1',lo:0,hi:55,color:'#5A6266'},
+ {name:'Z2',lo:55,hi:76,color:'#2B7A8C'},
+ {name:'Z3',lo:76,hi:91,color:'#369E9A'},
+ {name:'Z4',lo:91,hi:106,color:'#B89F5D'},
+ {name:'Z5',lo:106,hi:121,color:'#B87352'},
+ {name:'Z6',lo:121,hi:151,color:'#AD5358'},
+ {name:'Z7',lo:151,hi:Infinity,color:'#7D659E'}
+];
+const anFmt=(v,d=0)=>v==null||!Number.isFinite(v)?'–':v.toFixed(d);
+const anTime=v=>{if(!Number.isFinite(v))return '–';const n=Math.round(v);return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')};
+const anMean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const calcNm=(w,cad)=>(w!=null&&cad!=null&&cad>10)?w/(cad*Math.PI/30):null;
+function anZone(w,ftp){if(w==null||!ftp)return null;const p=w/ftp*100;return AN_ZONES.findIndex(z=>p<z.hi)}
+function anCalc(){
+ const r=S.log||[],ftp=S.sessFtp||S.ftp,elapsed=Math.max(0,S.realEl||0),active=S.state==='running';
+ const validW=r.filter(x=>x.w!=null),ws=validW.map(x=>x.w),hrs=r.filter(x=>x.hr!=null).map(x=>x.hr);
+ const avgW=anMean(ws),avgHr=anMean(hrs),cad=r.filter(x=>x.cad!=null&&x.cad>0).map(x=>x.cad);
+ const nms=r.map(x=>calcNm(x.w,x.cad)).filter(v=>v!=null);
+ let n4=0,nN=0,windowW=[];for(const x of r){if(x.w==null){windowW=[];continue}windowW.push(x.w);if(windowW.length>30)windowW.shift();if(windowW.length===30){const m=anMean(windowW);n4+=Math.pow(m,4);nN++}}
+ const np=nN?Math.pow(n4/nN,.25):null,IF=np!=null&&ftp?np/ftp:null,TSS=IF!=null?elapsed*np*IF/(ftp*3600)*100:null;
+ const z=AN_ZONES.map(()=>({sec:0,j:0,hr:[],cad:[],nm:[],lr:[],core:[],skin:[],hsi:[],entries:0}));
+ const smW=i=>{let sum=0,n=0;for(let k=i-1;k<=i+1;k++){const v=r[k]&&r[k].w;if(v!=null){sum+=v;n++}}return n?sum/n:null};
+ let lastZone=null;
+ for(let i=0;i<r.length;i++){
+  const x=r[i],next=r[i+1],dt=next?Math.max(0,Math.min(2,(next.realEl??x.realEl+1)-(x.realEl??0))):(active?Math.max(0,Math.min(1,elapsed-(x.realEl||0))):0);
+  if(!dt||x.w==null)continue;
+  const zi=anZone(smW(i),ftp);
+  if(zi==null)continue;
+  const q=z[zi];if(zi!==lastZone){q.entries++;lastZone=zi}
+  q.sec+=dt;q.j+=x.w*dt;
+  if(x.hr!=null)q.hr.push(x.hr);
+  if(x.cad!=null&&x.cad>0)q.cad.push(x.cad);
+  const nm=calcNm(x.w,x.cad);if(nm!=null)q.nm.push(nm);
+  if(x.lrLeft!=null)q.lr.push(x.lrLeft);
+  if(x.core!=null)q.core.push(x.core);
+  if(x.skin!=null)q.skin.push(x.skin);if(x.hsi!=null)q.hsi.push(x.hsi);
+ }
+ const totalJ=z.reduce((a,q)=>a+q.j,0);
+ z.forEach(q=>{q.avgHr=anMean(q.hr);q.avgCad=anMean(q.cad);q.avgNm=anMean(q.nm);q.lr=anMean(q.lr);q.ef=q.avgHr&&q.j>0?(q.j/Math.max(q.sec,1))/q.avgHr:null;q.share=totalJ>0?q.j/totalJ*100:null});
+ const firstTs=r.length?r[0].realEl||0:0,mid=firstTs+(elapsed-firstTs)/2,halfStats=[0,1].map(h=>{
+  const a=r.filter(x=>x.realEl>=(h?mid:firstTs)&&(h?x.realEl<=elapsed:x.realEl<mid)&&anZone(x.w,ftp)===1);
+  const p=a.filter(x=>x.w!=null).map(x=>x.w),hr=a.filter(x=>x.hr!=null).map(x=>x.hr),nm=a.map(x=>calcNm(x.w,x.cad)).filter(v=>v!=null),c=a.filter(x=>x.core!=null).map(x=>x.core);
+  return{w:anMean(p),hr:anMean(hr),nm:anMean(nm),core:c.length?c[c.length-1]-c[0]:null,n:a.length}
+ });
+ const lrSamples=r.filter(x=>x.lrLeft!=null).map(x=>x.lrLeft);const temps={core:r.filter(x=>x.core!=null).map(x=>x.core),skin:r.filter(x=>x.skin!=null).map(x=>x.skin),hsi:r.filter(x=>x.hsi!=null).map(x=>x.hsi)};
+ const tempStats=a=>({start:a.length?a[0]:null,avg:anMean(a),max:a.length?Math.max(...a):null,rise:a.length?a[a.length-1]-a[0]:null});
+ const corr=(fnA,fnB)=>{const pairs=r.map(x=>[fnA(x),fnB(x)]).filter(([a,b])=>Number.isFinite(a)&&Number.isFinite(b));if(pairs.length<10)return null;const aa=anMean(pairs.map(p=>p[0])),bb=anMean(pairs.map(p=>p[1]));let n=0,d1=0,d2=0;for(const[a,b]of pairs){const da=a-aa,db=b-bb;n+=da*db;d1+=da*da;d2+=db*db}return d1&&d2?n/Math.sqrt(d1*d2):null};
+ const efPairs=r.filter(x=>x.w!=null&&x.w>0&&x.hr!=null),p1=efPairs.filter(x=>x.realEl<mid),p2=efPairs.filter(x=>x.realEl>=mid);
+ const efOf=p=>p.length?anMean(p.map(x=>x.w))/anMean(p.map(x=>x.hr)):null,ef1=efOf(p1),ef2=efOf(p2);
+ const drift=ef1&&ef2?(ef1-ef2)/ef1*100:null;
+ return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),avgNm:anMean(nms),np,IF,TSS,z,totalJ,halfStats,lrLeft:anMean(lrSamples),lrN:lrSamples.length,corrWH:corr(x=>x.w,x=>x.hr),corrWC:corr(x=>x.w,x=>x.core),corrHC:corr(x=>x.hr,x=>x.core),corrNH:corr(x=>calcNm(x.w,x.cad),x=>x.hr),core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
+}
+function anCell(label,value,unit=''){return '<div class="an-metric"><span>'+label+'</span><b>'+value+(unit?' '+unit:'')+'</b></div>'}
+function anKv(label,val){return `<div class="an-kv"><span>${label}</span><b>${val}</b></div>`}
+
+function renderAnalysis() {
+  const colors = ['#5A6266','#2B7A8C','#369E9A','#B89F5D','#B87352','#AD5358','#7D659E'];
+  const r = S.log || [];
+  
+  if (!r.length) {
+    $('anStatus').textContent = 'Ingen øktdata. Start en økt for sanntidsanalyse.';
+    $('anPowerMetrics').innerHTML = ['Nå','3 s','10 s','Snitt','NP','IF','TSS','Arbeid','kJ/t nå','Ø kJ/t'].map(l => anCell(l, '–')).join('');
+    $('anHrMetrics').innerHTML = ['Nå','% Maks','Snitt','Maks'].map(l => anCell(l, '–')).join('');
+    $('anSessMetrics').innerHTML = ['Kadens nå','Ø Kadens','Torque nå','Ø Torque','Tid'].map(l => anCell(l, '–')).join('');
+    $('anZones').innerHTML = AN_ZONES.map((z, i) => `
+      <article class="zone-card" style="--zc:${colors[i]}">
+        <h3><span>${z.name}</span><small>${z.hi===Infinity?'>150':z.lo+'–'+z.hi}%</small></h3>
+        <div class="zone-stats">
+          <div><span>Tid</span><b>0:00</b></div>
+          <div><span>Arbeid</span><b>–</b></div>
+          <div><span>Andel</span><b>–</b></div>
+          <div><span>Puls</span><b>–</b></div>
+          <div><span>Kadens</span><b>–</b></div>
+          <div><span>Torque</span><b>–</b></div>
+          <div><span>W/bpm</span><b>–</b></div>
+          <div><span>L/R %</span><b>–</b></div>
+        </div>
+      </article>`).join('');
+    $('anTemps').innerHTML = anKv('Core (Start/Snitt/Maks)', '–') + anKv('Hud (Start/Snitt/Maks)', '–') + anKv('Core økning / HSI maks', '–');
+    $('anDrift').innerHTML = anKv('EF (1. → 2. halvdel)', '–') + anKv('Pw:Hr drift', '–') + anKv('L/R pedalbalanse', '–');
+    $('anHalves').innerHTML = anKv('1. halvdel (W / bpm / Nm)', '–') + anKv('2. halvdel (W / bpm / Nm)', '–');
+    $('anRelations').innerHTML = anKv('Watt ↔ Puls (r)', '–') + anKv('Torque ↔ Puls (r)', '–') + anKv('Watt ↔ Core (r)', '–') + anKv('Puls ↔ Core (r)', '–');
+    return;
+  }
+
+  const a = anCalc();
+  const lastPt = r.at(-1);
+  const curZone = S.state === 'running' ? anZone(anMean(r.slice(-2).map(x=>x.w).filter(v=>v!=null)), a.ftp) : -1;
+  $('anStatus').textContent = `${S.state === 'running' ? 'Live' : 'Pauset/Ferdig'} · FTP ${a.ftp} W · Maks puls ${a.hrSetting} bpm`;
+
+  const w3 = (() => { const v = r.slice(-3).map(x=>x.w).filter(x=>x!=null); return v.length>=2 ? anMean(v) : null; })();
+  const w10 = (() => { const v = r.slice(-10).map(x=>x.w).filter(x=>x!=null); return v.length>=7 ? anMean(v) : null; })();
+  const w5 = (() => { const v = r.slice(-5).map(x=>x.w).filter(x=>x!=null); return v.length ? anMean(v) : null; })();
+  
+  const kjPerHourNow = w5 != null ? w5 * 3.6 : null;
+  const kjPerHourAvg = a.elapsed >= 10 ? (a.totalJ / 1000) / (a.elapsed / 3600) : null;
+
+  $('anPowerMetrics').innerHTML = [
+    anCell('Nå', anFmt(lastPt?.w), 'W'),
+    anCell('3 s', anFmt(w3), 'W'),
+    anCell('10 s', anFmt(w10), 'W'),
+    anCell('Snitt', anFmt(a.avgW), 'W'),
+    anCell('NP', anFmt(a.np), 'W'),
+    anCell('IF', anFmt(a.IF, 2)),
+    anCell('TSS', anFmt(a.TSS, 0)),
+    anCell('Arbeid', anFmt(a.totalJ/1000, 0), 'kJ'),
+    anCell('kJ/t nå', anFmt(kjPerHourNow, 0)),
+    anCell('Ø kJ/t', anFmt(kjPerHourAvg, 0))
+  ].join('');
+
+  const curHr = lastPt?.hr;
+  const pctMaxHrNow = a.hrSetting && curHr != null ? (curHr / a.hrSetting * 100) : null;
+  const pctMaxHrAvg = a.hrSetting && a.avgHr != null ? (a.avgHr / a.hrSetting * 100) : null;
+  const pctMaxHrStr = pctMaxHrNow != null 
+    ? `${anFmt(pctMaxHrNow, 0)}%`
+    : (pctMaxHrAvg != null ? `Ø ${anFmt(pctMaxHrAvg, 0)}%` : '–');
+
+  $('anHrMetrics').innerHTML = [
+    anCell('Nå', anFmt(curHr), 'bpm'),
+    anCell('% Maks', pctMaxHrStr),
+    anCell('Snitt', anFmt(a.avgHr), 'bpm'),
+    anCell('Maks', anFmt(a.hrPeak), 'bpm')
+  ].join('');
+
+  const curNm = calcNm(lastPt?.w, lastPt?.cad);
+  $('anSessMetrics').innerHTML = [
+    anCell('Kadens nå', anFmt(lastPt?.cad), 'rpm'),
+    anCell('Ø Kadens', anFmt(a.avgCad), 'rpm'),
+    anCell('Torque nå', anFmt(curNm, 1), 'Nm'),
+    anCell('Ø Torque', anFmt(a.avgNm, 1), 'Nm'),
+    anCell('Tid', anTime(a.elapsed))
+  ].join('');
+
+  $('anZones').innerHTML = a.z.map((q, i) => {
+    const z = AN_ZONES[i];
+    const rng = z.hi === Infinity ? '>150%' : `${z.lo}–${z.hi}%`;
+    const lrL = q.lr == null ? null : Math.round(q.lr);
+    const lr = lrL == null ? '–' : `${lrL}/${100-lrL}`;
+    return `
+      <article class="zone-card ${curZone === i ? 'active' : ''}" style="--zc:${colors[i]}">
+        <h3><span>${z.name}</span><small>${rng}</small></h3>
+        <div class="zone-stats">
+          <div><span>Tid</span><b>${anTime(q.sec)}</b></div>
+          <div><span>Arbeid</span><b>${anFmt(q.j/1000, 0)} kJ</b></div>
+          <div><span>Andel</span><b>${anFmt(q.share, 0)} %</b></div>
+          <div><span>Puls</span><b>${anFmt(q.avgHr, 0)} bpm</b></div>
+          <div><span>Kadens</span><b>${anFmt(q.avgCad, 0)} rpm</b></div>
+          <div><span>Torque</span><b>${anFmt(q.avgNm, 1)} Nm</b></div>
+          <div><span>W/bpm</span><b>${anFmt(q.ef, 2)}</b></div>
+          <div><span>L/R %</span><b>${lr}</b></div>
+        </div>
+      </article>`;
+  }).join('');
+
+  $('anTemps').innerHTML =
+    anKv('Core (Start/Snitt/Maks)', `${anFmt(a.core.start,2)} / ${anFmt(a.core.avg,2)} / ${anFmt(a.core.max,2)} °C`) +
+    anKv('Hud (Start/Snitt/Maks)', `${anFmt(a.skin.start,1)} / ${anFmt(a.skin.avg,1)} / ${anFmt(a.skin.max,1)} °C`) +
+    anKv('Core økning / HSI maks', `${a.core.rise!=null?(a.core.rise>0?'+':'')+anFmt(a.core.rise,2)+' °C':'–'} / ${anFmt(a.hsi.max,2)}`);
+
+  const lrL1 = Math.round(a.lrLeft*10)/10;
+  const lrTot = a.lrN && Number.isFinite(lrL1) ? `${lrL1.toFixed(1)}% / ${(Math.round((100-lrL1)*10)/10).toFixed(1)}%` : 'Ikke tilgjengelig';
+  $('anDrift').innerHTML =
+    anKv('EF (1. → 2. halvdel)', `${anFmt(a.ef1, 2)} → ${anFmt(a.ef2, 2)}`) +
+    anKv('Pw:Hr drift', a.drift != null ? `${anFmt(a.drift, 1)} %${a.elapsed < 1200 ? ' (foreløpig)' : ''}` : 'Venter på data') +
+    anKv('L/R pedalbalanse', lrTot);
+
+  const h1 = a.halfStats[0], h2 = a.halfStats[1];
+  $('anHalves').innerHTML =
+    anKv('1. halvdel (W / bpm / Nm)', `${anFmt(h1.w,0)} W · ${anFmt(h1.hr,0)} bpm · ${anFmt(h1.nm,1)} Nm`) +
+    anKv('2. halvdel (W / bpm / Nm)', `${anFmt(h2.w,0)} W · ${anFmt(h2.hr,0)} bpm · ${anFmt(h2.nm,1)} Nm`);
+
+  $('anRelations').innerHTML =
+    anKv('Watt ↔ Puls (r)', anFmt(a.corrWH, 2)) +
+    anKv('Torque ↔ Puls (r)', anFmt(a.corrNH, 2)) +
+    anKv('Watt ↔ Core (r)', anFmt(a.corrWC, 2)) +
+    anKv('Puls ↔ Core (r)', anFmt(a.corrHC, 2));
+
+  // Tegn HSI-graf
+  const c = $('anHsi'), g = c.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  const w = c.clientWidth, h = c.clientHeight || 40;
+  if (w > 0 && h > 0) {
+    c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    const pts = r.filter(x => x.hsi != null);
+    if (pts.length > 1) {
+      const lo = Math.min(...pts.map(x => x.hsi)), hi = Math.max(...pts.map(x => x.hsi)), span = hi - lo || 1;
+      g.strokeStyle = '#19d0e8'; g.lineWidth = 2; g.beginPath();
+      pts.forEach((x, i) => {
+        const px = i / (pts.length - 1) * (w - 8) + 4;
+        const py = h - 6 - (x.hsi - lo) / span * (h - 12);
+        i ? g.lineTo(px, py) : g.moveTo(px, py);
+      });
+      g.stroke();
+    } else {
+      g.fillStyle = '#7f7f7f'; g.font = '10px "DM Mono", monospace';
+      g.fillText('Venter på HSI-data...', 6, h / 2 + 3);
+    }
+  }
+}
+
+$('bAnalysis').onclick=()=>{document.body.classList.add('analysis-open');renderAnalysis()};
+$('anClose').onclick=()=>document.body.classList.remove('analysis-open');
+
+function drawCurves(g,W,H){
  const padL=40,padR=40,padT=22,padB=16,pw=W-padL-padR,ph=H-padT-padB,N=CURVE_WINDOW_S,L=S.log,n=L.length,i0=Math.max(0,n-N);
  let wMax=S.ftp*1.2;for(let i=i0;i<n;i++)if(L[i].w>wMax)wMax=L[i].w;
- const hLo=60,hHi=Math.max(180,(S.hrmax||0)+5),yW=w=>padT+ph-clamp(w/wMax,0,1)*ph,yH=h=>padT+ph-clamp((h-hLo)/(hHi-hLo),0,1)*ph,xx=i=>padL+(i-i0)/(N-1)*pw; /* eldste til venstre, nyeste mot høyre */
- g.font='11px sans-serif';
+ const hLo=60,hHi=Math.max(180,(S.hrmax||0)+5),yW=w=>padT+ph-clamp(w/wMax,0,1)*ph,yH=h=>padT+ph-clamp((h-hLo)/(hHi-hLo),0,1)*ph,xx=i=>padL+(i-i0)/(N-1)*pw;
+ g.font='10px "DM Mono", monospace';
  if(S.kind==='hr'){
   const lo=S.ftp*HC.lo/100,hi=S.ftp*HC.hi/100;
-  g.fillStyle='rgba(70,166,255,.13)';g.fillRect(padL,yW(hi),pw,yW(lo)-yW(hi));
-  g.fillStyle='rgba(239,83,80,.16)';g.fillRect(padL,yH(HC.cap),pw,yH(HC.cap-HC.band)-yH(HC.cap));
+  g.fillStyle='rgba(25,208,232,.1)';g.fillRect(padL,yW(hi),pw,yW(lo)-yW(hi));
+  g.fillStyle='rgba(173,83,88,.18)';g.fillRect(padL,yH(HC.cap),pw,yH(HC.cap-HC.band)-yH(HC.cap));
  }
- g.strokeStyle='#232c3b';g.fillStyle='#5c6a7e';g.lineWidth=1;
+ g.strokeStyle='#282828';g.fillStyle='#7f7f7f';g.lineWidth=1;
  for(let w=0;w<=wMax;w+=100){const y=yW(w);g.beginPath();g.moveTo(padL,y);g.lineTo(W-padR,y);g.stroke();g.fillText(w,4,y+3)}
  for(let h=80;h<=hHi;h+=20)g.fillText(h,W-padR+6,yH(h)+3);
  for(let t=Math.ceil(i0/300)*300;t<=i0+N-1;t+=300){const x=xx(t);g.fillText(Math.round(t/60)+' min',Math.min(x,W-padR-26),H-3)}
  const line=(f,y,c,wd)=>{g.strokeStyle=c;g.lineWidth=wd;g.beginPath();let st=false;for(let i=i0;i<n;i++){const v=f(L[i],i);if(v==null){st=false;continue}st?g.lineTo(xx(i),y(v)):g.moveTo(xx(i),y(v));st=true}g.stroke()};
- if(S.kind==='hr'){g.setLineDash([5,4]);line(r=>r.tgt,yW,'rgba(70,166,255,.9)',1.5);g.setLineDash([])}
+ if(S.kind==='hr'){g.setLineDash([5,4]);line(r=>r.tgt,yW,'rgba(25,208,232,.9)',1.5);g.setLineDash([])}
  const wsm=i=>{let a=0,c=0;for(let j=Math.max(0,i-CURVE_SMOOTH_S+1);j<=i;j++){const v=L[j].w;if(v!=null){a+=v;c++}}return c?a/c:null};
- line(r=>r.hr,yH,'#ef5350',2);line((r,i)=>wsm(i),yW,'#fff',2);
- if(n<2){g.fillStyle='#5c6a7e';g.textAlign='center';g.textBaseline='middle';g.font='15px sans-serif';g.fillText('Venter på data – start økten',W/2,H/2);g.textAlign='left';g.textBaseline='alphabetic';g.font='11px sans-serif'}
- g.fillStyle='#c8d2de';g.fillText('Watt (hvit, '+CURVE_SMOOTH_S+' s snitt, venstre) · Puls (rød, høyre)'+(S.kind==='hr'?' · blå stiplet = regulatorens watt':'')+' · vindu '+Math.round(N/60)+' min',padL,13);
+ line(r=>r.hr,yH,'#AD5358',2);line((r,i)=>wsm(i),yW,'#ffffff',2);
+ if(n<2){g.fillStyle='#7f7f7f';g.textAlign='center';g.textBaseline='middle';g.font='13px "DM Mono", monospace';g.fillText('Venter på data – start økten',W/2,H/2);g.textAlign='left';g.textBaseline='alphabetic';g.font='10px "DM Mono", monospace'}
+ g.fillStyle='#7f7f7f';g.fillText('Watt (hvit, '+CURVE_SMOOTH_S+' s snitt, venstre) · Puls (rød, høyre)'+(S.kind==='hr'?' · cyan stiplet = regulatorens watt':'')+' · vindu '+Math.round(N/60)+' min',padL,13);
 }
-function stepTxt(st){ /* [hovedtekst, undertekst] for et steg */
+function stepTxt(st){
  const w=p=>Math.round(S.ftp*p/100*S.scale/100),f0=v=>Math.round(v);
  if(st.free)return['Fri giring',''];
  if(st.rg)return[`${w(st.p0)} W`,`Område ${f0(st.rg[0])}–${f0(st.rg[1])} % = ${w(st.rg[0])}–${w(st.rg[1])} W`];
@@ -1336,7 +1891,7 @@ $('helpOk').onclick=()=>{$('helpdlg').hidden=true;try{localStorage.setItem('hrhe
 try{const lk=localStorage.getItem('kind'),c=document.querySelector(`.card[data-kind="${lk}"]`);if(c)c.classList.add('last')}catch(e){}
 setKind(null);
 
-/* ---------- Moduser, modaler og hurtigtaster (del 2) ---------- */
+/* ---------- Moduser, modaler og hurtigtaster ---------- */
 function openSummary(){
  const a=S.acc||(accReset(),S.acc),np=accNP(),ah=a.hrN?a.hrS/a.hrN:null,avgW=S.log.length?a.j/S.log.length:null,ef=ah?((np!=null?np:avgW)/ah):null,F=S.sessFtp||S.ftp,tss=np!=null&&F?(S.log.length*np*(np/F))/(F*3600)*100:null;
  const cell=(l,v)=>`<div><span>${l}</span><b>${v}</b></div>`;
@@ -1360,7 +1915,7 @@ function doRestore(r){
  accReset();S.log.forEach(accAdd);
  if(r.sessFtp){S.sessFtp=r.sessFtp;S.ftp=r.sessFtp;$('ftp').value=S.ftp}
  setKind(r.kind||(r.iv&&r.iv.length?'workout':'free'));Object.assign(S,{hrW:r.hrW??null,hrPhase:r.hrPhase??null,hrW0:r.hrW0,warmW:r.warmW,coolT0:r.coolT0});
- if(r.iv&&r.iv.length){setWorkout(r.iv);S.i=S.iv.findIndex(x=>S.el>=x.s&&S.el<x.s+x.d)}
+ if(r.iv&&r.iv.length){setWorkout(r.iv);S.i=S.iv.findIndex(x=>S.el>=x.s&&x.el<x.s+x.d)}
  $3('scl').textContent=S.scale+'%';toast('Økt gjenopprettet – trykk Fortsett');ui();render();
 }
 try{

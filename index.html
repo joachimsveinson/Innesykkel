@@ -1621,22 +1621,15 @@ function anCalc(){
  let n4=0,nN=0,windowW=[];for(const x of r){if(x.w==null){windowW=[];continue}windowW.push(x.w);if(windowW.length>30)windowW.shift();if(windowW.length===30){const m=anMean(windowW);n4+=Math.pow(m,4);nN++}}
  const np=nN?Math.pow(n4/nN,.25):null,IF=np!=null&&ftp?np/ftp:null,TSS=IF!=null?elapsed*np*IF/(ftp*3600)*100:null;
  const z=AN_ZONES.map(()=>({sec:0,j:0,hr:[],cad:[],nm:[],lr:[],core:[],skin:[],hsi:[],entries:0}));
- let activeZone=null,candidate=null,candidateSec=0;
+ const smW=i=>{let sum=0,n=0;for(let k=i-1;k<=i+1;k++){const v=r[k]&&r[k].w;if(v!=null){sum+=v;n++}}return n?sum/n:null};
+ let lastZone=null;
  for(let i=0;i<r.length;i++){
   const x=r[i],next=r[i+1],dt=next?Math.max(0,Math.min(2,(next.realEl??x.realEl+1)-(x.realEl??0))):(active?Math.max(0,Math.min(1,elapsed-(x.realEl||0))):0);
-  if(!dt)continue;
-  const zi=anZone(x.w,ftp);
-  if(zi==null){candidate=null;candidateSec=0;continue}
-  if(zi!=null){
-   if(activeZone==null){activeZone=zi;z[zi].entries++}
-   else if(zi!==activeZone){
-    if(candidate!==zi){candidate=zi;candidateSec=0}
-    candidateSec+=dt;
-    if(candidateSec>=3){activeZone=zi;z[zi].entries++;candidate=null;candidateSec=0}
-   }else{candidate=null;candidateSec=0}
-  }
-  if(activeZone==null)continue;
-  const q=z[activeZone];q.sec+=dt;if(x.w!=null)q.j+=x.w*dt;
+  if(!dt||x.w==null)continue;
+  const zi=anZone(smW(i),ftp);
+  if(zi==null)continue;
+  const q=z[zi];if(zi!==lastZone){q.entries++;lastZone=zi}
+  q.sec+=dt;q.j+=x.w*dt;
   if(x.hr!=null)q.hr.push(x.hr);
   if(x.cad!=null&&x.cad>0)q.cad.push(x.cad);
   const nm=calcNm(x.w,x.cad);if(nm!=null)q.nm.push(nm);
@@ -1694,7 +1687,7 @@ function renderAnalysis() {
 
   const a = anCalc();
   const lastPt = r.at(-1);
-  const curZone = S.state === 'running' ? anZone(lastPt?.w, a.ftp) : -1;
+  const curZone = S.state === 'running' ? anZone(anMean(r.slice(-2).map(x=>x.w).filter(v=>v!=null)), a.ftp) : -1;
   $('anStatus').textContent = `${S.state === 'running' ? 'Live' : 'Pauset/Ferdig'} · FTP ${a.ftp} W · Maks puls ${a.hrSetting} bpm`;
 
   const w3 = (() => { const v = r.slice(-3).map(x=>x.w).filter(x=>x!=null); return v.length>=2 ? anMean(v) : null; })();

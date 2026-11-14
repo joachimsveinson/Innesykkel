@@ -464,6 +464,14 @@ body.analysis-open { overflow: hidden; }
   .an-bottom-grid { grid-template-columns: repeat(2, 1fr); }
   #analysisPage { overflow-y: auto; }
 }
+
+#presetPanel{display:none;flex:none;max-height:22vh;overflow:auto;padding:10px 14px;background:linear-gradient(180deg,#1d1d1d 0%,var(--card) 55%,#111 100%);border:1px solid var(--line);border-radius:var(--rad-card);font-family:var(--font-mono)}
+#presetPanel.on{display:block}
+#presetPanel .preset-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+#presetPanel label{font-size:11px;color:var(--mut);text-transform:uppercase}
+#presetSelect{min-width:min(100%,280px);max-width:100%;padding:7px 10px;background:var(--obsidian);color:var(--fg);border:1px solid var(--line);border-radius:8px;font:12px var(--font-mono)}
+#presetMeta{font-size:10px;color:var(--mut)}
+#presetDescription{white-space:pre-wrap;color:var(--ghost);font:11px/1.45 var(--font-mono);margin:0}
 </style></head>
 <body>
 <div id="warn">Web Bluetooth mangler i denne visningen – åpne i Chrome (Mac/PC) eller Bluefy (iPad) for sensortilkobling.</div>
@@ -531,6 +539,11 @@ body.analysis-open { overflow: hidden; }
  <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#fff" stroke-width="2"/></svg>Watt</span><span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#AD5358" stroke-width="2"/></svg>Puls</span>
 </div><div id="tip"></div></div>
  </div>
+
+  <section id="presetPanel" aria-label="Forhåndslagrede treningsøkter">
+   <div class="preset-head"><label for="presetSelect">Forhåndslagret økt</label><select id="presetSelect"><option value="">Velg økt …</option></select><span id="presetMeta"></span></div>
+   <pre id="presetDescription">Velg en økt for å vise øktbeskrivelsen.</pre>
+  </section>
  <aside id="lp" aria-label="Rundeliste">
   <div class="lr h"><span>#</span><span>Tid</span><span>Watt</span><span>Puls</span><span>Kad</span><span>Maks puls</span></div>
   <div id="lrows"></div>
@@ -913,6 +926,28 @@ $('file').onchange=async e=>{
  }catch(err){toast('Feil: '+err.message,true)}
  e.target.value='';
 };
+
+
+/* ---------- Forhåndslagrede økter ---------- */
+let PRESET_WORKOUTS=[];
+async function loadPresetWorkouts(){
+ try{
+  const res=await fetch('./workouts.json',{cache:'no-store'});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const data=await res.json();
+  PRESET_WORKOUTS=Array.isArray(data.workouts)?data.workouts:[];
+  const select=$('presetSelect');
+  PRESET_WORKOUTS.forEach(w=>{
+   const o=document.createElement('option');o.value=String(w.id);o.textContent=w.name;select.appendChild(o);
+  });
+ }catch(e){$('presetMeta').textContent='Kunne ikke laste øktbiblioteket';console.error(e)}
+}
+$('presetSelect').onchange=()=>{
+ const w=PRESET_WORKOUTS.find(x=>String(x.id)===$('presetSelect').value);
+ $('presetMeta').textContent=w?fmt(w.duration_seconds)+' · Belastning '+w.training_load:'';
+ $('presetDescription').textContent=w?w.description_raw:'Velg en økt for å vise øktbeskrivelsen.';
+};
+loadPresetWorkouts();
 
 /* ---------- Lyd og skjerm ---------- */
 let ac,wl;
@@ -1856,7 +1891,7 @@ function setKind(k){
  if(k){try{localStorage.setItem('kind',k)}catch(e){}}
  if(k!=='workout')setWorkout([]);
  const v=(id,c)=>{$(id).hidden=!c};
- v('fileLbl',k==='workout');v('grpScale',k==='workout');v('bSkip',k==='workout');v('bSteps',k==='workout');
+ v('fileLbl',k==='workout');$('presetPanel').classList.toggle('on',k==='workout');v('grpScale',k==='workout');v('bSkip',k==='workout');v('bSteps',k==='workout');
  v('grpFix',k==='free'||k==='hr');v('bErg',k==='free'||k==='workout');v('hrstat',k==='hr');v('bCool',k==='hr');
  $('steps').hidden=true;$('hr').style.color='';$('hrdlg').hidden=!(k==='hr'&&S.state==='idle');
  if(k==='hr')setErgBtn(true);else if(k==='free')setErgBtn(false);

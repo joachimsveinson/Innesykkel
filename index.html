@@ -968,7 +968,6 @@ async function loadPresetWorkouts(){
   const data=await response.json();
   if(!data||!Array.isArray(data.workouts))throw new Error('JSON mangler listen «workouts»');
   if(data.workout_count!==undefined&&data.workout_count!==data.workouts.length)throw new Error('Antall økter stemmer ikke med workout_count');
-  if(data.workouts.length!==25)throw new Error('Forventet 25 økter, fant '+data.workouts.length);
   PRESET_WORKOUTS=data.workouts;
   select.replaceChildren(new Option('Velg forhåndslagret økt',''));
   PRESET_WORKOUTS.forEach(w=>{

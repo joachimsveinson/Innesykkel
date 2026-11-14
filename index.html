@@ -990,7 +990,7 @@ function parsePresetDescription(description){
  };
  for(const raw of lines){
   const line=raw.trim();
-  if(!line)continue;
+  if(!line){if(group.length)flush();continue}
   const repeatMatch=line.match(/^(\d+)\s*x\s*$/i);
   if(repeatMatch){flush();repeat=Math.min(100,Number(repeatMatch[1]));continue}
   if(/^(warmup|cooldown)\s*:?$/i.test(line)){flush();continue}

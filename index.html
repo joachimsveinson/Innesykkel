@@ -1009,6 +1009,11 @@ function parsePresetDescription(description){
    if(zoneMatch){
     const z=Number(zoneMatch[1]||zoneMatch[2]);
     const bounds=[[0,55],[55,76],[76,91],[91,106],[106,121],[121,151],[151,151]];
+    if(/\bramp\b/i.test(line)&&z<7){
+     const [lo,hi]=bounds[z-1];
+     ramp(out,duration,lo,hi,0);
+     return;
+    }
     pct=z===7?151:(bounds[z-1][0]+bounds[z-1][1])/2;
    }
   }
@@ -1036,7 +1041,7 @@ $('presetSelect').onchange=()=>{
  try{
   const steps=parsePresetDescription(w.description_raw);
   setWorkout(steps);
-  $('presetMeta').textContent=w.name+' · '+S.steps.length+' steg · '+fmt(S.total)+' · Belastning '+w.training_load;
+  $('presetMeta').textContent=w.name+' · '+S.steps.length+' steg · '+fmt(S.total)+(w.training_load!=null?' · Belastning '+w.training_load:'');
   toast(w.name+' · '+S.steps.length+' steg · '+fmt(S.total));
  }catch(err){
   $('presetMeta').textContent='Kunne ikke bygge økten: '+err.message;

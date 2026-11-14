@@ -169,7 +169,7 @@ button.big:disabled,.big.go:disabled,.big.pa:disabled,.big.st:disabled{backgroun
 kbd{font-family:var(--font-mono);font-size:10.5px;color:var(--fg);background:var(--card2);border:1px solid var(--slate);border-bottom-width:2px;border-radius:6px;padding:1px 6px;margin-right:4px;min-width:20px;text-align:center;display:inline-block}
 .vg{display:flex;align-items:center;gap:6px;color:var(--mut);font-family:var(--font-mono);font-size:12px;padding:0 6px;cursor:pointer}
 
-/* ---------- landing med ghost wordmark i bakgrunnen (~400px som blør ut over kantene) */
+/* ---------- landing med ghost wordmark i bakgrunnen */
 body.landing .mid,body.landing .bar{display:none}
 #land{display:none;grid-row:3/5;align-items:center;justify-content:center;flex-direction:column;gap:28px;text-align:center;position:relative;overflow:hidden}
 body.landing #land{display:flex}
@@ -269,7 +269,6 @@ body.analysis-open { overflow: hidden; }
 .an-sub { font-family: var(--font-mono); color: var(--mut); font-size: 11px; margin-top: 4px; }
 #anClose { min-height: 36px; padding: 0 16px; font-size: 12px; }
 
-/* Rad 2: Puls og Økt side om side */
 .an-mid-groups {
   display: grid;
   grid-template-columns: 4fr 3fr;
@@ -329,7 +328,6 @@ body.analysis-open { overflow: hidden; }
   text-overflow: ellipsis;
 }
 
-/* Rad 3: 7 sonebokser med myk gradient fra sonefargen */
 .an-zones-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -402,7 +400,6 @@ body.analysis-open { overflow: hidden; }
   text-overflow: ellipsis;
 }
 
-/* Rad 4: 4 detaljbokser på 1 rad */
 .an-bottom-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1041,7 +1038,7 @@ function save(){try{localStorage.setItem('sess',JSON.stringify({log:S.log,el:S.e
 function start(){
  if(S.state==='idle'||S.state==='done'){
   S.log=[];S.el=0;S.lastT=-1;S.startTime=null;S.off=0;S.pb=[];S.wb=[];S.hrmax=0;S.lap=null;S.lapSeq=0;
-  S.prev=null;S.settleUntil=0;S.lastErg=null;S.mode=null;S.wasFree=undefined;S.ergSaved=null;S.laps=[];S.hd={};S.freeLap=0;S.grade=0;S.realEl=0;S.sessFtp=S.ftp;accReset();Object.keys(D).forEach(k=>{D[k].bat0=D[k].bat});S.hrW=null;S.hrPhase=null;S.hrb=[];S.hrT=null;S.hr30=null;
+  S.prev=null;S.settleUntil=0;S.lastErg=null;S.mode=null;S.wasFree=undefined;S.ergSaved=null;S.laps=[];S.hd={};S.freeLap=0;S.grade=0;S.realEl=0;S.sessFtp=S.ftp;accReset();Object.keys(D).forEach(k=>{D[k].bat0=D[k].bat});S.hrPhase=null;S.hrb=[];S.hrT=null;S.hr30=null;
   try{localStorage.removeItem('sess')}catch(e){}
   $('sumdlg').hidden=true;S.post=false;
   S.armed=!!(D.trainer.ok||D.power.ok);
@@ -1054,7 +1051,7 @@ function start(){
  if(S.armed)toast('Venter på første tråkk …');
 }
 function newSession(){
- Object.assign(S,{state:'idle',post:false,armed:false,sessFtp:null,acc:null,hrW:null,hrPhase:null,hrb:[],hrT:null,hr30:null,log:[],el:0,lastT:-1,startTime:null,laps:[],lap:null,lapSeq:0,hrmax:0,off:0,pb:[],wb:[],hd:{},mode:null,lastErg:null,wasFree:undefined,ergSaved:null,tgt:null,i:-1,freeLap:0,grade:0,realEl:0});
+ Object.assign(S,{state:'idle',post:false,armed:false,sessFtp:null,acc:null,hrW:null,warmW:null,hrPhase:null,hrb:[],hrT:null,hr30:null,log:[],el:0,lastT:-1,startTime:null,laps:[],lap:null,lapSeq:0,hrmax:0,off:0,pb:[],wb:[],hd:{},mode:null,lastErg:null,wasFree:undefined,ergSaved:null,tgt:null,i:-1,freeLap:0,grade:0,realEl:0});
  cpWrite([0x08,0x01]);unlock();try{localStorage.removeItem('sess')}catch(e){}
  $('sumdlg').hidden=true;ui();render();
 }
@@ -1108,17 +1105,39 @@ function setErgBtn(v){
 }
 function fxLabel(){
  const L=$2('fxlbl'),dn=$2('fDn'),up=$2('fUp'),val=$2('fixw');
- if(S.kind==='hr'&&S.hrPhase!=='warm'&&HC.mode==='auto'){L.textContent='Pulstak';up.text='+1';dn.text='−1';val.text=HC.cap+' bpm'}
- else if(S.erg){L.textContent=(S.kind==='hr'&&S.hrPhase==='warm')?'Oppv.watt':'Målwatt';up.text='+5 W';dn.text='−5 W';val.text=(S.kind==='hr'?(()=>{const v=S.hrPhase==='warm'?S.warmW:S.hrW;return v!=null?Math.round(v):'0'})():S.fixW)+' W'}
- else{L.textContent='Stigning';up.text='+0.5%';dn.text='−0.5%';val.text=(S.grade>0?'+':'')+S.grade.toFixed(1)+'%'}
+ if(S.kind==='hr'){
+  const isWarm=S.hrPhase==='warm'||(S.hrPhase==null&&HC.warm>0);
+  const lo=S.ftp*HC.lo/100,hi=S.ftp*HC.hi/100,w0=S.ftp*HC.wp/100;
+  if(isWarm){
+   L.textContent='Oppv.watt';up.text='+5 W';dn.text='−5 W';
+   val.textContent=Math.round(S.warmW??w0)+' W';
+  }else if(HC.mode==='auto'){
+   L.textContent='Pulstak';up.text='+1';dn.text='−1';
+   val.textContent=HC.cap+' bpm';
+  }else{
+   L.textContent='Målwatt';up.text='+5 W';dn.text='−5 W';
+   val.textContent=Math.round(S.hrW??clamp(w0,lo,hi))+' W';
+  }
+ }else if(S.erg){
+  L.textContent='Målwatt';up.text='+5 W';dn.text='−5 W';
+  val.textContent=Math.round(S.fixW)+' W';
+ }else{
+  L.textContent='Stigning';up.text='+0.5%';dn.text='−0.5%';
+  val.text=(S.grade>0?'+':'')+S.grade.toFixed(1)+'%';
+ }
 }
 function fx(d){
  if(S.kind==='hr'){
-  if(S.hrPhase==='warm'&&S.warmW!=null)S.warmW=clamp(S.warmW+d,S.ftp*.3,S.ftp*HC.hi/100);
-  else if(HC.mode==='auto'){HC.cap=clamp(HC.cap+(d>0?1:-1),80,210);hcSave()}
-  else if(S.hrW!=null)S.hrW=clamp(S.hrW+d,S.ftp*HC.lo/100,S.ftp*HC.hi/100)
- }
- else if(S.erg){
+  const lo=S.ftp*HC.lo/100,hi=S.ftp*HC.hi/100,w0=S.ftp*HC.wp/100;
+  const isWarm=S.hrPhase==='warm'||(S.hrPhase==null&&HC.warm>0);
+  if(isWarm){
+   S.warmW=clamp((S.warmW??w0)+d,S.ftp*.25,hi);
+  }else if(HC.mode==='auto'){
+   HC.cap=clamp(HC.cap+(d>0?1:-1),80,210);hcSave();
+  }else{
+   S.hrW=clamp((S.hrW??clamp(w0,lo,hi))+d,lo,hi);
+  }
+ }else if(S.erg){
   S.fixW=clamp(S.fixW+d,30,2000);
   try{localStorage.setItem('fixw',S.fixW)}catch(e){}
  }else{
@@ -1161,7 +1180,7 @@ document.addEventListener('keydown',e=>{
  else if(e.key==='ArrowLeft'){S.scale=clamp(S.scale-1,40,200);$('scl').textContent=S.scale+'%'}
 });
 
-/* ---------- Soner (Dempede sonefarger fra opprinnelig palett) ---------- */
+/* ---------- Soner ---------- */
 const col=p=>p<55?'#5A6266':p<76?'#2B7A8C':p<91?'#369E9A':p<106?'#B89F5D':p<121?'#B87352':p<151?'#AD5358':'#7D659E';
 const zcol=[0,55,76,91,106,121,151];
 function zoneIdx(pct){for(let i=zcol.length-1;i>=1;i--)if(pct>=zcol[i])return i;return 0}
@@ -1541,7 +1560,7 @@ $3('bCsv').onclick=()=>{
 function hcSave(){$('hrCap').value=HC.cap;try{localStorage.setItem('hrcfg',JSON.stringify(HC))}catch(e){}}
 function hrTick(newSec,hr){
  const lo=S.ftp*HC.lo/100,hi=S.ftp*HC.hi/100,re=S.realEl,w0=S.ftp*HC.wp/100;
- if(S.hrW==null){S.warmW=w0;S.hrW=clamp(w0,lo,hi);S.hrW0=S.hrW;S.hrPhase=HC.warm>0?'warm':'reg';S.hrLastAdj=re}
+ if(S.hrPhase==null){S.warmW=S.warmW??w0;S.hrW=S.hrW??clamp(S.warmW,lo,hi);S.hrW0=S.hrW;S.hrPhase=HC.warm>0?'warm':'reg';S.hrLastAdj=re}
  if(newSec)S.hrb=[...S.hrb,hr].slice(-30);
  if(S.hrPhase==='warm'&&re>=HC.warm*60){S.hrPhase='reg';S.hrLastAdj=re;S.hrW=clamp(S.warmW,lo,hi);S.hrW0=S.hrW;closeLap();S.lapSeq++;lapStart(S.freeLap||0)}
  if(S.hrPhase==='cool'&&re-S.coolT0>=HC.cool*60){finish();return true}
@@ -1564,7 +1583,7 @@ function hrUi(){
  const lo=S.ftp*HC.lo/100,hi=S.ftp*HC.hi/100,cl=HC.cap-HC.band,W=S.tgt!=null?Math.round(S.tgt):null,h30=S.hr30,pv=S.hrProj!=null?S.hrProj:S.hr30;
  $('wRange').textContent=Math.round(lo)+'–'+Math.round(hi)+' W';$('hBand').textContent=cl+'–'+HC.cap;
  let m;
- if(S.armed)m='Venter på første tråkk …';else if(S.state==='idle'||S.hrPhase==null)m=`Klar · oppvarming ${HC.warm} min på ${Math.round(S.ftp*HC.wp/100)} W, deretter regulering mot ${cl}–${HC.cap} bpm`;
+ if(S.armed)m='Venter på første tråkk …';else if(S.state==='idle'||S.hrPhase==null)m=`Klar · oppvarming ${HC.warm} min på ${Math.round(S.warmW??(S.ftp*HC.wp/100))} W, deretter regulering mot ${cl}–${HC.cap} bpm`;
  else if(S.hrPhase==='warm')m=`Oppvarming · ${fmt(HC.warm*60-S.realEl)} igjen · fast ${W} W`;
  else if(S.hrPhase==='cool')m=`Nedkjøring · ${fmt(HC.cool*60-(S.realEl-S.coolT0))} igjen · ${W} W`;
  else{

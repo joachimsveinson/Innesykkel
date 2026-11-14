@@ -123,7 +123,7 @@ input:disabled{opacity:.45;cursor:not-allowed}
 #wt #hrstat{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin:4px 0;padding:8px 12px;font-size:12px;font-family:var(--font-mono);line-height:1.35;border-left:2px solid var(--slate);border-radius:8px;background:rgba(0,0,0,0.45)}
 
 .ministats{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:6px;flex:1;min-height:0;margin-top:6px}
-.ministats.sum{grid-template-columns:repeat(3,1fr)}
+.ministats.sum{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,minmax(0,1fr));gap:4px}.ministats.sum div{padding:3px 8px}.ministats.sum span{font-size:9px}.ministats.sum b{font-size:clamp(14px,min(1.5vw,2.5vh),19px)}
 .ministats div{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:2px;background:linear-gradient(180deg, #0d0d0d 0%, var(--obsidian) 100%);border:1px solid var(--line);border-radius:10px;padding:4px 10px;min-height:0;overflow:hidden}
 .ministats span{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--mut);letter-spacing:0.02em;white-space:nowrap;line-height:1.1;overflow:hidden;text-overflow:clip}
 .ministats b{font-family:var(--font-mono);font-size:clamp(16px,min(1.8vw,3vh),22px);line-height:1;font-weight:500}

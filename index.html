@@ -271,7 +271,7 @@ body.analysis-open { overflow: hidden; }
 
 .an-mid-groups {
   display: grid;
-  grid-template-columns: 4fr 3fr;
+  grid-template-columns: 4fr 5fr;
   gap: 8px;
 }
 .an-group {
@@ -626,7 +626,7 @@ body.analysis-open { overflow: hidden; }
     <div class="an-group-grid" id="anPowerMetrics" style="--cols:10"></div>
   </div>
 
-  <!-- Rad 2: Puls og Økt side om side -->
+  <!-- Rad 2: Puls og Økt side om side (5 kolonner i Økt for Kadens + Torque + Tid) -->
   <div class="an-mid-groups">
     <div class="an-group hr-grp">
       <div class="an-group-title">Puls</div>
@@ -634,7 +634,7 @@ body.analysis-open { overflow: hidden; }
     </div>
     <div class="an-group sess-grp">
       <div class="an-group-title">Økt</div>
-      <div class="an-group-grid" id="anSessMetrics" style="--cols:3"></div>
+      <div class="an-group-grid" id="anSessMetrics" style="--cols:5"></div>
     </div>
   </div>
 
@@ -1611,14 +1611,16 @@ const AN_ZONES=[
 const anFmt=(v,d=0)=>v==null||!Number.isFinite(v)?'–':v.toFixed(d);
 const anTime=v=>{if(!Number.isFinite(v))return '–';const n=Math.round(v);return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')};
 const anMean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const calcNm=(w,cad)=>(w!=null&&cad!=null&&cad>10)?w/(cad*Math.PI/30):null;
 function anZone(w,ftp){if(w==null||!ftp)return null;const p=w/ftp*100;return AN_ZONES.findIndex(z=>p<z.hi)}
 function anCalc(){
  const r=S.log||[],ftp=S.sessFtp||S.ftp,elapsed=Math.max(0,S.realEl||0),active=S.state==='running';
  const validW=r.filter(x=>x.w!=null),ws=validW.map(x=>x.w),hrs=r.filter(x=>x.hr!=null).map(x=>x.hr);
  const avgW=anMean(ws),avgHr=anMean(hrs),cad=r.filter(x=>x.cad!=null&&x.cad>0).map(x=>x.cad);
+ const nms=r.map(x=>calcNm(x.w,x.cad)).filter(v=>v!=null);
  let n4=0,nN=0,windowW=[];for(const x of r){if(x.w==null){windowW=[];continue}windowW.push(x.w);if(windowW.length>30)windowW.shift();if(windowW.length===30){const m=anMean(windowW);n4+=Math.pow(m,4);nN++}}
  const np=nN?Math.pow(n4/nN,.25):null,IF=np!=null&&ftp?np/ftp:null,TSS=IF!=null?elapsed*np*IF/(ftp*3600)*100:null;
- const z=AN_ZONES.map(()=>({sec:0,j:0,hr:[],cad:[],lr:[],core:[],skin:[],hsi:[],entries:0,firstCore:null,lastCore:null,firstT:null,lastT:null}));
+ const z=AN_ZONES.map(()=>({sec:0,j:0,hr:[],cad:[],nm:[],lr:[],core:[],skin:[],hsi:[],entries:0}));
  let activeZone=null,candidate=null,candidateSec=0;
  for(let i=0;i<r.length;i++){
   const x=r[i],next=r[i+1],dt=next?Math.max(0,Math.min(2,(next.realEl??x.realEl+1)-(x.realEl??0))):(active?Math.max(0,Math.min(1,elapsed-(x.realEl||0))):0);
@@ -1635,25 +1637,28 @@ function anCalc(){
   }
   if(activeZone==null)continue;
   const q=z[activeZone];q.sec+=dt;if(x.w!=null)q.j+=x.w*dt;
-  if(x.hr!=null)q.hr.push(x.hr);if(x.cad!=null&&x.cad>0)q.cad.push(x.cad);if(x.lrLeft!=null)q.lr.push(x.lrLeft);
-  if(x.core!=null){q.core.push(x.core);if(q.firstCore==null){q.firstCore=x.core;q.firstT=x.realEl??0}q.lastCore=x.core;q.lastT=x.realEl??0}
+  if(x.hr!=null)q.hr.push(x.hr);
+  if(x.cad!=null&&x.cad>0)q.cad.push(x.cad);
+  const nm=calcNm(x.w,x.cad);if(nm!=null)q.nm.push(nm);
+  if(x.lrLeft!=null)q.lr.push(x.lrLeft);
+  if(x.core!=null)q.core.push(x.core);
   if(x.skin!=null)q.skin.push(x.skin);if(x.hsi!=null)q.hsi.push(x.hsi);
  }
  const totalJ=z.reduce((a,q)=>a+q.j,0);
- z.forEach(q=>{q.avgHr=anMean(q.hr);q.avgCad=anMean(q.cad);q.lr=anMean(q.lr);q.ef=q.avgHr&&q.j>0?(q.j/Math.max(q.sec,1))/q.avgHr:null;q.share=totalJ>0?q.j/totalJ*100:null;q.coreRate=q.firstCore!=null&&q.lastCore!=null&&q.lastT-q.firstT>=30?(q.lastCore-q.firstCore)/((q.lastT-q.firstT)/3600):null});
+ z.forEach(q=>{q.avgHr=anMean(q.hr);q.avgCad=anMean(q.cad);q.avgNm=anMean(q.nm);q.lr=anMean(q.lr);q.ef=q.avgHr&&q.j>0?(q.j/Math.max(q.sec,1))/q.avgHr:null;q.share=totalJ>0?q.j/totalJ*100:null});
  const firstTs=r.length?r[0].realEl||0:0,half=elapsed/2,halfStats=[0,1].map(h=>{
   const a=r.filter(x=>x.realEl>=firstTs+(h?half:0)&&x.realEl<firstTs+(h?elapsed:half)&&anZone(x.w,ftp)===1);
-  const p=a.filter(x=>x.w!=null).map(x=>x.w),hr=a.filter(x=>x.hr!=null).map(x=>x.hr),c=a.filter(x=>x.core!=null).map(x=>x.core);
-  return{w:anMean(p),hr:anMean(hr),ef:anMean(p)!=null&&anMean(hr)?anMean(p)/anMean(hr):null,core:c.length?c[c.length-1]-c[0]:null,n:a.length}
+  const p=a.filter(x=>x.w!=null).map(x=>x.w),hr=a.filter(x=>x.hr!=null).map(x=>x.hr),nm=a.map(x=>calcNm(x.w,x.cad)).filter(v=>v!=null),c=a.filter(x=>x.core!=null).map(x=>x.core);
+  return{w:anMean(p),hr:anMean(hr),nm:anMean(nm),ef:anMean(p)!=null&&anMean(hr)?anMean(p)/anMean(hr):null,core:c.length?c[c.length-1]-c[0]:null,n:a.length}
  });
  const lrSamples=r.filter(x=>x.lrLeft!=null).map(x=>x.lrLeft);const temps={core:r.filter(x=>x.core!=null).map(x=>x.core),skin:r.filter(x=>x.skin!=null).map(x=>x.skin),hsi:r.filter(x=>x.hsi!=null).map(x=>x.hsi)};
  const tempStats=a=>({start:a.length?a[0]:null,avg:anMean(a),max:a.length?Math.max(...a):null,rise:a.length?a[a.length-1]-a[0]:null});
- const corr=(keyA,keyB)=>{const pairs=r.filter(x=>Number.isFinite(x[keyA])&&Number.isFinite(x[keyB]));if(pairs.length<10)return null;const aa=anMean(pairs.map(x=>x[keyA])),bb=anMean(pairs.map(x=>x[keyB]));let n=0,d1=0,d2=0;for(const x of pairs){const da=x[keyA]-aa,db=x[keyB]-bb;n+=da*db;d1+=da*da;d2+=db*db}return d1&&d2?n/Math.sqrt(d1*d2):null};
+ const corr=(fnA,fnB)=>{const pairs=r.map(x=>[fnA(x),fnB(x)]).filter(([a,b])=>Number.isFinite(a)&&Number.isFinite(b));if(pairs.length<10)return null;const aa=anMean(pairs.map(p=>p[0])),bb=anMean(pairs.map(p=>p[1]));let n=0,d1=0,d2=0;for(const[a,b]of pairs){const da=a-aa,db=b-bb;n+=da*db;d1+=da*da;d2+=db*db}return d1&&d2?n/Math.sqrt(d1*d2):null};
  const hrFirst=r.filter(x=>x.hr!=null&&x.realEl<elapsed/2).map(x=>x.hr),hrSecond=r.filter(x=>x.hr!=null&&x.realEl>=elapsed/2).map(x=>x.hr);
  const wFirst=r.filter(x=>x.w!=null&&x.realEl<elapsed/2).map(x=>x.w),wSecond=r.filter(x=>x.w!=null&&x.realEl>=elapsed/2).map(x=>x.w);
  const ef1=anMean(wFirst)!=null&&anMean(hrFirst)?anMean(wFirst)/anMean(hrFirst):null,ef2=anMean(wSecond)!=null&&anMean(hrSecond)?anMean(wSecond)/anMean(hrSecond):null;
  const drift=ef1&&ef2?(ef1-ef2)/ef1*100:null;
- return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),np,IF,TSS,z,totalJ,halfStats,lrLeft:anMean(lrSamples),lrN:lrSamples.length,corrWH:corr('w','hr'),corrWC:corr('w','core'),corrHC:corr('hr','core'),core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
+ return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),avgNm:anMean(nms),np,IF,TSS,z,totalJ,halfStats,lrLeft:anMean(lrSamples),lrN:lrSamples.length,corrWH:corr(x=>x.w,x=>x.hr),corrWC:corr(x=>x.w,x=>x.core),corrHC:corr(x=>x.hr,x=>x.core),corrNH:corr(x=>calcNm(x.w,x.cad),x=>x.hr),core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
 }
 function anCell(label,value,unit=''){return '<div class="an-metric"><span>'+label+'</span><b>'+value+(unit?' '+unit:'')+'</b></div>'}
 function anKv(label,val){return `<div class="an-kv"><span>${label}</span><b>${val}</b></div>`}
@@ -1666,7 +1671,7 @@ function renderAnalysis() {
     $('anStatus').textContent = 'Ingen øktdata. Start en økt for sanntidsanalyse.';
     $('anPowerMetrics').innerHTML = ['Nå','3 s','10 s','Snitt','NP','IF','TSS','Arbeid','kJ/t nå','Ø kJ/t'].map(l => anCell(l, '–')).join('');
     $('anHrMetrics').innerHTML = ['Nå','% Maks','Snitt','Maks'].map(l => anCell(l, '–')).join('');
-    $('anSessMetrics').innerHTML = ['Kadens nå','Ø Kadens','Tid'].map(l => anCell(l, '–')).join('');
+    $('anSessMetrics').innerHTML = ['Kadens nå','Ø Kadens','Torque nå','Ø Torque','Tid'].map(l => anCell(l, '–')).join('');
     $('anZones').innerHTML = AN_ZONES.map((z, i) => `
       <article class="zone-card" style="--zc:${colors[i]}">
         <h3><span>${z.name}</span><small>${z.hi===Infinity?'>150':z.lo+'–'+z.hi}%</small></h3>
@@ -1676,20 +1681,21 @@ function renderAnalysis() {
           <div><span>Andel</span><b>–</b></div>
           <div><span>Puls</span><b>–</b></div>
           <div><span>Kadens</span><b>–</b></div>
+          <div><span>Torque</span><b>–</b></div>
           <div><span>W/bpm</span><b>–</b></div>
-          <div><span>Core/t</span><b>–</b></div>
           <div><span>L/R %</span><b>–</b></div>
         </div>
       </article>`).join('');
     $('anTemps').innerHTML = anKv('Core (Start/Snitt/Maks)', '–') + anKv('Hud (Start/Snitt/Maks)', '–') + anKv('Core økning / HSI maks', '–');
     $('anDrift').innerHTML = anKv('EF 1. halvdel', '–') + anKv('EF 2. halvdel', '–') + anKv('Pw:Hr drift', '–') + anKv('L/R balanse', '–');
-    $('anHalves').innerHTML = anKv('1. halvdel (W / bpm / EF)', '–') + anKv('2. halvdel (W / bpm / EF)', '–') + anKv('Core endring (1. / 2.)', '–');
-    $('anRelations').innerHTML = anKv('Watt ↔ Puls', '–') + anKv('Watt ↔ Core', '–') + anKv('Puls ↔ Core', '–');
+    $('anHalves').innerHTML = anKv('1. halvdel (W / bpm / Nm)', '–') + anKv('2. halvdel (W / bpm / Nm)', '–') + anKv('EF (1. / 2. halvdel)', '–');
+    $('anRelations').innerHTML = anKv('Watt ↔ Puls (r)', '–') + anKv('Torque ↔ Puls (r)', '–') + anKv('Watt ↔ Core (r)', '–') + anKv('Puls ↔ Core (r)', '–');
     return;
   }
 
   const a = anCalc();
-  const curZone = S.state === 'running' ? anZone(r.at(-1)?.w, a.ftp) : -1;
+  const lastPt = r.at(-1);
+  const curZone = S.state === 'running' ? anZone(lastPt?.w, a.ftp) : -1;
   $('anStatus').textContent = `${S.state === 'running' ? 'Live' : 'Pauset/Ferdig'} · FTP ${a.ftp} W · Maks puls ${a.hrSetting} bpm`;
 
   const w3 = (() => { const v = r.slice(-3).map(x=>x.w).filter(x=>x!=null); return v.length>=2 ? anMean(v) : null; })();
@@ -1700,7 +1706,7 @@ function renderAnalysis() {
   const kjPerHourAvg = a.elapsed >= 10 ? (a.totalJ / 1000) / (a.elapsed / 3600) : null;
 
   $('anPowerMetrics').innerHTML = [
-    anCell('Nå', anFmt(r.at(-1)?.w), 'W'),
+    anCell('Nå', anFmt(lastPt?.w), 'W'),
     anCell('3 s', anFmt(w3), 'W'),
     anCell('10 s', anFmt(w10), 'W'),
     anCell('Snitt', anFmt(a.avgW), 'W'),
@@ -1712,7 +1718,7 @@ function renderAnalysis() {
     anCell('Ø kJ/t', anFmt(kjPerHourAvg, 0))
   ].join('');
 
-  const curHr = r.at(-1)?.hr;
+  const curHr = lastPt?.hr;
   const pctMaxHrNow = a.hrSetting && curHr != null ? (curHr / a.hrSetting * 100) : null;
   const pctMaxHrAvg = a.hrSetting && a.avgHr != null ? (a.avgHr / a.hrSetting * 100) : null;
   const pctMaxHrStr = pctMaxHrNow != null 
@@ -1726,9 +1732,12 @@ function renderAnalysis() {
     anCell('Maks', anFmt(a.hrPeak), 'bpm')
   ].join('');
 
+  const curNm = calcNm(lastPt?.w, lastPt?.cad);
   $('anSessMetrics').innerHTML = [
-    anCell('Kadens nå', anFmt(r.at(-1)?.cad), 'rpm'),
+    anCell('Kadens nå', anFmt(lastPt?.cad), 'rpm'),
     anCell('Ø Kadens', anFmt(a.avgCad), 'rpm'),
+    anCell('Torque nå', anFmt(curNm, 1), 'Nm'),
+    anCell('Ø Torque', anFmt(a.avgNm, 1), 'Nm'),
     anCell('Tid', anTime(a.elapsed))
   ].join('');
 
@@ -1745,8 +1754,8 @@ function renderAnalysis() {
           <div><span>Andel</span><b>${anFmt(q.share, 0)} %</b></div>
           <div><span>Puls</span><b>${anFmt(q.avgHr, 0)} bpm</b></div>
           <div><span>Kadens</span><b>${anFmt(q.avgCad, 0)} rpm</b></div>
+          <div><span>Torque</span><b>${anFmt(q.avgNm, 1)} Nm</b></div>
           <div><span>W/bpm</span><b>${anFmt(q.ef, 2)}</b></div>
-          <div><span>Core/t</span><b>${anFmt(q.coreRate, 2)}</b></div>
           <div><span>L/R %</span><b>${lr}</b></div>
         </div>
       </article>`;
@@ -1765,12 +1774,13 @@ function renderAnalysis() {
 
   const h1 = a.halfStats[0], h2 = a.halfStats[1];
   $('anHalves').innerHTML =
-    anKv('1. halvdel (W / bpm / EF)', `${anFmt(h1.w,0)} W · ${anFmt(h1.hr,0)} bpm · ${anFmt(h1.ef,2)}`) +
-    anKv('2. halvdel (W / bpm / EF)', `${anFmt(h2.w,0)} W · ${anFmt(h2.hr,0)} bpm · ${anFmt(h2.ef,2)}`) +
-    anKv('Core endring (1. / 2.)', `${anFmt(h1.core,2)} °C / ${anFmt(h2.core,2)} °C`);
+    anKv('1. halvdel (W / bpm / Nm)', `${anFmt(h1.w,0)} W · ${anFmt(h1.hr,0)} bpm · ${anFmt(h1.nm,1)} Nm`) +
+    anKv('2. halvdel (W / bpm / Nm)', `${anFmt(h2.w,0)} W · ${anFmt(h2.hr,0)} bpm · ${anFmt(h2.nm,1)} Nm`) +
+    anKv('EF (1. / 2. halvdel)', `${anFmt(h1.ef,2)} / ${anFmt(h2.ef,2)}`);
 
   $('anRelations').innerHTML =
     anKv('Watt ↔ Puls (r)', anFmt(a.corrWH, 2)) +
+    anKv('Torque ↔ Puls (r)', anFmt(a.corrNH, 2)) +
     anKv('Watt ↔ Core (r)', anFmt(a.corrWC, 2)) +
     anKv('Puls ↔ Core (r)', anFmt(a.corrHC, 2));
 

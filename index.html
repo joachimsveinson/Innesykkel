@@ -471,7 +471,6 @@ body.analysis-open { overflow: hidden; }
 #presetPanel label{font-size:11px;color:var(--mut);text-transform:uppercase}
 #presetSelect{min-width:min(100%,280px);max-width:100%;padding:7px 10px;background:var(--obsidian);color:var(--fg);border:1px solid var(--line);border-radius:8px;font:12px var(--font-mono)}
 #presetMeta{font-size:10px;color:var(--mut)}
-#presetDescription{white-space:pre-wrap;color:var(--ghost);font:11px/1.45 var(--font-mono);margin:0}
 </style></head>
 <body>
 <div id="warn">Web Bluetooth mangler i denne visningen – åpne i Chrome (Mac/PC) eller Bluefy (iPad) for sensortilkobling.</div>
@@ -540,7 +539,6 @@ body.analysis-open { overflow: hidden; }
 </div><div id="tip"></div></div>
   <section id="presetPanel" aria-label="Forhåndslagrede treningsøkter">
    <div class="preset-head"><label for="presetSelect">Forhåndslagret økt</label><select id="presetSelect"><option value="">Velg økt …</option></select><span id="presetMeta"></span></div>
-   <pre id="presetDescription">Velg en økt for å vise øktbeskrivelsen.</pre>
   </section>
  </div>
  <aside id="lp" aria-label="Rundeliste">
@@ -1004,18 +1002,15 @@ $('presetSelect').onchange=()=>{
  const w=PRESET_WORKOUTS.find(x=>String(x.id)===$('presetSelect').value);
  if(!w){
   $('presetMeta').textContent=PRESET_WORKOUTS.length+' økter lastet fra workouts.json';
-  $('presetDescription').textContent='Velg en økt for å vise øktbeskrivelsen.';
   return;
  }
  try{
   const steps=parsePresetDescription(w.description_raw);
   setWorkout(steps);
   $('presetMeta').textContent=w.name+' · '+S.steps.length+' steg · '+fmt(S.total)+' · Belastning '+w.training_load;
-  $('presetDescription').textContent='Økten er lagt inn i treningsvisningen. Z1 til Z6 bruker midtpunktet i appens soner. Z7 bruker nedre grense (151 %) fordi sonen ikke har en øvre grense. Linjer uten watt eller definert sone blir freeride.\n\n'+w.description_raw;
   toast(w.name+' · '+S.steps.length+' steg · '+fmt(S.total));
  }catch(err){
   $('presetMeta').textContent='Kunne ikke bygge økten: '+err.message;
-  $('presetDescription').textContent=w.description_raw||'';
   toast('Feil i forhåndslagret økt: '+err.message,true);
  }
 };

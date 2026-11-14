@@ -812,6 +812,7 @@ async function pair(k){
   if(k==='power'&&/assioma.*l$/i.test(c.dev.name||''))toast('Assioma venstre pedal valgt. Den sender samlet watt når pedalene er paret i Favero-appen.');
   c.manual=false;
   c.dev.addEventListener('gattserverdisconnected',()=>lost(k));
+  rememberSensor(k,c.dev);
   await link(k);
  }catch(e){
   console.error(e);
@@ -823,6 +824,34 @@ async function pair(k){
   toast(`${cName(k)} – ${d}${ekstra}`,true)}
 }
 function cName(k){return{trainer:'Kickr Core',power:'Wattpedaler',hr:'pulsbeltet',core:'CORE-sensoren'}[k]||k}
+const BT_STORAGE_KEY='innesykkel.bluetooth.devices';
+function rememberedSensors(){
+ try{return JSON.parse(localStorage.getItem(BT_STORAGE_KEY)||'{}')||{}}catch(e){return{}}
+}
+function rememberSensor(k,dev){
+ if(!dev||!dev.id)return;
+ const saved=rememberedSensors();saved[k]={id:dev.id,name:dev.name||cName(k)};
+ try{localStorage.setItem(BT_STORAGE_KEY,JSON.stringify(saved))}catch(e){}
+}
+async function restoreBluetoothSensors(){
+ if(!navigator.bluetooth||typeof navigator.bluetooth.getDevices!=='function')return;
+ const saved=rememberedSensors();
+ if(!Object.keys(saved).length)return;
+ try{
+  const devices=await navigator.bluetooth.getDevices();
+  for(const k of Object.keys(D)){
+   const item=saved[k];if(!item)continue;
+   const dev=devices.find(x=>x.id===item.id);
+   if(!dev){status(k,'Godkjent – ikke funnet');continue}
+   const c=D[k];c.dev=dev;c.manual=false;
+   dev.addEventListener('gattserverdisconnected',()=>lost(k));
+   try{await link(k)}catch(e){
+    c.ok=false;status(k,'Trykk for å koble til');
+    console.warn('Automatisk Bluetooth-tilkobling feilet for '+cName(k),e);
+   }
+  }
+ }catch(e){console.warn('Kunne ikke hente tidligere godkjente Bluetooth-enheter',e)}
+}
 async function link(k){
  const c=D[k];status(k,'Kobler til …','try');
  c.stage='koble til (gatt.connect)';const srv=await c.dev.gatt.connect();
@@ -837,7 +866,7 @@ async function link(k){
   try{await c.cp.startNotifications()}catch(e){}
   S.lastErg=null;S.mode=null;await cpWrite([0x00]);await cpWrite([0x07]);
  }
- c.ok=true;c.t=Date.now();status(k,c.dev.name||'Tilkoblet','on');
+ c.ok=true;c.t=Date.now();rememberSensor(k,c.dev);status(k,c.dev.name||'Tilkoblet','on');
 }
 async function lost(k){
  const c=D[k];c.ok=false;if(c.manual||!c.dev||c.retrying)return;
@@ -1992,6 +2021,7 @@ $('helpOk').onclick=()=>{$('helpdlg').hidden=true;try{localStorage.setItem('hrhe
 }
 try{const lk=localStorage.getItem('kind'),c=document.querySelector(`.card[data-kind="${lk}"]`);if(c)c.classList.add('last')}catch(e){}
 setKind(null);
+restoreBluetoothSensors();
 
 /* ---------- Moduser, modaler og hurtigtaster ---------- */
 function openSummary(){

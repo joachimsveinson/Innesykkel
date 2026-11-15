@@ -1007,12 +1007,6 @@ function parsePresetDescription(description){
   const percentMatch=line.match(/(\d+(?:[.,]\d+)?)\s*(?:-|–|til)\s*(\d+(?:[.,]\d+)?)\s*%|(\d+(?:[.,]\d+)?)\s*%/i);
   let pct=null;
   if(percentMatch){
-   if(/\bramp\b/i.test(line)&&percentMatch[1]!=null){
-    const lo=Number(percentMatch[1].replace(',','.'));
-    const hi=Number(percentMatch[2].replace(',','.'));
-    ramp(out,duration,lo,hi,0);
-    return;
-   }
    pct=percentMatch[3]!=null?Number(percentMatch[3].replace(',','.')):(Number(percentMatch[1].replace(',','.'))+Number(percentMatch[2].replace(',','.')))/2;
   }else{
    const zoneMatch=line.match(/\bz\s*([1-7])\b|intensity\s*=\s*z\s*([1-7])/i);
@@ -1793,8 +1787,9 @@ function anCalc(){
  const lrSamples=r.filter(x=>x.lrLeft!=null).map(x=>x.lrLeft);const temps={core:r.filter(x=>x.core!=null).map(x=>x.core),skin:r.filter(x=>x.skin!=null).map(x=>x.skin),hsi:r.filter(x=>x.hsi!=null).map(x=>x.hsi)};
  const tempStats=a=>({start:a.length?a[0]:null,avg:anMean(a),max:a.length?Math.max(...a):null,rise:a.length?a[a.length-1]-a[0]:null});
  const corr=(fnA,fnB)=>{const pairs=r.map(x=>[fnA(x),fnB(x)]).filter(([a,b])=>Number.isFinite(a)&&Number.isFinite(b));if(pairs.length<10)return null;const aa=anMean(pairs.map(p=>p[0])),bb=anMean(pairs.map(p=>p[1]));let n=0,d1=0,d2=0;for(const[a,b]of pairs){const da=a-aa,db=b-bb;n+=da*db;d1+=da*da;d2+=db*db}return d1&&d2?n/Math.sqrt(d1*d2):null};
- const efPairs=r.filter(x=>x.w!=null&&x.w>0&&x.hr!=null),p1=efPairs.filter(x=>x.realEl<mid),p2=efPairs.filter(x=>x.realEl>=mid);
- const efOf=p=>p.length?anMean(p.map(x=>x.w))/anMean(p.map(x=>x.hr)):null,ef1=efOf(p1),ef2=efOf(p2);
+ const npOf=p=>{let n4=0,nN=0,win=[];for(const x of p){if(x.w==null){win=[];continue}win.push(x.w);if(win.length>30)win.shift();if(win.length===30){n4+=Math.pow(anMean(win),4);nN++}}return nN?Math.pow(n4/nN,.25):anMean(p.map(x=>x.w).filter(v=>v!=null))};
+ const efOf=p=>{const hrs=p.map(x=>x.hr).filter(v=>v!=null),np=npOf(p);return hrs.length&&np>0?np/anMean(hrs):null};
+ const ef1=efOf(r.filter(x=>x.realEl<mid)),ef2=efOf(r.filter(x=>x.realEl>=mid));
  const drift=ef1&&ef2?(ef1-ef2)/ef1*100:null;
  return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),avgNm:anMean(nms),np,IF,TSS,z,totalJ,halfStats,lrLeft:anMean(lrSamples),lrN:lrSamples.length,corrWH:corr(x=>x.w,x=>x.hr),corrWC:corr(x=>x.w,x=>x.core),corrHC:corr(x=>x.hr,x=>x.core),corrNH:corr(x=>calcNm(x.w,x.cad),x=>x.hr),core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
 }
@@ -1825,7 +1820,7 @@ function renderAnalysis() {
         </div>
       </article>`).join('');
     $('anTemps').innerHTML = anKv('Core (Start/Snitt/Maks)', '–') + anKv('Hud (Start/Snitt/Maks)', '–') + anKv('Core økning / HSI maks', '–');
-    $('anDrift').innerHTML = anKv('EF (1. → 2. halvdel)', '–') + anKv('Pw:Hr drift', '–') + anKv('L/R pedalbalanse', '–');
+    $('anDrift').innerHTML = anKv('EF (NP/puls, 1. → 2. halvdel)', '–') + anKv('Pw:Hr drift', '–') + anKv('L/R pedalbalanse', '–');
     $('anHalves').innerHTML = anKv('1. halvdel (W / bpm / Nm)', '–') + anKv('2. halvdel (W / bpm / Nm)', '–');
     $('anRelations').innerHTML = anKv('Watt ↔ Puls (r)', '–') + anKv('Torque ↔ Puls (r)', '–') + anKv('Watt ↔ Core (r)', '–') + anKv('Puls ↔ Core (r)', '–');
     return;
@@ -1908,7 +1903,7 @@ function renderAnalysis() {
   const lrL1 = Math.round(a.lrLeft*10)/10;
   const lrTot = a.lrN && Number.isFinite(lrL1) ? `${lrL1.toFixed(1)}% / ${(Math.round((100-lrL1)*10)/10).toFixed(1)}%` : 'Ikke tilgjengelig';
   $('anDrift').innerHTML =
-    anKv('EF (1. → 2. halvdel)', `${anFmt(a.ef1, 2)} → ${anFmt(a.ef2, 2)}`) +
+    anKv('EF (NP/puls, 1. → 2. halvdel)', `${anFmt(a.ef1, 2)} → ${anFmt(a.ef2, 2)}`) +
     anKv('Pw:Hr drift', a.drift != null ? `${anFmt(a.drift, 1)} %${a.elapsed < 1200 ? ' (foreløpig)' : ''}` : 'Venter på data') +
     anKv('L/R pedalbalanse', lrTot);
 

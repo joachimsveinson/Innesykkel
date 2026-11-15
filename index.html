@@ -89,6 +89,10 @@ input:disabled{opacity:.45;cursor:not-allowed}
 .tiles{flex:1;min-height:0;display:grid;grid-template-columns:1.2fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:8px}
 .t{padding:14px 18px;display:flex;flex-direction:column;justify-content:space-between;min-height:0;overflow:hidden;position:relative}
 #wt{grid-row:1/3}
+#wt .th{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:10px}
+#wt .wl{width:100%;flex:0 1 auto;flex-wrap:wrap;gap:6px 8px}
+#wt #tgtl{width:100%;max-width:100%;text-align:left;white-space:normal;overflow-wrap:anywhere;line-height:1.3}
+#wt strong{font-size:clamp(56px,min(7vw,10vh),82px);line-height:1.05;margin: auto 0}
 /* Hovedproduktkortet beholder kompleks inset/outset elevation og teal gradient */
 .t.ergon{
   background:linear-gradient(180deg, rgba(25, 208, 232, 0.14) 0%, var(--teal) 55%, #111617 100%);
@@ -103,7 +107,7 @@ input:disabled{opacity:.45;cursor:not-allowed}
 .chip{font-family:var(--font-mono);font-style:normal;font-size:10px;font-weight:400;letter-spacing:0.02em;text-transform:uppercase;padding:2px 10px;border-radius:var(--rad-pill);white-space:nowrap}
 .chip.on{background:rgba(25, 208, 232, 0.12);color:var(--cyan);border:1px solid rgba(25, 208, 232, 0.4)}
 .chip.off{background:var(--card2);color:var(--mut);border:1px solid var(--line)}
-.t strong{font-family:var(--font-mono);font-size:clamp(48px,min(5.5vw,8.5vh),60px);line-height:1;font-weight:500;letter-spacing:-0.03em;margin:auto 0;transition:color .3s}
+.t strong{font-family:var(--font-mono);font-size:clamp(48px,min(5.5vw,8.5vh),60px);line-height:1;font-weight:500;letter-spacing:-0.03em;margin:auto 0;transition:color .3s}.t:nth-child(2) strong{margin:8px 0 4px}
 #wt strong{font-family:var(--font-mono);font-size:clamp(74px,min(8.5vw,12vh),90px);color:var(--fg);letter-spacing:-0.04em}
 
 /* Sonebar med sonefarger */
@@ -123,7 +127,7 @@ input:disabled{opacity:.45;cursor:not-allowed}
 #wt #hrstat{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin:4px 0;padding:8px 12px;font-size:12px;font-family:var(--font-mono);line-height:1.35;border-left:2px solid var(--slate);border-radius:8px;background:rgba(0,0,0,0.45)}
 
 .ministats{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:6px;flex:1;min-height:0;margin-top:6px}
-.ministats.sum{grid-template-columns:repeat(3,1fr)}
+.ministats.sum{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,minmax(0,1fr));gap:4px}.ministats.sum div{padding:3px 8px}.ministats.sum span{font-size:9px}.ministats.sum b{font-size:clamp(14px,min(1.5vw,2.5vh),19px)}
 .ministats div{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:2px;background:linear-gradient(180deg, #0d0d0d 0%, var(--obsidian) 100%);border:1px solid var(--line);border-radius:10px;padding:4px 10px;min-height:0;overflow:hidden}
 .ministats span{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--mut);letter-spacing:0.02em;white-space:nowrap;line-height:1.1;overflow:hidden;text-overflow:clip}
 .ministats b{font-family:var(--font-mono);font-size:clamp(16px,min(1.8vw,3vh),22px);line-height:1;font-weight:500}
@@ -233,7 +237,8 @@ body.landing #land{display:flex}
   #lp{max-height:26vh}
   .tiles{grid-template-columns:1fr 1fr}
   #wt{grid-column:1/3;grid-row:auto;min-height:16vh}
-  .t strong,#wt strong{font-size:clamp(34px,12vw,72px)}
+  .t strong{font-size:clamp(34px,12vw,72px)}
+  #wt strong{font-size:clamp(44px,10vw,68px)}
   .bar{position:sticky;bottom:0;z-index:5;background:var(--bg);padding-top:6px}
 }
 @media (max-width:520px){
@@ -464,6 +469,13 @@ body.analysis-open { overflow: hidden; }
   .an-bottom-grid { grid-template-columns: repeat(2, 1fr); }
   #analysisPage { overflow-y: auto; }
 }
+
+#presetPanel{display:none;flex:none;max-height:22vh;overflow:auto;padding:10px 14px;background:linear-gradient(180deg,#1d1d1d 0%,var(--card) 55%,#111 100%);border:1px solid var(--line);border-radius:var(--rad-card);font-family:var(--font-mono)}
+#presetPanel.on{display:block}
+#presetPanel .preset-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+#presetPanel label{font-size:11px;color:var(--mut);text-transform:uppercase}
+#presetSelect{min-width:min(100%,280px);max-width:100%;padding:7px 10px;background:var(--obsidian);color:var(--fg);border:1px solid var(--line);border-radius:8px;font:12px var(--font-mono)}
+#presetMeta{font-size:10px;color:var(--mut)}
 </style></head>
 <body>
 <div id="warn">Web Bluetooth mangler i denne visningen – åpne i Chrome (Mac/PC) eller Bluefy (iPad) for sensortilkobling.</div>
@@ -530,6 +542,9 @@ body.analysis-open { overflow: hidden; }
  <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#ffffff" stroke-opacity=".35" stroke-dasharray="4 3"/></svg>FTP</span>
  <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#fff" stroke-width="2"/></svg>Watt</span><span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#AD5358" stroke-width="2"/></svg>Puls</span>
 </div><div id="tip"></div></div>
+  <section id="presetPanel" aria-label="Forhåndslagrede treningsøkter">
+   <div class="preset-head"><label for="presetSelect">Forhåndslagret økt</label><select id="presetSelect"><option value="">Velg økt …</option></select><span id="presetMeta"></span></div>
+  </section>
  </div>
  <aside id="lp" aria-label="Rundeliste">
   <div class="lr h"><span>#</span><span>Tid</span><span>Watt</span><span>Puls</span><span>Kad</span><span>Maks puls</span></div>
@@ -760,7 +775,7 @@ const D={
     if(dt>0){this.cad=dr/dt*60;this.pc=Date.now()}else if(Date.now()-(this.pc||0)>2500)this.cad=0}
    this.pr=r;this.pt=t}}},
  hr:{svc:0x180D,chr:0x2A37,parse(v){this.hr=(v.getUint8(0)&1)?v.getUint16(1,true):v.getUint8(1)}},
- core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)&&v.byteLength>=5?v.getInt16(3,true)/100:null;this.quality=v.byteLength>5?v.getUint8(5):null;this.hsi=v.byteLength>=10?v.getUint16(8,true)/100:null}}
+ core:{svc:CORE_SVC,chr:CORE_CHR,parse(v){const f=v.getUint8(0);this.core=v.getInt16(1,true)/100;this.skin=(f&1)&&v.byteLength>=5?v.getInt16(3,true)/100:null;this.quality=v.byteLength>5?v.getUint8(5):null;this.hsi=v.byteLength>=10?v.getUint8(9)/10:null}}
 };
 const fresh=(k,f)=>{const c=D[k];return c.ok&&Date.now()-c.t<5000&&c[f]!=null?c[f]:null};
 function status(k,txt,cls){const b=document.querySelector(`[data-k=${k}]`);b.querySelector('small').textContent=txt;b.className='conn '+(cls||'')}
@@ -776,7 +791,7 @@ function openSensorDlg(k,b){
  sdK=k;const r=b.getBoundingClientRect(),d=$('sensordlg');d.hidden=false;
  d.style.left=Math.max(8,Math.min(r.left,innerWidth-296))+'px';d.style.top=(r.bottom+6)+'px';sensorDlgUpdate();
 }
-document.querySelectorAll('.conn[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(D[k].dev)openSensorDlg(k,b);else pair(k)});
+document.querySelectorAll('.conn[data-k]').forEach(b=>b.onclick=async()=>{const k=b.dataset.k,c=D[k];if(c.dev&&c.ok){openSensorDlg(k,b);return}if(c.dev){c.manual=false;try{await link(k);return}catch(e){console.warn('Kunne ikke koble til lagret Bluetooth-enhet',e);try{c.dev.gatt&&c.dev.gatt.disconnect()}catch(_){}c.dev=null;c.ok=false;status(k,'Velg sensor på nytt');toast(cName(k)+' – tidligere lagret tilkobling virket ikke. Velg sensoren på nytt.',true)}}pair(k)});
 
 const U=n=>typeof n==='number'?`0000${n.toString(16).padStart(4,'0')}-0000-1000-8000-00805f9b34fb`:n;
 let BT_ALL=false;try{localStorage.removeItem('btall')}catch(e){}
@@ -802,6 +817,7 @@ async function pair(k){
   if(k==='power'&&/assioma.*l$/i.test(c.dev.name||''))toast('Assioma venstre pedal valgt. Den sender samlet watt når pedalene er paret i Favero-appen.');
   c.manual=false;
   c.dev.addEventListener('gattserverdisconnected',()=>lost(k));
+  rememberSensor(k,c.dev);
   await link(k);
  }catch(e){
   console.error(e);
@@ -813,6 +829,34 @@ async function pair(k){
   toast(`${cName(k)} – ${d}${ekstra}`,true)}
 }
 function cName(k){return{trainer:'Kickr Core',power:'Wattpedaler',hr:'pulsbeltet',core:'CORE-sensoren'}[k]||k}
+const BT_STORAGE_KEY='innesykkel.bluetooth.devices';
+function rememberedSensors(){
+ try{return JSON.parse(localStorage.getItem(BT_STORAGE_KEY)||'{}')||{}}catch(e){return{}}
+}
+function rememberSensor(k,dev){
+ if(!dev||!dev.id)return;
+ const saved=rememberedSensors();saved[k]={id:dev.id,name:dev.name||cName(k)};
+ try{localStorage.setItem(BT_STORAGE_KEY,JSON.stringify(saved))}catch(e){}
+}
+async function restoreBluetoothSensors(){
+ if(!navigator.bluetooth||typeof navigator.bluetooth.getDevices!=='function')return;
+ const saved=rememberedSensors();
+ if(!Object.keys(saved).length)return;
+ try{
+  const devices=await navigator.bluetooth.getDevices();
+  for(const k of Object.keys(D)){
+   const item=saved[k];if(!item)continue;
+   const dev=devices.find(x=>x.id===item.id);
+   if(!dev){status(k,'Godkjent – ikke funnet');continue}
+   const c=D[k];c.dev=dev;c.manual=false;
+   dev.addEventListener('gattserverdisconnected',()=>lost(k));
+   try{await link(k)}catch(e){
+    c.ok=false;status(k,'Trykk for å koble til');
+    console.warn('Automatisk Bluetooth-tilkobling feilet for '+cName(k),e);
+   }
+  }
+ }catch(e){console.warn('Kunne ikke hente tidligere godkjente Bluetooth-enheter',e)}
+}
 async function link(k){
  const c=D[k];status(k,'Kobler til …','try');
  c.stage='koble til (gatt.connect)';const srv=await c.dev.gatt.connect();
@@ -827,7 +871,7 @@ async function link(k){
   try{await c.cp.startNotifications()}catch(e){}
   S.lastErg=null;S.mode=null;await cpWrite([0x00]);await cpWrite([0x07]);
  }
- c.ok=true;c.t=Date.now();status(k,c.dev.name||'Tilkoblet','on');
+ c.ok=true;c.t=Date.now();rememberSensor(k,c.dev);status(k,c.dev.name||'Tilkoblet','on');
 }
 async function lost(k){
  const c=D[k];c.ok=false;if(c.manual||!c.dev||c.retrying)return;
@@ -913,6 +957,102 @@ $('file').onchange=async e=>{
  }catch(err){toast('Feil: '+err.message,true)}
  e.target.value='';
 };
+
+
+/* ---------- Forhåndslagrede økter fra ekstern JSON ---------- */
+let PRESET_WORKOUTS=[];
+async function loadPresetWorkouts(){
+ const select=$('presetSelect');
+ const meta=$('presetMeta');
+ select.replaceChildren(new Option('Laster øktbiblioteket …',''));
+ select.disabled=true;
+ const url=new URL('./workouts.json',document.baseURI);
+ try{
+  const response=await fetch(url.href,{cache:'no-store'});
+  if(!response.ok)throw new Error('HTTP '+response.status+' '+response.statusText);
+  const data=await response.json();
+  if(!data||!Array.isArray(data.workouts))throw new Error('JSON mangler listen «workouts»');
+  if(data.workout_count!==undefined&&data.workout_count!==data.workouts.length)throw new Error('Antall økter stemmer ikke med workout_count');
+  PRESET_WORKOUTS=data.workouts;
+  select.replaceChildren(new Option('Velg forhåndslagret økt',''));
+  PRESET_WORKOUTS.forEach(w=>{
+   if(!w||w.id==null||!w.name)throw new Error('En økt mangler id eller name');
+   const o=document.createElement('option');o.value=String(w.id);o.textContent=w.name;select.appendChild(o);
+  });
+  select.disabled=false;
+  meta.textContent=PRESET_WORKOUTS.length+' økter lastet fra workouts.json';
+ }catch(err){
+  console.error('Kunne ikke laste øktbiblioteket fra '+url.href,err);
+  meta.textContent='Kunne ikke laste øktbiblioteket: '+err.message;
+  select.replaceChildren(new Option('Øktbiblioteket kunne ikke lastes',''));
+ }
+}
+function parsePresetDescription(description){
+ const lines=String(description||'').split(/\r?\n/);
+ const out=[];
+ let repeat=1,group=[];
+ const flush=()=>{
+  if(group.length){
+   for(let r=0;r<repeat;r++)group.forEach(step=>addPresetStep(step));
+  }
+  repeat=1;group=[];
+ };
+ const addPresetStep=line=>{
+  const dMatch=line.match(/(\d+(?:[.,]\d+)?)\s*m(?:in)?(?:\s*(\d+(?:[.,]\d+)?)\s*s)?|(\d+(?:[.,]\d+)?)\s*s/i);
+  if(!dMatch)return;
+  const minutes=dMatch[1]!=null?Number(dMatch[1].replace(',','.')):0;
+  const seconds=dMatch[2]!=null?Number(dMatch[2].replace(',','.')):dMatch[3]!=null?Number(dMatch[3].replace(',','.')):0;
+  const duration=Math.round(minutes*60+seconds);
+  if(!(duration>0))return;
+  const percentMatch=line.match(/(\d+(?:[.,]\d+)?)\s*(?:-|–|til)\s*(\d+(?:[.,]\d+)?)\s*%|(\d+(?:[.,]\d+)?)\s*%/i);
+  let pct=null;
+  if(percentMatch){
+   pct=percentMatch[3]!=null?Number(percentMatch[3].replace(',','.')):(Number(percentMatch[1].replace(',','.'))+Number(percentMatch[2].replace(',','.')))/2;
+  }else{
+   const zoneMatch=line.match(/\bz\s*([1-7])\b|intensity\s*=\s*z\s*([1-7])/i);
+   if(zoneMatch){
+    const z=Number(zoneMatch[1]||zoneMatch[2]);
+    const bounds=[[44,55],[55,76],[76,91],[91,106],[106,121],[121,151],[151,151]];
+    if(/\bramp\b/i.test(line)&&z<7){
+     const [lo,hi]=bounds[z-1];
+     ramp(out,duration,lo,hi,0);
+     return;
+    }
+    pct=z===7?151:(bounds[z-1][0]+bounds[z-1][1])/2;
+   }
+  }
+  if(pct==null)ramp(out,duration,60,60,1);
+  else ramp(out,duration,pct,pct,0);
+ };
+ for(const raw of lines){
+  const line=raw.trim();
+  if(!line){if(group.length)flush();continue}
+  const repeatMatch=line.match(/^(\d+)\s*x\s*$/i);
+  if(repeatMatch){flush();repeat=Math.min(100,Number(repeatMatch[1]));continue}
+  if(/^(warmup|cooldown)\s*:?$/i.test(line)){flush();continue}
+  if(/\d/.test(line)&&/(?:m(?:in)?|s)\b/i.test(line))group.push(line);
+ }
+ flush();
+ validateWorkout(out);
+ return out;
+}
+$('presetSelect').onchange=()=>{
+ const w=PRESET_WORKOUTS.find(x=>String(x.id)===$('presetSelect').value);
+ if(!w){
+  $('presetMeta').textContent=PRESET_WORKOUTS.length+' økter lastet fra workouts.json';
+  return;
+ }
+ try{
+  const steps=parsePresetDescription(w.description_raw);
+  setWorkout(steps);
+  $('presetMeta').textContent=w.name+' · '+S.steps.length+' steg · '+fmt(S.total)+(w.training_load!=null?' · Belastning '+w.training_load:'');
+  toast(w.name+' · '+S.steps.length+' steg · '+fmt(S.total));
+ }catch(err){
+  $('presetMeta').textContent='Kunne ikke bygge økten: '+err.message;
+  toast('Feil i forhåndslagret økt: '+err.message,true);
+ }
+};
+loadPresetWorkouts();
 
 /* ---------- Lyd og skjerm ---------- */
 let ac,wl;
@@ -1647,8 +1787,9 @@ function anCalc(){
  const lrSamples=r.filter(x=>x.lrLeft!=null).map(x=>x.lrLeft);const temps={core:r.filter(x=>x.core!=null).map(x=>x.core),skin:r.filter(x=>x.skin!=null).map(x=>x.skin),hsi:r.filter(x=>x.hsi!=null).map(x=>x.hsi)};
  const tempStats=a=>({start:a.length?a[0]:null,avg:anMean(a),max:a.length?Math.max(...a):null,rise:a.length?a[a.length-1]-a[0]:null});
  const corr=(fnA,fnB)=>{const pairs=r.map(x=>[fnA(x),fnB(x)]).filter(([a,b])=>Number.isFinite(a)&&Number.isFinite(b));if(pairs.length<10)return null;const aa=anMean(pairs.map(p=>p[0])),bb=anMean(pairs.map(p=>p[1]));let n=0,d1=0,d2=0;for(const[a,b]of pairs){const da=a-aa,db=b-bb;n+=da*db;d1+=da*da;d2+=db*db}return d1&&d2?n/Math.sqrt(d1*d2):null};
- const efPairs=r.filter(x=>x.w!=null&&x.w>0&&x.hr!=null),p1=efPairs.filter(x=>x.realEl<mid),p2=efPairs.filter(x=>x.realEl>=mid);
- const efOf=p=>p.length?anMean(p.map(x=>x.w))/anMean(p.map(x=>x.hr)):null,ef1=efOf(p1),ef2=efOf(p2);
+ const npOf=p=>{let n4=0,nN=0,win=[];for(const x of p){if(x.w==null){win=[];continue}win.push(x.w);if(win.length>30)win.shift();if(win.length===30){n4+=Math.pow(anMean(win),4);nN++}}return nN?Math.pow(n4/nN,.25):anMean(p.map(x=>x.w).filter(v=>v!=null))};
+ const efOf=p=>{const hrs=p.map(x=>x.hr).filter(v=>v!=null),np=npOf(p);return hrs.length&&np>0?np/anMean(hrs):null};
+ const ef1=efOf(r.filter(x=>x.realEl<mid)),ef2=efOf(r.filter(x=>x.realEl>=mid));
  const drift=ef1&&ef2?(ef1-ef2)/ef1*100:null;
  return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),avgNm:anMean(nms),np,IF,TSS,z,totalJ,halfStats,lrLeft:anMean(lrSamples),lrN:lrSamples.length,corrWH:corr(x=>x.w,x=>x.hr),corrWC:corr(x=>x.w,x=>x.core),corrHC:corr(x=>x.hr,x=>x.core),corrNH:corr(x=>calcNm(x.w,x.cad),x=>x.hr),core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
 }
@@ -1679,7 +1820,7 @@ function renderAnalysis() {
         </div>
       </article>`).join('');
     $('anTemps').innerHTML = anKv('Core (Start/Snitt/Maks)', '–') + anKv('Hud (Start/Snitt/Maks)', '–') + anKv('Core økning / HSI maks', '–');
-    $('anDrift').innerHTML = anKv('EF (1. → 2. halvdel)', '–') + anKv('Pw:Hr drift', '–') + anKv('L/R pedalbalanse', '–');
+    $('anDrift').innerHTML = anKv('EF (NP/puls, 1. → 2. halvdel)', '–') + anKv('Pw:Hr drift', '–') + anKv('L/R pedalbalanse', '–');
     $('anHalves').innerHTML = anKv('1. halvdel (W / bpm / Nm)', '–') + anKv('2. halvdel (W / bpm / Nm)', '–');
     $('anRelations').innerHTML = anKv('Watt ↔ Puls (r)', '–') + anKv('Torque ↔ Puls (r)', '–') + anKv('Watt ↔ Core (r)', '–') + anKv('Puls ↔ Core (r)', '–');
     return;
@@ -1762,7 +1903,7 @@ function renderAnalysis() {
   const lrL1 = Math.round(a.lrLeft*10)/10;
   const lrTot = a.lrN && Number.isFinite(lrL1) ? `${lrL1.toFixed(1)}% / ${(Math.round((100-lrL1)*10)/10).toFixed(1)}%` : 'Ikke tilgjengelig';
   $('anDrift').innerHTML =
-    anKv('EF (1. → 2. halvdel)', `${anFmt(a.ef1, 2)} → ${anFmt(a.ef2, 2)}`) +
+    anKv('EF (NP/puls, 1. → 2. halvdel)', `${anFmt(a.ef1, 2)} → ${anFmt(a.ef2, 2)}`) +
     anKv('Pw:Hr drift', a.drift != null ? `${anFmt(a.drift, 1)} %${a.elapsed < 1200 ? ' (foreløpig)' : ''}` : 'Venter på data') +
     anKv('L/R pedalbalanse', lrTot);
 
@@ -1856,7 +1997,7 @@ function setKind(k){
  if(k){try{localStorage.setItem('kind',k)}catch(e){}}
  if(k!=='workout')setWorkout([]);
  const v=(id,c)=>{$(id).hidden=!c};
- v('fileLbl',k==='workout');v('grpScale',k==='workout');v('bSkip',k==='workout');v('bSteps',k==='workout');
+ v('fileLbl',k==='workout');$('presetPanel').classList.toggle('on',k==='workout');v('grpScale',k==='workout');v('bSkip',k==='workout');v('bSteps',k==='workout');
  v('grpFix',k==='free'||k==='hr');v('bErg',k==='free'||k==='workout');v('hrstat',k==='hr');v('bCool',k==='hr');
  $('steps').hidden=true;$('hr').style.color='';$('hrdlg').hidden=!(k==='hr'&&S.state==='idle');
  if(k==='hr')setErgBtn(true);else if(k==='free')setErgBtn(false);
@@ -1890,6 +2031,7 @@ $('helpOk').onclick=()=>{$('helpdlg').hidden=true;try{localStorage.setItem('hrhe
 }
 try{const lk=localStorage.getItem('kind'),c=document.querySelector(`.card[data-kind="${lk}"]`);if(c)c.classList.add('last')}catch(e){}
 setKind(null);
+restoreBluetoothSensors();
 
 /* ---------- Moduser, modaler og hurtigtaster ---------- */
 function openSummary(){

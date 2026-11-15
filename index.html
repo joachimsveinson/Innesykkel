@@ -1007,6 +1007,12 @@ function parsePresetDescription(description){
   const percentMatch=line.match(/(\d+(?:[.,]\d+)?)\s*(?:-|–|til)\s*(\d+(?:[.,]\d+)?)\s*%|(\d+(?:[.,]\d+)?)\s*%/i);
   let pct=null;
   if(percentMatch){
+   if(/\bramp\b/i.test(line)&&percentMatch[1]!=null){
+    const lo=Number(percentMatch[1].replace(',','.'));
+    const hi=Number(percentMatch[2].replace(',','.'));
+    ramp(out,duration,lo,hi,0);
+    return;
+   }
    pct=percentMatch[3]!=null?Number(percentMatch[3].replace(',','.')):(Number(percentMatch[1].replace(',','.'))+Number(percentMatch[2].replace(',','.')))/2;
   }else{
    const zoneMatch=line.match(/\bz\s*([1-7])\b|intensity\s*=\s*z\s*([1-7])/i);

@@ -1440,6 +1440,7 @@ function draw(){
 
  g.fillStyle='#7f7f7f';g.strokeStyle='#282828';g.lineWidth=1;
  [55,76,91,106,121,151].forEach(pz=>{const w=S.ftp*pz/100,y=yW(w);
+  if(w>S.ftp*ym/100)return; /* sone over synlig område: hopp over linje og tall */
   g.beginPath();g.moveTo(padL,y);g.lineTo(W-padR,y);g.stroke();
   g.fillText(Math.round(w),4,y+3)});
  g.strokeStyle='#282828';

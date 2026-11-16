@@ -1465,7 +1465,7 @@ function draw(){
  /* pulsakse og puls-kurve */
  g.fillStyle='#AD5358';for(let h=80;h<=hHi;h+=20)g.fillText(h,W-padR+6,yH(h)+3);
  const hrPath=()=>{g.beginPath();let on=false;S.log.forEach(r=>{if(r.hr==null||r.e<vs)return;const x=padL+(r.e-vs)/T*plotW,y=yH(r.hr);on?g.lineTo(x,y):g.moveTo(x,y);on=true})};
- g.lineJoin='round';hrPath();g.strokeStyle='rgba(0,0,0,.75)';g.lineWidth=4.5;g.stroke();
+ g.lineJoin='round';hrPath();g.strokeStyle='rgba(0,0,0,.75)';g.lineWidth=4;g.stroke();
  hrPath();g.strokeStyle='#AD5358';g.lineWidth=2.2;g.stroke();
 
  /* FTP-referanselinje */
@@ -1474,7 +1474,7 @@ function draw(){
 
  if(S.post){const xt=Math.max(padL,padL+(S.total-vs)/T*plotW),xe=padL+(S.el-vs)/T*plotW;if(xe>xt){g.fillStyle='rgba(25,208,232,.18)';g.fillRect(xt,yW(S.fixW),xe-xt,padT+plotH-yW(S.fixW))}}
  /* effektkurve */
- g.strokeStyle='#ffffff';g.lineWidth=2;g.beginPath();let st=false;
+ g.strokeStyle='#ffffff';g.lineWidth=1;g.beginPath();let st=false;
  S.log.forEach(r=>{if(r.w==null||r.e<vs)return;const x=padL+(r.e-vs)/T*plotW,y=yW(r.w);st?g.lineTo(x,y):g.moveTo(x,y);st=true});
  g.stroke();
  

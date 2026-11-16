@@ -1465,8 +1465,8 @@ function draw(){
  /* pulsakse og puls-kurve */
  g.fillStyle='#AD5358';for(let h=80;h<=hHi;h+=20)g.fillText(h,W-padR+6,yH(h)+3);
  const hrPath=()=>{g.beginPath();let on=false;S.log.forEach(r=>{if(r.hr==null||r.e<vs)return;const x=padL+(r.e-vs)/T*plotW,y=yH(r.hr);on?g.lineTo(x,y):g.moveTo(x,y);on=true})};
- g.lineJoin='round';hrPath();g.strokeStyle='rgba(0,0,0,.75)';g.lineWidth=4;g.stroke();
- hrPath();g.strokeStyle='#AD5358';g.lineWidth=2.2;g.stroke();
+ g.lineJoin='round';hrPath();g.strokeStyle='rgba(0,0,0,.75)';g.lineWidth=3;g.stroke();
+ hrPath();g.strokeStyle='#AD5358';g.lineWidth=2;g.stroke();
 
  /* FTP-referanselinje */
  g.strokeStyle='rgba(255,255,255,.22)';g.setLineDash([4,4]);

@@ -1,0 +1,10 @@
+{
+  "name": "innesykkel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Innesykkel desktop app for macOS",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron ."
+  }
+}

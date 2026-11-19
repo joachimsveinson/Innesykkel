@@ -8,14 +8,20 @@ function installBluetoothDevicePicker(win) {
   win.webContents.on('select-bluetooth-device', (event, devices, callback) => {
     event.preventDefault()
 
+    // Electron can emit this event with an empty list while it is still
+    // scanning. Do not cancel the request. Wait for another event.
+    if (!devices || devices.length === 0) {
+      return
+    }
+
+    // The same request can emit this event more than once while the
+    // selection dialog is open. Do not cancel those later events.
     if (bluetoothDialogOpen) {
-      callback('')
       return
     }
 
     const available = devices.filter(device => device.deviceId)
     if (available.length === 0) {
-      callback('')
       return
     }
 

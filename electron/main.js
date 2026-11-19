@@ -1,59 +1,104 @@
-const { app, BrowserWindow, dialog } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('node:path')
 
 let mainWindow
-let bluetoothDialogOpen = false
+let activeBluetoothRequest = null
+
+function finishBluetoothRequest(request, deviceId = '') {
+  if (!request || activeBluetoothRequest !== request) return
+  activeBluetoothRequest = null
+  try {
+    request.callback(deviceId)
+  } catch (error) {
+    console.error('Could not finish Bluetooth selection', error)
+  }
+  if (request.picker && !request.picker.isDestroyed()) {
+    request.picker.close()
+  }
+}
+
+function updateBluetoothPicker(request, devices) {
+  request.devices = (devices || []).filter(device => device.deviceId)
+  if (request.picker && !request.picker.isDestroyed() && request.picker.webContents.isLoading() === false) {
+    request.picker.webContents.send('bluetooth-picker:update', {
+      devices: request.devices.map((device, index) => ({
+        id: device.deviceId,
+        name: device.deviceName || 'Bluetooth-enhet uten navn',
+        index: index + 1
+      }))
+    })
+  }
+}
 
 function installBluetoothDevicePicker(win) {
   win.webContents.on('select-bluetooth-device', (event, devices, callback) => {
     event.preventDefault()
 
-    // Electron can emit this event with an empty list while it is still
-    // scanning. Do not cancel the request. Wait for another event.
-    if (!devices || devices.length === 0) {
-      return
+    let request = activeBluetoothRequest
+    if (!request) {
+      const picker = new BrowserWindow({
+        width: 440,
+        height: 520,
+        minWidth: 360,
+        minHeight: 360,
+        title: 'Velg Bluetooth-enhet',
+        parent: win,
+        modal: true,
+        resizable: true,
+        autoHideMenuBar: true,
+        webPreferences: {
+          preload: path.join(__dirname, 'picker-preload.js'),
+          contextIsolation: true,
+          nodeIntegration: false,
+          sandbox: true
+        }
+      })
+
+      request = { callback, devices: [], picker }
+      activeBluetoothRequest = request
+
+      picker.on('closed', () => {
+        if (activeBluetoothRequest === request) {
+          finishBluetoothRequest(request, '')
+        }
+      })
+
+      picker.loadFile(path.join(__dirname, 'bluetooth-picker.html')).then(() => {
+        if (activeBluetoothRequest === request && !picker.isDestroyed()) {
+          picker.webContents.send('bluetooth-picker:update', {
+            devices: request.devices.map((device, index) => ({
+              id: device.deviceId,
+              name: device.deviceName || 'Bluetooth-enhet uten navn',
+              index: index + 1
+            }))
+          })
+        }
+      }).catch(error => {
+        console.error('Could not open Bluetooth picker', error)
+        finishBluetoothRequest(request, '')
+      })
+    } else {
+      // Electron can emit this event more than once during the same scan.
+      // Keep the latest callback and refresh the available device list.
+      request.callback = callback
     }
 
-    // The same request can emit this event more than once while the
-    // selection dialog is open. Do not cancel those later events.
-    if (bluetoothDialogOpen) {
-      return
-    }
-
-    const available = devices.filter(device => device.deviceId)
-    if (available.length === 0) {
-      return
-    }
-
-    bluetoothDialogOpen = true
-
-    const labels = available.map((device, index) => {
-      const name = device.deviceName || 'Bluetooth-enhet uten navn'
-      return `${name} (${index + 1})`
-    })
-
-    dialog.showMessageBox(win, {
-      type: 'question',
-      title: 'Velg Bluetooth-enhet',
-      message: 'Velg enheten du vil koble til.',
-      detail: 'Kontroller at du velger riktig sykkelrulle eller sensor.',
-      buttons: [...labels, 'Avbryt'],
-      cancelId: labels.length,
-      defaultId: 0,
-      noLink: true
-    }).then(({ response }) => {
-      if (response >= 0 && response < available.length) {
-        callback(available[response].deviceId)
-      } else {
-        callback('')
-      }
-    }).catch(() => {
-      callback('')
-    }).finally(() => {
-      bluetoothDialogOpen = false
-    })
+    updateBluetoothPicker(request, devices)
   })
 }
+
+ipcMain.on('bluetooth-picker:select', (event, deviceId) => {
+  const request = activeBluetoothRequest
+  if (!request || !request.picker || event.sender !== request.picker.webContents) return
+  const selected = request.devices.find(device => device.deviceId === deviceId)
+  if (selected) finishBluetoothRequest(request, selected.deviceId)
+})
+
+ipcMain.on('bluetooth-picker:cancel', event => {
+  const request = activeBluetoothRequest
+  if (!request || !request.picker || event.sender !== request.picker.webContents) return
+  finishBluetoothRequest(request, '')
+})
 
 function createWindow() {
   mainWindow = new BrowserWindow({

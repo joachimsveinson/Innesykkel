@@ -810,6 +810,7 @@ async function pair(k){
   c.manual=true;c.ok=false;try{c.dev.gatt.disconnect()}catch(e){}c.dev=null;status(k,'Frakoblet');return}
  if(BT_PAIRING)return;
  BT_PAIRING=true;
+ document.querySelectorAll('.conn[data-k]').forEach(b=>b.disabled=true);
  c.stage='velge enhet';
  try{
   c.dev=await navigator.bluetooth.requestDevice(BT_ALL?{acceptAllDevices:true,optionalServices:[U(c.svc),U(0x180F)]}:{filters:[{services:[U(c.svc)]}],optionalServices:[U(c.svc),U(0x180F)]});
@@ -831,7 +832,8 @@ async function pair(k){
   if(c.stage==='velge enhet'&&e&&e.name!=='NotFoundError'&&!BT_ALL){BT_ALL=true;ekstra=' · Trykk på knappen igjen: da vises alle Bluetooth-enheter i nærheten'}
   toast(`${cName(k)} – ${d}${ekstra}`,true)
  }finally{
-  BT_PAIRING=false
+  BT_PAIRING=false;
+  document.querySelectorAll('.conn[data-k]').forEach(b=>b.disabled=false)
  }
 }
 function cName(k){return{trainer:'Kickr Core',power:'Wattpedaler',hr:'pulsbeltet',core:'CORE-sensoren'}[k]||k}

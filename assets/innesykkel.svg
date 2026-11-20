@@ -20,7 +20,7 @@
     </linearGradient>
 
     <!-- Nedtonet gradient for sykkelen slik at den matcher lynet bedre -->
-    <linearGradient id="bikeGradient" x1="280" y1="400" x2="750" y2="730" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bikeGradient" x1="750" y1="400" x2="750" y2="4000" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#5ce1f2" stop-opacity="0.8" />
       <stop offset="0.5" stop-color="#19d0e8" stop-opacity="0.79" />
       <stop offset="1" stop-color="#0c8da3" stop-opacity="0.79" />

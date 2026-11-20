@@ -802,11 +802,15 @@ async function readBattery(c,srv){
   try{bc.addEventListener('characteristicvaluechanged',e=>{c.bat=e.target.value.getUint8(0);c.batT=Date.now()});await bc.startNotifications()}catch(_){}
  }catch(e){}
 }
+let BT_PAIRING=false;
 async function pair(k){
  const c=D[k];
  if(c.dev){
   if(c.ok&&!(await uiConfirm(`Frakoble ${cName(k)}? Du mister data fra denne sensoren.`)))return;
   c.manual=true;c.ok=false;try{c.dev.gatt.disconnect()}catch(e){}c.dev=null;status(k,'Frakoblet');return}
+ if(BT_PAIRING)return;
+ BT_PAIRING=true;
+ document.querySelectorAll('.conn[data-k]').forEach(b=>b.disabled=true);
  c.stage='velge enhet';
  try{
   c.dev=await navigator.bluetooth.requestDevice(BT_ALL?{acceptAllDevices:true,optionalServices:[U(c.svc),U(0x180F)]}:{filters:[{services:[U(c.svc)]}],optionalServices:[U(c.svc),U(0x180F)]});
@@ -826,7 +830,11 @@ async function pair(k){
   c.dev=null;status(k,'Feil – se melding');
   let ekstra='';
   if(c.stage==='velge enhet'&&e&&e.name!=='NotFoundError'&&!BT_ALL){BT_ALL=true;ekstra=' · Trykk på knappen igjen: da vises alle Bluetooth-enheter i nærheten'}
-  toast(`${cName(k)} – ${d}${ekstra}`,true)}
+  toast(`${cName(k)} – ${d}${ekstra}`,true)
+ }finally{
+  BT_PAIRING=false;
+  document.querySelectorAll('.conn[data-k]').forEach(b=>b.disabled=false)
+ }
 }
 function cName(k){return{trainer:'Kickr Core',power:'Wattpedaler',hr:'pulsbeltet',core:'CORE-sensoren'}[k]||k}
 const BT_STORAGE_KEY='innesykkel.bluetooth.devices';

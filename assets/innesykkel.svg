@@ -14,16 +14,16 @@
 
     <!-- Lynets gradient (uendret) -->
     <linearGradient id="boltGradient" x1="400" y1="160" x2="650" y2="850" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#19d0e8" stop-opacity="0.32" />
-      <stop offset="0.5" stop-color="#0e7490" stop-opacity="0.22" />
-      <stop offset="1" stop-color="#19d0e8" stop-opacity="0.08" />
+      <stop offset="0" stop-color="#19d0e8" stop-opacity="0.99" />
+      <stop offset="0.5" stop-color="#0e7490" stop-opacity="0.42" />
+      <stop offset="1" stop-color="#19d0e8" stop-opacity="0.18" />
     </linearGradient>
 
     <!-- Nedtonet gradient for sykkelen slik at den matcher lynet bedre -->
     <linearGradient id="bikeGradient" x1="280" y1="400" x2="750" y2="730" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#5ce1f2" stop-opacity="0.9" />
-      <stop offset="0.5" stop-color="#19d0e8" stop-opacity="0.85" />
-      <stop offset="1" stop-color="#0c8da3" stop-opacity="0.8" />
+      <stop offset="0" stop-color="#5ce1f2" stop-opacity="0.8" />
+      <stop offset="0.5" stop-color="#19d0e8" stop-opacity="0.79" />
+      <stop offset="1" stop-color="#0c8da3" stop-opacity="0.79" />
     </linearGradient>
 
     <!-- Svakere, mer kontrollert glød på sykkelen -->
@@ -45,7 +45,7 @@
   <rect x="100" y="100" width="824" height="824" rx="185" ry="185" fill="url(#bgGradient)" stroke="url(#borderGradient)" stroke-width="6" filter="url(#iconShadow)" />
 
   <!-- Lyn i bakgrunnen (beholdt nøyaktig slik det var) -->
-  <path d="M585 175 L370 505 L505 505 L430 845 L675 475 L535 475 Z" fill="url(#boltGradient)" stroke="#19d0e8" stroke-opacity="0.35" stroke-width="6" stroke-linejoin="round" />
+  <path d="M585 175 L370 505 L505 505 L430 845 L675 475 L535 475 Z" fill="url(#boltGradient)" stroke="#19d0e8" stroke-opacity="0.55" stroke-width="6" stroke-linejoin="round" />
 
   <!-- Nedtonet sykkel med tynnere, lettere linjer -->
   <g fill="none" stroke="url(#bikeGradient)" stroke-linecap="round" stroke-linejoin="round" filter="url(#bikeGlow)">

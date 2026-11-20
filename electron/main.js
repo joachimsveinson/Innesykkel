@@ -88,6 +88,15 @@ function installBluetoothDevicePicker(win) {
   })
 }
 
+ipcMain.handle('workouts:load', async event => {
+  if (!mainWindow || event.sender !== mainWindow.webContents) {
+    throw new Error('Ugyldig forespørsel om øktbiblioteket')
+  }
+  const workoutsPath = path.join(app.getAppPath(), 'workouts.json')
+  const contents = await fs.promises.readFile(workoutsPath, 'utf8')
+  return JSON.parse(contents)
+})
+
 ipcMain.on('bluetooth-picker:select', (event, deviceId) => {
   const request = activeBluetoothRequest
   if (!request || !request.picker || event.sender !== request.picker.webContents) return

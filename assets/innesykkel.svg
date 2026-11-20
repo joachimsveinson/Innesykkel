@@ -26,6 +26,11 @@
     </filter>
   </defs>
 
+  <!-- Light outline around the lightning bolt -->
+  <path d="M720 85 L425 430 L575 430 L345 825 L805 335 L625 335 Z"
+        fill="none" stroke="#e8fcff" stroke-width="18"
+        stroke-linejoin="round" stroke-linecap="round"/>
+
   <!-- Lightning bolt behind the bicycle -->
   <path d="M720 85 L425 430 L575 430 L345 825 L805 335 L625 335 Z"
         fill="url(#boltGradient)" opacity=".98" filter="url(#boltGlow)"/>

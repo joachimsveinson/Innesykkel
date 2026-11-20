@@ -8,10 +8,10 @@
       </feMerge>
     </filter>
   </defs>
-  <g fill="none" stroke="#19D0E8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+  <g fill="none" stroke="#19d0e8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
     <!-- Lightning bolt behind the bicycle -->
-    <path d="M650 145 L470 420 L585 420 L405 700 L690 365 L565 365 Z"
-          fill="#19D0E8" stroke="none" opacity=".95"/>
+    <path d="M720 85 L425 430 L575 430 L345 825 L805 335 L625 335 Z"
+          fill="#19d0e8" stroke="none" opacity=".95"/>
     <!-- Wheels -->
     <circle cx="278" cy="690" r="154" stroke-width="24"/>
     <circle cx="746" cy="690" r="154" stroke-width="24"/>

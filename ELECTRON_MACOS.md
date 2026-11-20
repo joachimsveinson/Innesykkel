@@ -16,6 +16,19 @@ npm install --save-dev electron
 npm start
 ```
 
+## App icon
+
+The master vector icon is `assets/innesykkel.svg`. It uses the app's cyan accent color, `#19D0E8`, with a bicycle and lightning bolt.
+
+macOS Dock icons are supplied as ICNS files inside the packaged app bundle. The SVG is the editable source. On a Mac, install librsvg and run:
+
+```bash
+brew install librsvg
+bash scripts/create-macos-icon.sh
+```
+
+This creates `assets/innesykkel.icns`. The ICNS file must then be assigned as the app icon in the macOS packaging configuration when the distributable app is built. Running the development app with `npm start` does not replace the Electron Dock icon.
+
 ## Bluetooth
 
 Electron opens a separate device picker as soon as a Web Bluetooth scan starts. The picker shows the search status and updates the device list as Electron discovers devices. The user can select a device or cancel the request.

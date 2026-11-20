@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="15" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g fill="none" stroke="#19D0E8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+    <!-- Lightning bolt behind the bicycle -->
+    <path d="M650 145 L470 420 L585 420 L405 700 L690 365 L565 365 Z"
+          fill="#19D0E8" stroke="none" opacity=".95"/>
+    <!-- Wheels -->
+    <circle cx="278" cy="690" r="154" stroke-width="24"/>
+    <circle cx="746" cy="690" r="154" stroke-width="24"/>
+    <!-- Bicycle frame -->
+    <path d="M278 690 L442 420 L575 690 L278 690 L535 690 L746 690"
+          stroke-width="25"/>
+    <path d="M442 420 L535 690" stroke-width="25"/>
+    <!-- Fork and handlebar -->
+    <path d="M746 690 L690 397 L650 397" stroke-width="24"/>
+    <path d="M650 397 L722 397 L752 420" stroke-width="24"/>
+    <!-- Seat post and saddle -->
+    <path d="M442 420 L420 365" stroke-width="22"/>
+    <path d="M380 365 L460 365" stroke-width="24"/>
+    <!-- Crank and pedal -->
+    <circle cx="535" cy="690" r="34" stroke-width="20"/>
+    <path d="M535 690 L585 735 M510 735 L560 735" stroke-width="19"/>
+  </g>
+</svg>

@@ -976,9 +976,9 @@ async function loadPresetWorkouts(){
  select.disabled=true;
  const url=new URL('./workouts.json',document.baseURI);
  try{
-  const response=await fetch(url.href,{cache:'no-store'});
-  if(!response.ok)throw new Error('HTTP '+response.status+' '+response.statusText);
-  const data=await response.json();
+  const data=window.electronApp?.isElectron && typeof window.electronApp.loadWorkouts==='function'
+   ? await window.electronApp.loadWorkouts()
+   : await (async()=>{const response=await fetch(url.href,{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status+' '+response.statusText);return response.json()})();
   if(!data||!Array.isArray(data.workouts))throw new Error('JSON mangler listen «workouts»');
   if(data.workout_count!==undefined&&data.workout_count!==data.workouts.length)throw new Error('Antall økter stemmer ikke med workout_count');
   PRESET_WORKOUTS=data.workouts;

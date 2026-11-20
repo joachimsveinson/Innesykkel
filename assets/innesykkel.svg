@@ -34,9 +34,9 @@
   <g fill="none" stroke="#e8fcff" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="278" cy="690" r="154" stroke-width="33"/>
     <circle cx="746" cy="690" r="154" stroke-width="33"/>
-    <path d="M278 690 L442 420 L575 690 L278 690 L535 690 L746 690"
+    <path d="M278 690 L442 420 L690 397 L746 690 M278 690 L535 690"
           stroke-width="34"/>
-    <path d="M442 420 L535 690" stroke-width="34"/>
+    <path d="M442 420 L535 690 M690 397 L535 690" stroke-width="34"/>
     <path d="M746 690 L690 397 L650 397" stroke-width="33"/>
     <path d="M650 397 L722 397 L752 420" stroke-width="33"/>
     <path d="M442 420 L420 365" stroke-width="31"/>
@@ -49,9 +49,9 @@
   <g fill="none" stroke="url(#bikeGradient)" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
     <circle cx="278" cy="690" r="154" stroke-width="24"/>
     <circle cx="746" cy="690" r="154" stroke-width="24"/>
-    <path d="M278 690 L442 420 L575 690 L278 690 L535 690 L746 690"
+    <path d="M278 690 L442 420 L690 397 L746 690 M278 690 L535 690"
           stroke-width="25"/>
-    <path d="M442 420 L535 690" stroke-width="25"/>
+    <path d="M442 420 L535 690 M690 397 L535 690" stroke-width="25"/>
     <path d="M746 690 L690 397 L650 397" stroke-width="24"/>
     <path d="M650 397 L722 397 L752 420" stroke-width="24"/>
     <path d="M442 420 L420 365" stroke-width="22"/>

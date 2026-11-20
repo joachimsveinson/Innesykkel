@@ -1,4 +1,5 @@
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, nativeImage } = require('electron')
+const fs = require('node:fs')
 const path = require('node:path')
 
 let mainWindow
@@ -126,6 +127,14 @@ function createWindow() {
 
 app.whenReady().then(() => {
   app.setName('Innesykkel')
+
+  if (process.platform === 'darwin') {
+    const iconPath = path.join(__dirname, '..', 'assets', 'innesykkel.icns')
+    if (fs.existsSync(iconPath)) {
+      app.dock.setIcon(nativeImage.createFromPath(iconPath))
+    }
+  }
+
   createWindow()
 
   app.on('activate', () => {

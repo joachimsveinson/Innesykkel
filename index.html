@@ -874,7 +874,7 @@ async function link(k){
  c.stage='finne tjeneste';const svc=await srv.getPrimaryService(U(c.svc));
  c.stage='finne karakteristikk';const ch=await svc.getCharacteristic(U(c.chr));
  c.srv=srv;c.svcObj=svc;c.ch=ch;c.n=0;
- ch.addEventListener('characteristicvaluechanged',e=>{c.t=Date.now();c.n=(c.n||0)+1;try{if(k==='core'){const v=e.target.value;c.rawHex=Array.from(new Uint8Array(v.buffer,v.byteOffset,v.byteLength)).map(x=>x.toString(16).padStart(2,'0')).join(' ')}c.parse(e.target.value)}catch(err){c.err=String(err)}});
+ ch.addEventListener('characteristicvaluechanged',e=>{c.t=Date.now();c.staleWarned=false;c.n=(c.n||0)+1;try{if(k==='core'){const v=e.target.value;c.rawHex=Array.from(new Uint8Array(v.buffer,v.byteOffset,v.byteLength)).map(x=>x.toString(16).padStart(2,'0')).join(' ')}c.parse(e.target.value)}catch(err){c.err=String(err)}});
  c.stage='slå på varsler (startNotifications)';await ch.startNotifications();
  await readBattery(c,srv);
  if(k==='trainer'){
@@ -1071,21 +1071,23 @@ function beep(f,d){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain()
 async function lock(){try{wl=await navigator.wakeLock.request('screen')}catch(e){}}
 function unlock(){try{wl&&wl.release()}catch(e){}wl=null}
 document.addEventListener('visibilitychange',()=>{
- if(document.visibilityState==='hidden'){S.hiddenAt=Date.now();return}
- if(S.state==='running')lock();
- const away=S.hiddenAt?Date.now()-S.hiddenAt:0;S.hiddenAt=null;
- if(away>3000&&(S.state==='running'||S.state==='paused')){
-  S.hrb=[];S.pb=[];S.wb=[];
-  toast(`Appen var i bakgrunnen i ${Math.round(away/1000)} s – sensordata mangler i den perioden. Kobler til på nytt …`,true);
-  resumeSensors();
- }
+ if(document.visibilityState==='visible'&&S.state==='running')lock();
 });
-async function resumeSensors(){
- for(const k of Object.keys(D)){const c=D[k];if(!c.dev||c.manual)continue;
-  try{if(c.ok&&c.ch){await c.ch.stopNotifications();await c.ch.startNotifications()}else if(!c.retrying)lost(k)}catch(e){}
+// Warn only when an active sensor has stopped delivering fresh notifications.
+// Hiding or minimizing the window alone is not evidence of missing sensor data.
+function checkSensorFreshness(){
+ if(S.state!=='running'&&S.state!=='paused')return;
+ const now=Date.now();
+ for(const k of Object.keys(D)){
+  const c=D[k];
+  if(!c.ok||!c.dev||c.manual)continue;
+  if(c.t&&now-c.t>6000&&!c.staleWarned){
+   c.staleWarned=true;
+   toast(`${cName(k)} har ikke sendt nye sensordata på ${Math.round((now-c.t)/1000)} s.`,true);
+  }
  }
- setTimeout(()=>{Object.keys(D).forEach(k=>{const c=D[k];if(c.ok&&c.dev&&Date.now()-(c.t||0)>6000){try{c.dev.gatt.disconnect()}catch(e){}}})},7000);
 }
+setInterval(checkSensorFreshness,1000);
 
 /* ---------- Ny runde / hopp ---------- */
 function lapStart(b){S.lap={b,startEl:S.el,startReal:S.realEl,s:{w:[0,0],h:[0,0],c:[0,0]},mx:0}}

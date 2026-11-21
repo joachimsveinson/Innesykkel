@@ -224,7 +224,10 @@ body.landing #land{display:flex}
 #steps h2{font-size:36px;display:flex;justify-content:space-between;align-items:center;color:var(--fg)}
 #stl{overflow-y:auto;flex:1}
 .sr{display:grid;grid-template-columns:30px 60px 60px 1fr;gap:6px;padding:7px 8px;border-radius:8px;font-family:var(--font-mono);font-size:13px}
-.sr.cur{background:linear-gradient(180deg, rgba(25, 208, 232, 0.14) 0%, rgba(6, 47, 52, 0.4) 100%);border:1px solid rgba(25, 208, 232, 0.35)}.sr.done{opacity:.45}.sr small{display:block;font-family:var(--font-mono);color:var(--mut);font-size:11px}
+.sr.zoned{background:color-mix(in srgb,var(--step-zone) 16%,transparent);box-shadow:inset 3px 0 0 var(--step-zone)}
+.sr.cur{background:linear-gradient(180deg, rgba(25, 208, 232, 0.14) 0%, rgba(6, 47, 52, 0.4) 100%);border:1px solid rgba(25, 208, 232, 0.35)}
+.sr.zoned.cur{background:linear-gradient(180deg, rgba(25,208,232,.12) 0%, rgba(6,47,52,.28) 100%),color-mix(in srgb,var(--step-zone) 18%,transparent);box-shadow:inset 3px 0 0 var(--step-zone)}
+.sr.done{opacity:.45}.sr small{display:block;font-family:var(--font-mono);color:var(--mut);font-size:11px}
 #stopdlg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9;align-items:center;justify-content:center;flex-direction:column;gap:24px}
 #stopdlg h2{font:400 italic clamp(48px, 5vw, 64px) var(--font-serif);color:var(--fg);letter-spacing:-0.03em}
 #stopdlg .row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
@@ -1981,11 +1984,20 @@ function stepTxt(st){
  if(st.rp&&Math.abs(st.p1-st.p0)>=1)return[`${w(st.p0)} → ${w(st.p1)} W`,`Ramp ${f0(st.p0)} → ${f0(st.p1)} %`];
  return[`${w(st.p0)} W`,`${f0(st.p0)} % av FTP`];
 }
+function stepZoneColor(st){
+ if(st.free)return '';
+ let pct=null;
+ if(st.rg&&Array.isArray(st.rg))pct=(st.rg[0]+st.rg[1])/2;
+ else if(st.rp&&Number.isFinite(st.p1))pct=(st.p0+st.p1)/2;
+ else if(Number.isFinite(st.p0))pct=st.p0;
+ if(pct==null||!Number.isFinite(pct))return '';
+ return col(pct*S.scale/100);
+}
 function stepsUi(){
  if($('steps').hidden||!S.steps)return;
  const cur=S.steps.findIndex(q=>S.el>=q.s&&S.el<q.s+q.d),key=[S.steps.length,S.ftp,S.scale,cur].join();
  if(S.stepKey===key)return;S.stepKey=key;
- $('stl').innerHTML=S.steps.map((q,i)=>{const[m,sm]=stepTxt(q);return `<div class="sr${i===cur?' cur':q.s+q.d<=S.el?' done':''}"><span>${q.n}</span><span>${fmt(q.s)}</span><span>${fmt(q.d)}</span><div><b>${m}</b><small>${sm}</small></div></div>`}).join('')||'<div class="sr"><div>Ingen økt lastet</div></div>';
+ $('stl').innerHTML=S.steps.map((q,i)=>{const[m,sm]=stepTxt(q),zone=stepZoneColor(q),cls=['sr',zone?'zoned':'',i===cur?'cur':q.s+q.d<=S.el?'done':''].filter(Boolean).join(' '),style=zone?` style="--step-zone:${zone}"`:'';return `<div class="${cls}"${style}><span>${q.n}</span><span>${fmt(q.s)}</span><span>${fmt(q.d)}</span><div><b>${m}</b><small>${sm}</small></div></div>`}).join('')||'<div class="sr"><div>Ingen økt lastet</div></div>';
  const c=$('stl').querySelector('.cur');if(c&&c.scrollIntoView)c.scrollIntoView({block:'center'});
 }
 {const tl=$('tl'),tip=$('tip');

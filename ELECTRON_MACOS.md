@@ -65,3 +65,12 @@ Physical Bluetooth testing is required on macOS with the actual trainer and sens
 ## Current limits
 
 The macOS packaging configuration is in place, but the packaged app has not yet been built and tested on a Mac in this change. Signing and notarization require the appropriate Apple Developer credentials. Full physical Bluetooth validation is still required.
+
+
+## Intervals.icu calendar sync
+
+The desktop app can read planned workouts from Intervals.icu for today and the next seven local calendar days. The personal API key is encrypted with Electron safeStorage and stored under the app's macOS userData directory. If secure storage is unavailable, the key is not saved.
+
+Calendar data is validated and written to a temporary file before an atomic rename. A failed request, timeout, invalid response, or offline state keeps the previous cache. The renderer loads the local cache first and syncs in the background at launch, when the network returns, and every 30 minutes. Intervals.icu sync is separate from Bluetooth, workout timing, and FIT recording.
+
+To connect, open the app and select Intervals.icu in the header. Create a personal API key in Intervals.icu Developer Settings and paste it into the dialog. Use a read-only key. The initial implementation reads planned workout descriptions and converts their intervals into the app's workout steps. Workout descriptions that cannot be parsed are reported without affecting other app functions.

@@ -1985,13 +1985,13 @@ function hrUi(){
 
 /* ---------- Treningsanalyse ---------- */
 const AN_ZONES=[
- {name:'Z1',lo:0,hi:55,color:'#5A6266'},
- {name:'Z2',lo:55,hi:76,color:'#2B7A8C'},
- {name:'Z3',lo:76,hi:91,color:'#369E9A'},
- {name:'Z4',lo:91,hi:106,color:'#B89F5D'},
- {name:'Z5',lo:106,hi:121,color:'#B87352'},
- {name:'Z6',lo:121,hi:151,color:'#AD5358'},
- {name:'Z7',lo:151,hi:Infinity,color:'#7D659E'}
+ {name:'Z1',lo:0,hi:55,color:'#6E9F98'},
+ {name:'Z2',lo:55,hi:76,color:'#6F9B62'},
+ {name:'Z3',lo:76,hi:91,color:'#A18F55'},
+ {name:'Z4',lo:91,hi:106,color:'#B17A55'},
+ {name:'Z5',lo:106,hi:121,color:'#A85F75'},
+ {name:'Z6',lo:121,hi:151,color:'#8069A8'},
+ {name:'Z7',lo:151,hi:Infinity,color:'#777184'}
 ];
 const anFmt=(v,d=0)=>v==null||!Number.isFinite(v)?'–':v.toFixed(d);
 const anTime=v=>{if(!Number.isFinite(v))return '–';const n=Math.round(v);return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')};
@@ -2042,7 +2042,7 @@ function anCell(label,value,unit=''){return '<div class="an-metric"><span>'+labe
 function anKv(label,val){return `<div class="an-kv"><span>${label}</span><b>${val}</b></div>`}
 
 function renderAnalysis() {
-  const colors = ['#5A6266','#2B7A8C','#369E9A','#B89F5D','#B87352','#AD5358','#7D659E'];
+  const colors = AN_ZONES.map(z => z.color);
   const r = S.log || [];
   
   if (!r.length) {

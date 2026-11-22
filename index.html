@@ -723,6 +723,7 @@ function uiConfirm(msg,key){
  });
 }
 const $=id=>document.getElementById(id);
+const $2=id=>document.getElementById(id);
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const avg=a=>{a=a.filter(x=>x!=null);return a.length?a.reduce((s,x)=>s+x,0)/a.length:null};
@@ -1347,7 +1348,7 @@ $('bSkip').onclick=async()=>{
 };
 
 /* ---------- ERG / intensitet / tastatur ---------- */
-const $2=id=>document.getElementById(id);
+
 function setErgBtn(v){
  S.erg=v;$2('bErg').textContent=v?'ERG på':'ERG av';S.pb=[];
  fxLabel();

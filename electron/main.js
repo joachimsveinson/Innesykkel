@@ -81,9 +81,9 @@ ipcMain.handle('intervals:sync', async event => {
   if (!credentials) return { ok: false, connected: false, cachedAt: cache?.cachedAt || null, events: cache?.events || [], message: 'Intervals.icu er ikke tilkoblet' }
 
   const now = new Date()
-  const oldest = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Oslo' }).format(now)
-  const future = new Date(now.getTime() + 7 * 86400000)
-  const newest = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Oslo' }).format(future)
+  const localDate = date => [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-')
+  const oldest = localDate(now)
+  const newest = localDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7))
   const query = new URLSearchParams({ oldest, newest, category: 'WORKOUT', resolve: 'true' })
   const auth = Buffer.from('API_KEY:' + credentials.apiKey, 'utf8').toString('base64')
   const controller = new AbortController()

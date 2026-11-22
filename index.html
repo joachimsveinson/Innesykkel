@@ -1030,6 +1030,62 @@ let INTERVALS_BUSY=false;
 const intervalsDialog=$('intervalsDialog');
 const workoutLibraryDialog=$('workoutLibraryDialog');
 
+function parsePresetDescription(description){
+ const lines=String(description||'').split(/\r?\n/);
+ const out=[];
+ let repeat=1,group=[];
+ const flush=()=>{
+  if(group.length){
+   for(let r=0;r<repeat;r++)group.forEach(step=>addPresetStep(step));
+  }
+  repeat=1;group=[];
+ };
+ const addPresetStep=line=>{
+  const dMatch=line.match(/(\d+(?:[.,]\d+)?)\s*m(?:in)?(?:\s*(\d+(?:[.,]\d+)?)\s*s)?|(\d+(?:[.,]\d+)?)\s*s/i);
+  if(!dMatch)return;
+  const minutes=dMatch[1]!=null?Number(dMatch[1].replace(',','.')):0;
+  const seconds=dMatch[2]!=null?Number(dMatch[2].replace(',','.')):dMatch[3]!=null?Number(dMatch[3].replace(',','.')):0;
+  const duration=Math.round(minutes*60+seconds);
+  if(!(duration>0))return;
+  const percentMatch=line.match(/(\d+(?:[.,]\d+)?)\s*(?:-|–|til)\s*(\d+(?:[.,]\d+)?)\s*%|(\d+(?:[.,]\d+)?)\s*%/i);
+  let pct=null;
+  if(percentMatch){
+   if(percentMatch[3]==null&&/\bramp\b/i.test(line)){
+    const from=Number(percentMatch[1].replace(',','.'));
+    const to=Number(percentMatch[2].replace(',','.'));
+    ramp(out,duration,from,to,0);
+    return;
+   }
+   pct=percentMatch[3]!=null?Number(percentMatch[3].replace(',','.')):(Number(percentMatch[1].replace(',','.'))+Number(percentMatch[2].replace(',','.')))/2;
+  }else{
+   const zoneMatch=line.match(/\bz\s*([1-7])\b|intensity\s*=\s*z\s*([1-7])/i);
+   if(zoneMatch){
+    const z=Number(zoneMatch[1]||zoneMatch[2]);
+    const bounds=[[44,55],[55,76],[76,91],[91,106],[106,121],[121,151],[151,151]];
+    if(/\bramp\b/i.test(line)&&z<7){
+     const [lo,hi]=bounds[z-1];
+     ramp(out,duration,lo,hi,0);
+     return;
+    }
+    pct=z===7?151:(bounds[z-1][0]+bounds[z-1][1])/2;
+   }
+  }
+  if(pct==null)ramp(out,duration,60,60,1);
+  else ramp(out,duration,pct,pct,0);
+ };
+ for(const raw of lines){
+  const line=raw.trim();
+  if(!line){if(group.length)flush();continue}
+  const repeatMatch=line.match(/(?:^|\s)(\d+)\s*x\s*$/i);
+  if(repeatMatch){flush();repeat=Math.min(100,Number(repeatMatch[1]));continue}
+  if(/^(warmup|cooldown)\s*:?$/i.test(line)){flush();continue}
+  if(/\d/.test(line)&&/(?:m(?:in)?|s)\b/i.test(line))group.push(line);
+ }
+ flush();
+ validateWorkout(out);
+ return out;
+}
+
 function miniWorkoutSvg(steps){
  const total=Math.max(1,steps.reduce((sum,x)=>sum+x.d,0));
  const max=Math.max(100,...steps.map(x=>Math.max(x.p0??x.p??0,x.p1??x.p??0,x.rg?.[1]??0)));
@@ -2238,7 +2294,7 @@ $('sdClose').onclick=()=>{$('sensordlg').hidden=true;sdK=null};
 $('sdOff').onclick=()=>{if(sdK)disconnectSensor(sdK);$('sensordlg').hidden=true;sdK=null};
 $('pick').onclick=()=>$('file').click();
 document.addEventListener('keydown',e=>{
- if(e.key==='Escape'){for(const id of ['sensordlg','helpdlg','keysdlg','hrdlg','sumdlg','steps']){if(!$(id).hidden){$(id).hidden=true;if(id==='sensordlg')sdK=null;e.preventDefault();break}}}
+ if(e.key==='Escape'){for(const id of ['sensordlg','helpdlg','keysdlg','hrdlg','sumdlg','steps','workoutLibraryDialog','intervalsDialog']){if(!$(id).hidden){$(id).hidden=true;if(id==='sensordlg')sdK=null;e.preventDefault();break}}}
  else if(e.key==='?'&&!/INPUT|SELECT/.test(e.target.tagName)){$('keysdlg').hidden=false}
 });
 /* ---------- Gjenopprett økt ---------- */

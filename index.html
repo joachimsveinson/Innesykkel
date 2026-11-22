@@ -481,7 +481,7 @@ body.analysis-open { overflow: hidden; }
 .library-tab.active{color:var(--fg);border-color:var(--cyan);background:rgba(25,208,232,.1)}
 .library-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--mut);font-size:11px}
 .library-toolbar span{flex:1;min-width:180px}
-.workout-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;overflow:auto;min-height:180px;padding:2px}
+.workout-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;overflow:auto;min-height:180px;max-height:58vh;padding:2px}
 .workout-card{display:flex;flex-direction:column;gap:8px;text-align:left;min-width:0;padding:12px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,#1c1c1c,#101010);color:var(--fg);cursor:pointer}
 .workout-card:hover{border-color:var(--cyan);background:linear-gradient(180deg,rgba(25,208,232,.12),#101010)}
 .workout-card:disabled{cursor:default;opacity:.55}
@@ -1050,13 +1050,14 @@ function parsePresetDescription(description){
   const percentMatch=line.match(/(\d+(?:[.,]\d+)?)\s*(?:-|–|til)\s*(\d+(?:[.,]\d+)?)\s*%|(\d+(?:[.,]\d+)?)\s*%/i);
   let pct=null;
   if(percentMatch){
-   if(percentMatch[3]==null&&/\bramp\b/i.test(line)){
+   if(percentMatch[3]==null){
     const from=Number(percentMatch[1].replace(',','.'));
     const to=Number(percentMatch[2].replace(',','.'));
-    ramp(out,duration,from,to,0);
+    if(/\bramp\b/i.test(line))ramp(out,duration,from,to,0);
+    else ramp(out,duration,from,to,0,'range');
     return;
    }
-   pct=percentMatch[3]!=null?Number(percentMatch[3].replace(',','.')):(Number(percentMatch[1].replace(',','.'))+Number(percentMatch[2].replace(',','.')))/2;
+   pct=Number(percentMatch[3].replace(',','.'));
   }else{
    const zoneMatch=line.match(/\bz\s*([1-7])\b|intensity\s*=\s*z\s*([1-7])/i);
    if(zoneMatch){

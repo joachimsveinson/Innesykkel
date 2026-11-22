@@ -84,7 +84,7 @@ ipcMain.handle('intervals:sync', async event => {
   const localDate = date => [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-')
   const oldest = localDate(now)
   const newest = localDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7))
-  const query = new URLSearchParams({ oldest, newest, category: 'WORKOUT', resolve: 'true' })
+  const query = new URLSearchParams({ oldest, newest, category: 'WORKOUT', resolve: 'true', ext: 'zwo' })
   const auth = Buffer.from('API_KEY:' + credentials.apiKey, 'utf8').toString('base64')
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 12000)

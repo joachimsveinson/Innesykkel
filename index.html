@@ -487,7 +487,7 @@ body.analysis-open { overflow: hidden; }
 .workout-card:disabled{cursor:default;opacity:.55}
 .workout-card strong{font:500 12px/1.35 var(--font-mono);overflow-wrap:anywhere}
 .workout-card small{font:10px var(--font-mono);color:var(--mut)}
-.workout-profile{height:54px;border-radius:7px;background:#080808;border:1px solid var(--line);padding:4px}
+.workout-profile{height:76px;border-radius:7px;background:#080808;border:1px solid var(--line);padding:4px}
 .workout-profile svg{width:100%;height:100%;display:block}
 .workout-empty{grid-column:1/-1;color:var(--mut);font:12px var(--font-mono);padding:24px;text-align:center}
 #intervalsDialog{position:fixed;inset:0;z-index:40;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -1090,21 +1090,28 @@ function parsePresetDescription(description){
 function miniWorkoutSvg(steps){
  const total=Math.max(1,steps.reduce((sum,x)=>sum+x.d,0));
  const max=Math.max(100,...steps.map(x=>Math.max(x.p0??x.p??0,x.p1??x.p??0,x.rg?.[1]??0)));
- const pts=[];
+ const top=5,bottom=65,height=bottom-top,width=300;
+ const y=p=>bottom-clamp(p/max,0,1)*height;
+ const shapes=[];
  let elapsed=0;
- steps.forEach((step,index)=>{
-  const a=step.rg?(step.rg[0]+step.rg[1])/2:(step.p0??step.p??0);
-  const b=step.rg?a:(step.p1??step.p??a);
-  const x1=8+elapsed/total*284;
-  const x2=8+(elapsed+step.d)/total*284;
-  const y1=46-(a/max)*40;
-  const y2=46-(b/max)*40;
-  if(index===0)pts.push(x1.toFixed(1)+','+y1.toFixed(1));
-  pts.push(x2.toFixed(1)+','+y2.toFixed(1));
+ steps.forEach(step=>{
+  const x1=elapsed/total*width,x2=(elapsed+step.d)/total*width;
+  const p0=step.p0??step.p??0,p1=step.p1??step.p??p0;
+  const mid=step.rg?(step.rg[0]+step.rg[1])/2:(p0+p1)/2;
+  const color=step.free?'#5A6266':col(mid);
+  const y0=y(p0),y1=y(p1),ym=y(mid);
+  shapes.push('<path d="M'+x1.toFixed(2)+' '+bottom+' L'+x1.toFixed(2)+' '+y0.toFixed(2)+' L'+x2.toFixed(2)+' '+y1.toFixed(2)+' L'+x2.toFixed(2)+' '+bottom+' Z" fill="'+color+'" fill-opacity=".78" stroke="'+color+'" stroke-width=".45"/>');
+  if(step.rg){
+   const ya=y(step.rg[1]),yb=y(step.rg[0]);
+   shapes.push('<path d="M'+x1.toFixed(2)+' '+ya.toFixed(2)+' H'+x2.toFixed(2)+' M'+x1.toFixed(2)+' '+yb.toFixed(2)+' H'+x2.toFixed(2)+'" stroke="rgba(255,255,255,.9)" stroke-width="1.2" fill="none"/>');
+  }
+  if(step.free){
+   shapes.push('<path d="M'+x1.toFixed(2)+' '+bottom+' L'+x1.toFixed(2)+' '+y0.toFixed(2)+' L'+x2.toFixed(2)+' '+y1.toFixed(2)+' L'+x2.toFixed(2)+' '+bottom+'" fill="none" stroke="#a4a4a4" stroke-width=".7" stroke-dasharray="2 2"/>');
+  }
   elapsed+=step.d;
  });
- const line=pts.join(' ');
- return '<svg viewBox="0 0 300 54" preserveAspectRatio="none" aria-hidden="true"><path d="M8 49 H292" stroke="#3f3f3f" stroke-width="1" fill="none"/><polyline points="'+line+'" fill="none" stroke="#19d0e8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+ const guides=[55,76,91,106,121,151].filter(v=>v<max).map(v=>'<line x1="0" y1="'+y(v).toFixed(2)+'" x2="'+width+'" y2="'+y(v).toFixed(2)+'" stroke="#ffffff" stroke-opacity=".13" stroke-width=".7"/>').join('');
+ return '<svg viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true">'+guides+'<path d="M0 '+bottom+' H300" stroke="#777" stroke-opacity=".5" stroke-width=".8"/>'+shapes.join('')+'</svg>';
 }
 function formatWorkoutDate(value){
  const raw=String(value||'').slice(0,10);

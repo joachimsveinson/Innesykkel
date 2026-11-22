@@ -711,6 +711,19 @@ body.analysis-open { overflow: hidden; }
   <button class="big" id="cfmNo" style="min-height:48px;padding:0 28px">Nei</button>
  </div>
 </div>
+<div id="intervalsDialog" hidden role="dialog" aria-modal="true" aria-labelledby="intervalsTitle">
+ <div class="intervals-box">
+  <h2 id="intervalsTitle">Intervals.icu</h2>
+  <p>Lim inn din personlige API-nøkkel fra Intervals.icu. Nøkkelen lagres kryptert i macOS nøkkellagring. Appen henter dagens plan og de neste 7 dagene. Appen utfører bare lesekall. Behandle API-nøkkelen som et passord.</p>
+  <label for="intervalsApiKey">Personlig API-nøkkel</label>
+  <input id="intervalsApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Lim inn API-nøkkel">
+  <div id="intervalsSaveStatus" aria-live="polite"></div>
+  <div id="intervalsActions">
+   <button class="big" id="intervalsCancel">Lukk</button>
+   <button class="big go" id="intervalsSave">Lagre og synkroniser</button>
+  </div>
+ </div>
+</div>
 <script>
 /* ---------- intern bekreftelsesdialog ---------- */
 function uiConfirm(msg,key){
@@ -1435,19 +1448,7 @@ const col=p=>p<55?'#5A6266':p<76?'#2B7A8C':p<91?'#369E9A':p<106?'#B89F5D':p<121?
 const zcol=[0,55,76,91,106,121,151];
 function zoneIdx(pct){for(let i=zcol.length-1;i>=1;i--)if(pct>=zcol[i])return i;return 0}
 </script>
-<div id="intervalsDialog" hidden role="dialog" aria-modal="true" aria-labelledby="intervalsTitle">
- <div class="intervals-box">
-  <h2 id="intervalsTitle">Intervals.icu</h2>
-  <p>Lim inn din personlige API-nøkkel fra Intervals.icu. Nøkkelen lagres kryptert i macOS nøkkellagring. Appen henter dagens plan og de neste 7 dagene. Appen utfører bare lesekall. Behandle API-nøkkelen som et passord.</p>
-  <label for="intervalsApiKey">Personlig API-nøkkel</label>
-  <input id="intervalsApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Lim inn API-nøkkel">
-  <div id="intervalsSaveStatus" aria-live="polite"></div>
-  <div id="intervalsActions">
-   <button class="big" id="intervalsCancel">Lukk</button>
-   <button class="big go" id="intervalsSave">Lagre og synkroniser</button>
-  </div>
- </div>
-</div>
+
 <script>
 /* ---------- Visning ---------- */
 const $3=id=>document.getElementById(id);

@@ -479,6 +479,17 @@ body.analysis-open { overflow: hidden; }
 #presetPanel label{font-size:11px;color:var(--mut);text-transform:uppercase}
 #presetSelect{min-width:min(100%,280px);max-width:100%;padding:7px 10px;background:var(--obsidian);color:var(--fg);border:1px solid var(--line);border-radius:8px;font:12px var(--font-mono)}
 #presetMeta{font-size:10px;color:var(--mut)}
+
+#intervalsDialog{position:fixed;inset:0;z-index:30;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px}
+#intervalsDialog[hidden]{display:none}
+#intervalsDialog .intervals-box{width:min(460px,100%);background:linear-gradient(180deg,#242424,#111);border:1px solid var(--line-hi);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 70px #000a}
+#intervalsDialog h2{font-size:28px}
+#intervalsDialog p{font-size:12px;color:var(--mut);line-height:1.5}
+#intervalsDialog label{font-size:11px;color:var(--mut);text-transform:uppercase}
+#intervalsApiKey{width:100%;padding:10px;background:#080808;color:var(--fg);font:13px var(--font-mono);border:1px solid var(--line);border-radius:8px}
+#intervalsActions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+#intervalsSaveStatus{font-size:11px;color:var(--mut);min-height:16px}
+#intervalsSelect{min-width:min(100%,280px);max-width:100%;padding:7px 10px;background:var(--obsidian);color:var(--fg);border:1px solid var(--line);border-radius:8px;font:12px var(--font-mono)}
 </style></head>
 <body>
 <div id="warn">Web Bluetooth mangler i denne visningen – åpne i Chrome (Mac/PC) eller Bluefy (iPad) for sensortilkobling.</div>
@@ -495,6 +506,7 @@ body.analysis-open { overflow: hidden; }
   <label>Maks puls <input id="maxHrSet" type="number" min="80" max="230" value="188" aria-label="Maksimal puls"> bpm</label>
   <label class="file" id="fileLbl" hidden>Last økt (.zwo / .mrc)<input id="file" type="file"></label>
  </div>
+ <button class="conn" id="bIntervals" style="min-width:0;justify-content:center"><b>Intervals.icu</b></button>
  <button class="conn" id="bAnalysis" style="min-width:0;justify-content:center"><b>Analyse</b></button>
  <button class="conn" id="bKeys" title="Hurtigtaster (?)" style="min-width:0;justify-content:center"><b>?</b></button>
 </header>
@@ -546,7 +558,7 @@ body.analysis-open { overflow: hidden; }
  <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#fff" stroke-width="2"/></svg>Watt</span><span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#AD5358" stroke-width="2"/></svg>Puls</span>
 </div><div id="tip"></div></div>
   <section id="presetPanel" aria-label="Forhåndslagrede treningsøkter">
-   <div class="preset-head"><label for="presetSelect">Forhåndslagret økt</label><select id="presetSelect"><option value="">Velg økt …</option></select><span id="presetMeta"></span></div>
+   <div class="preset-head"><label for="presetSelect">Forhåndslagret økt</label><select id="presetSelect"><option value="">Velg økt …</option></select><span id="presetMeta"></span><label for="intervalsSelect">Planlagt fra Intervals.icu</label><select id="intervalsSelect" disabled><option value="">Ikke synkronisert</option></select><span id="intervalsMeta" aria-live="polite"></span></div>
   </section>
  </div>
  <aside id="lp" aria-label="Rundeliste">
@@ -1064,6 +1076,90 @@ $('presetSelect').onchange=()=>{
  }
 };
 loadPresetWorkouts();
+
+/* ---------- Intervals.icu: lokal cache og ikke-blokkerende synk ---------- */
+let INTERVALS_EVENTS=[];
+let INTERVALS_BUSY=false;
+const intervalsDialog=$('intervalsDialog');
+function renderIntervalsEvents(events){
+ INTERVALS_EVENTS=Array.isArray(events)?events:[];
+ const select=$('intervalsSelect');
+ select.replaceChildren(new Option(INTERVALS_EVENTS.length?'Velg planlagt økt':'Ingen planlagte økter i lokal kopi',''));
+ INTERVALS_EVENTS.forEach(ev=>{
+  const date=String(ev.start_date_local||'').slice(0,10);
+  const label=(date?date+' · ':'')+String(ev.name||'Økt');
+  select.appendChild(new Option(label,String(ev.id)));
+ });
+ select.disabled=!INTERVALS_EVENTS.length;
+}
+function intervalsStatusText(result){
+ const date=result.cachedAt?new Date(result.cachedAt).toLocaleString('nb-NO'):'ingen lokal kopi';
+ $('intervalsMeta').textContent=(result.message||'')+' · Sist lagret: '+date;
+}
+async function syncIntervals(showToast=false){
+ if(INTERVALS_BUSY||!window.electronApp?.isElectron||typeof window.electronApp.intervalsSync!=='function')return;
+ INTERVALS_BUSY=true;
+ try{
+  const result=await window.electronApp.intervalsSync();
+  renderIntervalsEvents(result.events||[]);
+  intervalsStatusText(result);
+  if(showToast)toast(result.message||'Intervals.icu synkronisert',!result.ok);
+ }catch(error){
+  $('intervalsMeta').textContent='Kunne ikke synkronisere. Lokal treningsfunksjon er uendret.';
+  if(showToast)toast('Intervals.icu: '+error.message,true);
+ }finally{INTERVALS_BUSY=false}
+}
+$('bIntervals').onclick=async()=>{
+ intervalsDialog.hidden=false;
+ $('intervalsApiKey').value='';
+ $('intervalsSaveStatus').textContent='';
+ try{
+  const status=await window.electronApp?.intervalsStatus?.();
+  if(status?.connected)$('intervalsSaveStatus').textContent='API-nøkkel er lagret. Lim inn en ny nøkkel bare hvis du vil erstatte den.';
+ }catch(error){$('intervalsSaveStatus').textContent=error.message}
+};
+$('intervalsCancel').onclick=()=>{intervalsDialog.hidden=true};
+$('intervalsSave').onclick=async()=>{
+ const apiKey=$('intervalsApiKey').value.trim();
+ if(!apiKey){$('intervalsSaveStatus').textContent='Lim inn API-nøkkelen først.';return}
+ $('intervalsSave').disabled=true;
+ $('intervalsSaveStatus').textContent='Lagrer nøkkelen sikkert …';
+ try{
+  await window.electronApp.intervalsSaveCredentials({apiKey});
+  $('intervalsApiKey').value='';
+  $('intervalsSaveStatus').textContent='Nøkkelen er lagret. Synkroniserer …';
+  await syncIntervals(true);
+  intervalsDialog.hidden=true;
+ }catch(error){$('intervalsSaveStatus').textContent=error.message}
+ finally{$('intervalsSave').disabled=false}
+};
+$('intervalsSelect').onchange=()=>{
+ const ev=INTERVALS_EVENTS.find(item=>String(item.id)===$('intervalsSelect').value);
+ if(!ev)return;
+ try{
+  const description=ev.description_raw||ev.description||'';
+  const steps=parsePresetDescription(description);
+  setWorkout(steps);
+  $('intervalsMeta').textContent=String(ev.name||'Økt')+' · '+steps.length+' steg · '+fmt(S.total);
+  toast(String(ev.name||'Økt')+' lastet fra Intervals.icu');
+ }catch(error){
+  $('intervalsMeta').textContent='Kunne ikke lese økten: '+error.message;
+  toast('Kunne ikke lese Intervals.icu økten: '+error.message,true);
+ }
+};
+async function initIntervalsSync(){
+ if(!window.electronApp?.isElectron||typeof window.electronApp.intervalsStatus!=='function')return;
+ try{
+  const status=await window.electronApp.intervalsStatus();
+  renderIntervalsEvents(status.events||[]);
+  intervalsStatusText({cachedAt:status.cachedAt,message:status.connected?'Lokal kopi lastet': 'Ikke tilkoblet'});
+  if(status.connected)syncIntervals(false);
+ }catch(error){$('intervalsMeta').textContent='Intervals.icu er ikke tilgjengelig'}
+}
+initIntervalsSync();
+window.addEventListener('online',()=>syncIntervals(false));
+setInterval(()=>syncIntervals(false),30*60*1000);
+
 
 /* ---------- Lyd og skjerm ---------- */
 let ac,wl;
@@ -2094,4 +2190,18 @@ try{
 }catch(e){}
 ui();render();
 </script>
+
+<div id="intervalsDialog" hidden role="dialog" aria-modal="true" aria-labelledby="intervalsTitle">
+ <div class="intervals-box">
+  <h2 id="intervalsTitle">Intervals.icu</h2>
+  <p>Lim inn din personlige API-nøkkel fra Intervals.icu. Nøkkelen lagres kryptert i macOS nøkkellagring. Appen henter dagens plan og de neste 7 dagene. Tilkoblingen har kun lesetilgang.</p>
+  <label for="intervalsApiKey">Personlig API-nøkkel</label>
+  <input id="intervalsApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Lim inn API-nøkkel">
+  <div id="intervalsSaveStatus" aria-live="polite"></div>
+  <div id="intervalsActions">
+   <button class="big" id="intervalsCancel">Lukk</button>
+   <button class="big go" id="intervalsSave">Lagre og synkroniser</button>
+  </div>
+ </div>
+</div>
 </body></html>

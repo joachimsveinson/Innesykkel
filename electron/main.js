@@ -104,6 +104,16 @@ ipcMain.handle('intervals:sync', async event => {
       typeof item.name === 'string' &&
       typeof item.start_date_local === 'string'
     )
+    // An empty or malformed result must not erase a previously useful local plan.
+    if (events.length === 0 && cache?.events?.length) {
+      return {
+        ok: false,
+        connected: true,
+        cachedAt: cache.cachedAt || null,
+        events: cache.events,
+        message: 'Intervals.icu returnerte ingen gyldige økter. Beholder forrige lokale kopi.'
+      }
+    }
     const result = { cachedAt: new Date().toISOString(), oldest, newest, events }
     await writeIntervalsCache(result)
     return { ok: true, connected: true, ...result, message: events.length + ' planlagte økter synkronisert' }

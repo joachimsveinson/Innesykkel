@@ -473,14 +473,24 @@ body.analysis-open { overflow: hidden; }
   #analysisPage { overflow-y: auto; }
 }
 
-#presetPanel{display:none;flex:none;max-height:22vh;overflow:auto;padding:10px 14px;background:linear-gradient(180deg,#1d1d1d 0%,var(--card) 55%,#111 100%);border:1px solid var(--line);border-radius:var(--rad-card);font-family:var(--font-mono)}
-#presetPanel.on{display:block}
-#presetPanel .preset-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-#presetPanel label{font-size:11px;color:var(--mut);text-transform:uppercase}
-#presetSelect{min-width:min(100%,280px);max-width:100%;padding:7px 10px;background:var(--obsidian);color:var(--fg);border:1px solid var(--line);border-radius:8px;font:12px var(--font-mono)}
-#presetMeta{font-size:10px;color:var(--mut)}
-
-#intervalsDialog{position:fixed;inset:0;z-index:30;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px}
+#workoutLibraryDialog{z-index:30}
+#workoutLibraryDialog .library-box{width:min(1000px,96vw);max-width:1000px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+#workoutLibraryDialog h2{font-size:36px;margin-bottom:0}
+.library-tabs{display:flex;gap:8px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.library-tab{border:1px solid var(--line);border-radius:999px;background:var(--obsidian);padding:9px 15px;color:var(--mut);cursor:pointer;font:12px var(--font-mono)}
+.library-tab.active{color:var(--fg);border-color:var(--cyan);background:rgba(25,208,232,.1)}
+.library-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--mut);font-size:11px}
+.library-toolbar span{flex:1;min-width:180px}
+.workout-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;overflow:auto;min-height:180px;padding:2px}
+.workout-card{display:flex;flex-direction:column;gap:8px;text-align:left;min-width:0;padding:12px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,#1c1c1c,#101010);color:var(--fg);cursor:pointer}
+.workout-card:hover{border-color:var(--cyan);background:linear-gradient(180deg,rgba(25,208,232,.12),#101010)}
+.workout-card:disabled{cursor:default;opacity:.55}
+.workout-card strong{font:500 12px/1.35 var(--font-mono);overflow-wrap:anywhere}
+.workout-card small{font:10px var(--font-mono);color:var(--mut)}
+.workout-profile{height:54px;border-radius:7px;background:#080808;border:1px solid var(--line);padding:4px}
+.workout-profile svg{width:100%;height:100%;display:block}
+.workout-empty{grid-column:1/-1;color:var(--mut);font:12px var(--font-mono);padding:24px;text-align:center}
+#intervalsDialog{position:fixed;inset:0;z-index:40;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px}
 #intervalsDialog[hidden]{display:none}
 #intervalsDialog .intervals-box{width:min(460px,100%);background:linear-gradient(180deg,#242424,#111);border:1px solid var(--line-hi);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 70px #000a}
 #intervalsDialog h2{font-size:28px}
@@ -489,7 +499,8 @@ body.analysis-open { overflow: hidden; }
 #intervalsApiKey{width:100%;padding:10px;background:#080808;color:var(--fg);font:13px var(--font-mono);border:1px solid var(--line);border-radius:8px}
 #intervalsActions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 #intervalsSaveStatus{font-size:11px;color:var(--mut);min-height:16px}
-#intervalsSelect{min-width:min(100%,280px);max-width:100%;padding:7px 10px;background:var(--obsidian);color:var(--fg);border:1px solid var(--line);border-radius:8px;font:12px var(--font-mono)}
+@media(max-width:760px){.workout-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.workout-grid{grid-template-columns:1fr}.library-box{padding:16px!important}}
 </style></head>
 <body>
 <div id="warn">Web Bluetooth mangler i denne visningen – åpne i Chrome (Mac/PC) eller Bluefy (iPad) for sensortilkobling.</div>
@@ -506,7 +517,7 @@ body.analysis-open { overflow: hidden; }
   <label>Maks puls <input id="maxHrSet" type="number" min="80" max="230" value="188" aria-label="Maksimal puls"> bpm</label>
   <label class="file" id="fileLbl" hidden>Last økt (.zwo / .mrc)<input id="file" type="file"></label>
  </div>
- <button class="conn" id="bIntervals" style="min-width:0;justify-content:center"><b>Intervals.icu</b></button>
+ <button class="conn" id="bIntervals" style="min-width:0;justify-content:center"><b>Øktbibliotek</b></button>
  <button class="conn" id="bAnalysis" style="min-width:0;justify-content:center"><b>Analyse</b></button>
  <button class="conn" id="bKeys" title="Hurtigtaster (?)" style="min-width:0;justify-content:center"><b>?</b></button>
 </header>
@@ -557,9 +568,7 @@ body.analysis-open { overflow: hidden; }
  <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#ffffff" stroke-opacity=".35" stroke-dasharray="4 3"/></svg>FTP</span>
  <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#fff" stroke-width="2"/></svg>Watt</span><span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#AD5358" stroke-width="2"/></svg>Puls</span>
 </div><div id="tip"></div></div>
-  <section id="presetPanel" aria-label="Forhåndslagrede treningsøkter">
-   <div class="preset-head"><label for="presetSelect">Forhåndslagret økt</label><select id="presetSelect"><option value="">Velg økt …</option></select><span id="presetMeta"></span><label for="intervalsSelect">Planlagt fra Intervals.icu</label><select id="intervalsSelect" disabled><option value="">Ikke synkronisert</option></select><span id="intervalsMeta" aria-live="polite"></span></div>
-  </section>
+
  </div>
  <aside id="lp" aria-label="Rundeliste">
   <div class="lr h"><span>#</span><span>Tid</span><span>Watt</span><span>Puls</span><span>Kad</span><span>Maks puls</span></div>
@@ -709,6 +718,24 @@ body.analysis-open { overflow: hidden; }
  <div style="display:flex;gap:12px">
   <button class="big go" id="cfmYes" style="min-height:48px;padding:0 28px">Ja</button>
   <button class="big" id="cfmNo" style="min-height:48px;padding:0 28px">Nei</button>
+ </div>
+</div>
+<div id="workoutLibraryDialog" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="workoutLibraryTitle">
+ <div class="mbox library-box">
+  <h2 id="workoutLibraryTitle">Øktbibliotek</h2>
+  <div class="library-tabs">
+   <button class="library-tab active" id="tabIntervals" aria-selected="true">Intervals Kalender</button>
+   <button class="library-tab" id="tabPresets" aria-selected="false">Forhåndslagrede økter</button>
+  </div>
+  <section id="intervalsLibraryPanel">
+   <div class="library-toolbar"><span id="intervalsMeta" aria-live="polite">Laster kalender …</span><button class="big" id="intervalsSync">Synkroniser</button><button class="big" id="intervalsCredentials">API-nøkkel</button></div>
+   <div class="workout-grid" id="intervalsCards"><div class="workout-empty">Laster planlagte økter …</div></div>
+  </section>
+  <section id="presetLibraryPanel" hidden>
+   <div class="library-toolbar"><span id="presetMeta">Laster øktbiblioteket …</span></div>
+   <div class="workout-grid" id="presetCards"><div class="workout-empty">Laster forhåndslagrede økter …</div></div>
+  </section>
+  <div class="row"><button class="big" id="workoutLibraryClose">Lukk</button></div>
  </div>
 </div>
 <div id="intervalsDialog" hidden role="dialog" aria-modal="true" aria-labelledby="intervalsTitle">
@@ -996,115 +1023,140 @@ $('file').onchange=async e=>{
 };
 
 
-/* ---------- Forhåndslagrede økter fra ekstern JSON ---------- */
+/* ---------- Øktbibliotek: Intervals Kalender og forhåndslagrede økter ---------- */
 let PRESET_WORKOUTS=[];
-async function loadPresetWorkouts(){
- const select=$('presetSelect');
- const meta=$('presetMeta');
- select.replaceChildren(new Option('Laster øktbiblioteket …',''));
- select.disabled=true;
- const url=new URL('./workouts.json',document.baseURI);
- try{
-  const data=window.electronApp?.isElectron && typeof window.electronApp.loadWorkouts==='function'
-   ? await window.electronApp.loadWorkouts()
-   : await (async()=>{const response=await fetch(url.href,{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status+' '+response.statusText);return response.json()})();
-  if(!data||!Array.isArray(data.workouts))throw new Error('JSON mangler listen «workouts»');
-  if(data.workout_count!==undefined&&data.workout_count!==data.workouts.length)throw new Error('Antall økter stemmer ikke med workout_count');
-  PRESET_WORKOUTS=data.workouts;
-  select.replaceChildren(new Option('Velg forhåndslagret økt',''));
-  PRESET_WORKOUTS.forEach(w=>{
-   if(!w||w.id==null||!w.name)throw new Error('En økt mangler id eller name');
-   const o=document.createElement('option');o.value=String(w.id);o.textContent=w.name;select.appendChild(o);
-  });
-  select.disabled=false;
-  meta.textContent=PRESET_WORKOUTS.length+' økter lastet fra workouts.json';
- }catch(err){
-  console.error('Kunne ikke laste øktbiblioteket fra '+url.href,err);
-  meta.textContent='Kunne ikke laste øktbiblioteket: '+err.message;
-  select.replaceChildren(new Option('Øktbiblioteket kunne ikke lastes',''));
- }
-}
-function parsePresetDescription(description){
- const lines=String(description||'').split(/\r?\n/);
- const out=[];
- let repeat=1,group=[];
- const flush=()=>{
-  if(group.length){
-   for(let r=0;r<repeat;r++)group.forEach(step=>addPresetStep(step));
-  }
-  repeat=1;group=[];
- };
- const addPresetStep=line=>{
-  const dMatch=line.match(/(\d+(?:[.,]\d+)?)\s*m(?:in)?(?:\s*(\d+(?:[.,]\d+)?)\s*s)?|(\d+(?:[.,]\d+)?)\s*s/i);
-  if(!dMatch)return;
-  const minutes=dMatch[1]!=null?Number(dMatch[1].replace(',','.')):0;
-  const seconds=dMatch[2]!=null?Number(dMatch[2].replace(',','.')):dMatch[3]!=null?Number(dMatch[3].replace(',','.')):0;
-  const duration=Math.round(minutes*60+seconds);
-  if(!(duration>0))return;
-  const percentMatch=line.match(/(\d+(?:[.,]\d+)?)\s*(?:-|–|til)\s*(\d+(?:[.,]\d+)?)\s*%|(\d+(?:[.,]\d+)?)\s*%/i);
-  let pct=null;
-  if(percentMatch){
-   pct=percentMatch[3]!=null?Number(percentMatch[3].replace(',','.')):(Number(percentMatch[1].replace(',','.'))+Number(percentMatch[2].replace(',','.')))/2;
-  }else{
-   const zoneMatch=line.match(/\bz\s*([1-7])\b|intensity\s*=\s*z\s*([1-7])/i);
-   if(zoneMatch){
-    const z=Number(zoneMatch[1]||zoneMatch[2]);
-    const bounds=[[44,55],[55,76],[76,91],[91,106],[106,121],[121,151],[151,151]];
-    if(/\bramp\b/i.test(line)&&z<7){
-     const [lo,hi]=bounds[z-1];
-     ramp(out,duration,lo,hi,0);
-     return;
-    }
-    pct=z===7?151:(bounds[z-1][0]+bounds[z-1][1])/2;
-   }
-  }
-  if(pct==null)ramp(out,duration,60,60,1);
-  else ramp(out,duration,pct,pct,0);
- };
- for(const raw of lines){
-  const line=raw.trim();
-  if(!line){if(group.length)flush();continue}
-  const repeatMatch=line.match(/^(\d+)\s*x\s*$/i);
-  if(repeatMatch){flush();repeat=Math.min(100,Number(repeatMatch[1]));continue}
-  if(/^(warmup|cooldown)\s*:?$/i.test(line)){flush();continue}
-  if(/\d/.test(line)&&/(?:m(?:in)?|s)\b/i.test(line))group.push(line);
- }
- flush();
- validateWorkout(out);
- return out;
-}
-$('presetSelect').onchange=()=>{
- const w=PRESET_WORKOUTS.find(x=>String(x.id)===$('presetSelect').value);
- if(!w){
-  $('presetMeta').textContent=PRESET_WORKOUTS.length+' økter lastet fra workouts.json';
-  return;
- }
- try{
-  const steps=parsePresetDescription(w.description_raw);
-  setWorkout(steps);
-  $('presetMeta').textContent=w.name+' · '+S.steps.length+' steg · '+fmt(S.total)+(w.training_load!=null?' · Belastning '+w.training_load:'');
-  toast(w.name+' · '+S.steps.length+' steg · '+fmt(S.total));
- }catch(err){
-  $('presetMeta').textContent='Kunne ikke bygge økten: '+err.message;
-  toast('Feil i forhåndslagret økt: '+err.message,true);
- }
-};
-loadPresetWorkouts();
-
-/* ---------- Intervals.icu: lokal cache og ikke-blokkerende synk ---------- */
 let INTERVALS_EVENTS=[];
 let INTERVALS_BUSY=false;
 const intervalsDialog=$('intervalsDialog');
+const workoutLibraryDialog=$('workoutLibraryDialog');
+
+function miniWorkoutSvg(steps){
+ const total=Math.max(1,steps.reduce((sum,x)=>sum+x.d,0));
+ const max=Math.max(100,...steps.map(x=>Math.max(x.p0??x.p??0,x.p1??x.p??0,x.rg?.[1]??0)));
+ const pts=[];
+ let elapsed=0;
+ steps.forEach((step,index)=>{
+  const a=step.rg?(step.rg[0]+step.rg[1])/2:(step.p0??step.p??0);
+  const b=step.rg?a:(step.p1??step.p??a);
+  const x1=8+elapsed/total*284;
+  const x2=8+(elapsed+step.d)/total*284;
+  const y1=46-(a/max)*40;
+  const y2=46-(b/max)*40;
+  if(index===0)pts.push(x1.toFixed(1)+','+y1.toFixed(1));
+  pts.push(x2.toFixed(1)+','+y2.toFixed(1));
+  elapsed+=step.d;
+ });
+ const line=pts.join(' ');
+ return '<svg viewBox="0 0 300 54" preserveAspectRatio="none" aria-hidden="true"><path d="M8 49 H292" stroke="#3f3f3f" stroke-width="1" fill="none"/><polyline points="'+line+'" fill="none" stroke="#19d0e8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+function formatWorkoutDate(value){
+ const raw=String(value||'').slice(0,10);
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(raw))return raw||'Dato ikke oppgitt';
+ const d=new Date(raw+'T12:00:00');
+ return d.toLocaleDateString('nb-NO',{weekday:'short',day:'numeric',month:'short'});
+}
+function addWorkoutCard(container,{name,date,steps,onSelect,error}){
+ const card=document.createElement('button');
+ card.type='button';card.className='workout-card';card.disabled=!!error;
+ const title=document.createElement('strong');title.textContent=name||'Økt uten navn';
+ const profile=document.createElement('div');profile.className='workout-profile';
+ if(steps&&steps.length)profile.innerHTML=miniWorkoutSvg(steps);
+ else profile.textContent='Ingen øktprofil';
+ const meta=document.createElement('small');
+ meta.textContent=error?error:(date?formatWorkoutDate(date)+' · ':'')+(steps&&steps.length?fmt(steps.reduce((sum,x)=>sum+x.d,0))+' · '+steps.length+' steg':'');
+ card.append(title,profile,meta);
+ if(onSelect)card.addEventListener('click',onSelect);
+ container.appendChild(card);
+}
+function loadSelectedWorkout(name,steps){
+ validateWorkout(steps);
+ setWorkout(steps);
+ workoutLibraryDialog.hidden=true;
+ toast(name+' · '+steps.length+' steg · '+fmt(S.total));
+}
+function renderPresetCards(){
+ const container=$('presetCards');container.replaceChildren();
+ if(!PRESET_WORKOUTS.length){container.innerHTML='<div class="workout-empty">Ingen forhåndslagrede økter er tilgjengelige.</div>';return}
+ PRESET_WORKOUTS.forEach(workout=>{
+  try{
+   const steps=parsePresetDescription(workout.description_raw||workout.description||'');
+   addWorkoutCard(container,{name:workout.name,steps,onSelect:()=>loadSelectedWorkout(workout.name,steps)});
+  }catch(error){
+   addWorkoutCard(container,{name:workout.name,error:'Kunne ikke lese økten: '+error.message});
+  }
+ });
+}
+async function loadPresetWorkouts(){
+ const meta=$('presetMeta'),container=$('presetCards');
+ meta.textContent='Laster øktbiblioteket …';
+ try{
+  const url=new URL('./workouts.json',document.baseURI);
+  const data=window.electronApp?.isElectron&&typeof window.electronApp.loadWorkouts==='function'
+   ?await window.electronApp.loadWorkouts()
+   :await (async()=>{const response=await fetch(url.href,{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);return response.json()})();
+  if(!data||!Array.isArray(data.workouts))throw new Error('JSON mangler listen workouts');
+  if(data.workout_count!==undefined&&data.workout_count!==data.workouts.length)throw new Error('Antall økter stemmer ikke med workout_count');
+  PRESET_WORKOUTS=data.workouts;
+  meta.textContent=PRESET_WORKOUTS.length+' økter i biblioteket';
+  renderPresetCards();
+ }catch(error){
+  meta.textContent='Kunne ikke laste øktbiblioteket: '+error.message;
+  container.innerHTML='<div class="workout-empty">Øktbiblioteket kunne ikke lastes.</div>';
+ }
+}
+function parseIntervalsDoc(event){
+ const doc=event.workout_doc;
+ if(!doc||!Array.isArray(doc.steps)||!doc.steps.length)throw new Error('Ingen strukturert økt eller ZWO-fil fra Intervals.icu');
+ const out=[];
+ const append=(items,reps=1)=>{
+  for(let r=0;r<reps;r++)for(const step of items){
+   if(Array.isArray(step.steps)&&step.steps.length){append(step.steps,Math.max(1,Number(step.reps)||1));continue}
+   const duration=Number(step.duration);
+   if(!(duration>0))continue;
+   if(step.freeride){ramp(out,duration,60,60,1);continue}
+   const power=step.power;
+   if(!power)throw new Error('Et steg mangler wattmål');
+   const units=String(power.units||'').toLowerCase();
+   const convert=value=>units==='w'||units==='watts'?Number(value)/S.ftp*100:Number(value);
+   const from=convert(power.start??power.value??power.end);
+   const to=convert(power.end??power.value??power.start);
+   if(!Number.isFinite(from)||!Number.isFinite(to))throw new Error('Ugyldig wattmål i Intervals økten');
+   ramp(out,duration,from,to,0);
+  }
+ };
+ append(doc.steps);
+ validateWorkout(out);
+ return out;
+}
+function parseIntervalsWorkout(event){
+ if(event.workout_file_base64){
+  const binary=atob(event.workout_file_base64);
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+  const zwo=new TextDecoder().decode(bytes);
+  const steps=parseZwo(zwo);
+  validateWorkout(steps);
+  return steps;
+ }
+ if(event.workout_doc?.steps?.length)return parseIntervalsDoc(event);
+ return parsePresetDescription(event.description_raw||event.description||'');
+}
 function renderIntervalsEvents(events){
  INTERVALS_EVENTS=Array.isArray(events)?events:[];
- const select=$('intervalsSelect');
- select.replaceChildren(new Option(INTERVALS_EVENTS.length?'Velg planlagt økt':'Ingen planlagte økter i lokal kopi',''));
- INTERVALS_EVENTS.forEach(ev=>{
-  const date=String(ev.start_date_local||'').slice(0,10);
-  const label=(date?date+' · ':'')+String(ev.name||'Økt');
-  select.appendChild(new Option(label,String(ev.id)));
+ const container=$('intervalsCards');container.replaceChildren();
+ if(!INTERVALS_EVENTS.length){
+  container.innerHTML='<div class="workout-empty">Ingen planlagte økter i lokal kopi.</div>';
+  return;
+ }
+ INTERVALS_EVENTS.sort((a,b)=>String(a.start_date_local||'').localeCompare(String(b.start_date_local||'')));
+ INTERVALS_EVENTS.forEach(event=>{
+  try{
+   const steps=parseIntervalsWorkout(event);
+   addWorkoutCard(container,{name:event.name,date:event.start_date_local,steps,onSelect:()=>loadSelectedWorkout(event.name,steps)});
+  }catch(error){
+   addWorkoutCard(container,{name:event.name,date:event.start_date_local,error:'Kan ikke bygge økten: '+error.message});
+  }
  });
- select.disabled=!INTERVALS_EVENTS.length;
 }
 function intervalsStatusText(result){
  const date=result.cachedAt?new Date(result.cachedAt).toLocaleString('nb-NO'):'ingen lokal kopi';
@@ -1113,6 +1165,7 @@ function intervalsStatusText(result){
 async function syncIntervals(showToast=false){
  if(INTERVALS_BUSY||!window.electronApp?.isElectron||typeof window.electronApp.intervalsSync!=='function')return;
  INTERVALS_BUSY=true;
+ $('intervalsSync').disabled=true;
  try{
   const result=await window.electronApp.intervalsSync();
   renderIntervalsEvents(result.events||[]);
@@ -1121,9 +1174,23 @@ async function syncIntervals(showToast=false){
  }catch(error){
   $('intervalsMeta').textContent='Kunne ikke synkronisere. Lokal treningsfunksjon er uendret.';
   if(showToast)toast('Intervals.icu: '+error.message,true);
- }finally{INTERVALS_BUSY=false}
+ }finally{INTERVALS_BUSY=false;$('intervalsSync').disabled=false}
 }
-$('bIntervals').onclick=async()=>{
+function setWorkoutLibraryTab(tab){
+ const intervals=tab==='intervals';
+ $('intervalsLibraryPanel').hidden=!intervals;
+ $('presetLibraryPanel').hidden=intervals;
+ $('tabIntervals').classList.toggle('active',intervals);
+ $('tabPresets').classList.toggle('active',!intervals);
+ $('tabIntervals').setAttribute('aria-selected',String(intervals));
+ $('tabPresets').setAttribute('aria-selected',String(!intervals));
+}
+$('bIntervals').onclick=()=>{setWorkoutLibraryTab('intervals');workoutLibraryDialog.hidden=false};
+$('workoutLibraryClose').onclick=()=>{workoutLibraryDialog.hidden=true};
+$('tabIntervals').onclick=()=>setWorkoutLibraryTab('intervals');
+$('tabPresets').onclick=()=>setWorkoutLibraryTab('presets');
+$('intervalsSync').onclick=()=>syncIntervals(true);
+$('intervalsCredentials').onclick=async()=>{
  intervalsDialog.hidden=false;
  $('intervalsApiKey').value='';
  $('intervalsSaveStatus').textContent='';
@@ -1147,29 +1214,18 @@ $('intervalsSave').onclick=async()=>{
  }catch(error){$('intervalsSaveStatus').textContent=error.message}
  finally{$('intervalsSave').disabled=false}
 };
-$('intervalsSelect').onchange=()=>{
- const ev=INTERVALS_EVENTS.find(item=>String(item.id)===$('intervalsSelect').value);
- if(!ev)return;
- try{
-  const description=ev.description_raw||ev.description||'';
-  const steps=parsePresetDescription(description);
-  setWorkout(steps);
-  $('intervalsMeta').textContent=String(ev.name||'Økt')+' · '+steps.length+' steg · '+fmt(S.total);
-  toast(String(ev.name||'Økt')+' lastet fra Intervals.icu');
- }catch(error){
-  $('intervalsMeta').textContent='Kunne ikke lese økten: '+error.message;
-  toast('Kunne ikke lese Intervals.icu økten: '+error.message,true);
- }
-};
+$('intervalsDialog').addEventListener('click',event=>{if(event.target===intervalsDialog)intervalsDialog.hidden=true});
+$('workoutLibraryDialog').addEventListener('click',event=>{if(event.target===workoutLibraryDialog)workoutLibraryDialog.hidden=true});
 async function initIntervalsSync(){
  if(!window.electronApp?.isElectron||typeof window.electronApp.intervalsStatus!=='function')return;
  try{
   const status=await window.electronApp.intervalsStatus();
   renderIntervalsEvents(status.events||[]);
-  intervalsStatusText({cachedAt:status.cachedAt,message:status.connected?'Lokal kopi lastet': 'Ikke tilkoblet'});
+  intervalsStatusText({cachedAt:status.cachedAt,message:status.connected?'Lokal kopi lastet':'Ikke tilkoblet'});
   if(status.connected)syncIntervals(false);
  }catch(error){$('intervalsMeta').textContent='Intervals.icu er ikke tilgjengelig'}
 }
+loadPresetWorkouts();
 initIntervalsSync();
 window.addEventListener('online',()=>syncIntervals(false));
 setInterval(()=>syncIntervals(false),30*60*1000);
@@ -2131,7 +2187,7 @@ function setKind(k){
  if(k){try{localStorage.setItem('kind',k)}catch(e){}}
  if(k!=='workout')setWorkout([]);
  const v=(id,c)=>{$(id).hidden=!c};
- v('fileLbl',k==='workout');$('presetPanel').classList.toggle('on',k==='workout');v('grpScale',k==='workout');v('bSkip',k==='workout');v('bSteps',k==='workout');
+ v('fileLbl',k==='workout');v('grpScale',k==='workout');v('bSkip',k==='workout');v('bSteps',k==='workout');
  v('grpFix',k==='free'||k==='hr');v('bErg',k==='free'||k==='workout');v('hrstat',k==='hr');v('bCool',k==='hr');
  $('steps').hidden=true;$('hr').style.color='';$('hrdlg').hidden=!(k==='hr'&&S.state==='idle');
  if(k==='hr')setErgBtn(true);else if(k==='free')setErgBtn(false);

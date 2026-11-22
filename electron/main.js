@@ -3,6 +3,123 @@ const fs = require('node:fs')
 const path = require('node:path')
 
 let mainWindow
+
+const { safeStorage } = require('electron')
+
+function intervalsPaths() {
+  const dir = app.getPath('userData')
+  return {
+    credentials: path.join(dir, 'intervals-credentials.json'),
+    cache: path.join(dir, 'intervals-plan-cache.json')
+  }
+}
+
+async function readIntervalsCredentials() {
+  const file = intervalsPaths().credentials
+  try {
+    const saved = JSON.parse(await fs.promises.readFile(file, 'utf8'))
+    if (!saved || !saved.encryptedKey || !safeStorage.isEncryptionAvailable()) return null
+    return { apiKey: safeStorage.decryptString(Buffer.from(saved.encryptedKey, 'base64')) }
+  } catch {
+    return null
+  }
+}
+
+async function readIntervalsCache() {
+  try {
+    const data = JSON.parse(await fs.promises.readFile(intervalsPaths().cache, 'utf8'))
+    if (!data || !Array.isArray(data.events)) return null
+    return data
+  } catch {
+    return null
+  }
+}
+
+async function writeIntervalsCache(data) {
+  const file = intervalsPaths().cache
+  const temp = file + '.tmp'
+  await fs.promises.writeFile(temp, JSON.stringify(data), { mode: 0o600 })
+  await fs.promises.rename(temp, file)
+}
+
+function checkMainSender(event) {
+  if (!mainWindow || event.sender !== mainWindow.webContents) {
+    throw new Error('Ugyldig forespørsel til Intervals.icu')
+  }
+}
+
+ipcMain.handle('intervals:status', async event => {
+  checkMainSender(event)
+  const credentials = await readIntervalsCredentials()
+  const cache = await readIntervalsCache()
+  return {
+    connected: !!credentials,
+    cachedAt: cache?.cachedAt || null,
+    events: cache?.events || []
+  }
+})
+
+ipcMain.handle('intervals:save-credentials', async (event, input) => {
+  checkMainSender(event)
+  const apiKey = String(input?.apiKey || '').trim()
+  if (apiKey.length < 12 || apiKey.length > 300) throw new Error('API-nøkkelen ser ikke gyldig ut')
+  if (!safeStorage.isEncryptionAvailable()) {
+    throw new Error('macOS sikker nøkkellagring er ikke tilgjengelig. Nøkkelen ble ikke lagret.')
+  }
+  const encryptedKey = safeStorage.encryptString(apiKey).toString('base64')
+  const file = intervalsPaths().credentials
+  const temp = file + '.tmp'
+  await fs.promises.writeFile(temp, JSON.stringify({ encryptedKey }), { mode: 0o600 })
+  await fs.promises.rename(temp, file)
+  return { connected: true }
+})
+
+ipcMain.handle('intervals:sync', async event => {
+  checkMainSender(event)
+  const credentials = await readIntervalsCredentials()
+  const cache = await readIntervalsCache()
+  if (!credentials) return { ok: false, connected: false, cachedAt: cache?.cachedAt || null, events: cache?.events || [], message: 'Intervals.icu er ikke tilkoblet' }
+
+  const now = new Date()
+  const oldest = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Oslo' }).format(now)
+  const future = new Date(now.getTime() + 7 * 86400000)
+  const newest = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Oslo' }).format(future)
+  const query = new URLSearchParams({ oldest, newest, category: 'WORKOUT', resolve: 'true' })
+  const auth = Buffer.from('API_KEY:' + credentials.apiKey, 'utf8').toString('base64')
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 12000)
+
+  try {
+    const response = await fetch('https://intervals.icu/api/v1/athlete/0/events?' + query.toString(), {
+      method: 'GET',
+      headers: { Authorization: 'Basic ' + auth, Accept: 'application/json' },
+      signal: controller.signal
+    })
+    if (!response.ok) throw new Error('Intervals.icu svarte med HTTP ' + response.status)
+    const payload = await response.json()
+    if (!Array.isArray(payload)) throw new Error('Intervals.icu returnerte et ugyldig kalenderformat')
+    const events = payload.filter(item =>
+      item && item.id != null &&
+      String(item.category || '').toUpperCase() === 'WORKOUT' &&
+      typeof item.name === 'string' &&
+      typeof item.start_date_local === 'string'
+    )
+    const result = { cachedAt: new Date().toISOString(), oldest, newest, events }
+    await writeIntervalsCache(result)
+    return { ok: true, connected: true, ...result, message: events.length + ' planlagte økter synkronisert' }
+  } catch (error) {
+    return {
+      ok: false,
+      connected: true,
+      cachedAt: cache?.cachedAt || null,
+      events: cache?.events || [],
+      message: error.name === 'AbortError' ? 'Tidsavbrudd mot Intervals.icu. Bruker lokal kopi.' : (error.message || 'Synkronisering feilet') + '. Bruker lokal kopi.'
+    }
+  } finally {
+    clearTimeout(timeout)
+  }
+})
+
 let activeBluetoothRequest = null
 
 function finishBluetoothRequest(request, deviceId = '') {

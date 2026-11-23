@@ -148,7 +148,7 @@ canvas{width:100%;height:100%;min-height:70px;display:block}
 
 #lp{padding:12px 14px;display:flex;flex-direction:column;min-height:0}
 #lrows{overflow-y:auto;flex:1;display:flex;flex-direction:column}
-.lr{display:grid;grid-template-columns:.5fr 1.3fr 1fr 1fr 1fr 1.3fr;gap:4px;padding:4px 8px;font-family:var(--font-mono);font-size:clamp(12px,1.4vw,18px);text-align:right;border-radius:8px}
+.lr{display:grid;grid-template-columns:.35fr .9fr .75fr .75fr .65fr .8fr .85fr .7fr;gap:4px;padding:4px 8px;font-family:var(--font-mono);font-size:clamp(9px,.9vw,12px);text-align:right;border-radius:8px}
 .lr>:first-child{text-align:left}
 .lr.h{font-family:var(--font-mono);text-transform:uppercase;font-size:10.5px;color:var(--mut);letter-spacing:0.02em;border-bottom:1px solid var(--line);margin-bottom:4px;padding-bottom:6px}
 .lr.cur{background:linear-gradient(180deg, rgba(25, 208, 232, 0.14) 0%, rgba(6, 47, 52, 0.4) 100%);color:var(--fg);border:1px solid rgba(25, 208, 232, 0.35)}
@@ -262,7 +262,7 @@ body.landing #land{display:flex}
 }
 body.analysis-open #analysisPage {
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 8px;
 }
 body.analysis-open { overflow: hidden; }
@@ -336,6 +336,8 @@ body.analysis-open { overflow: hidden; }
   text-overflow: ellipsis;
 }
 
+.an-best-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; }
+.an-best-grid .an-metric { padding:5px 8px; }
 .an-zones-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -469,6 +471,7 @@ body.analysis-open { overflow: hidden; }
   .an-mid-groups { grid-template-columns: 1fr; }
   .an-group-grid { grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)) !important; }
   .an-zones-grid { grid-template-columns: repeat(4, 1fr); overflow-y: auto; }
+  .an-best-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
   .an-bottom-grid { grid-template-columns: repeat(2, 1fr); }
   #analysisPage { overflow-y: auto; }
 }
@@ -571,7 +574,7 @@ body.analysis-open { overflow: hidden; }
 
  </div>
  <aside id="lp" aria-label="Rundeliste">
-  <div class="lr h"><span>#</span><span>Tid</span><span>Watt</span><span>Puls</span><span>Kad</span><span>Maks puls</span></div>
+  <div class="lr h"><span>#</span><span>Tid</span><span>Watt</span><span>Puls</span><span>Kad</span><span>Maks</span><span>Puls 20%</span><span>EF</span></div>
   <div id="lrows"></div>
  </aside>
 </div>
@@ -663,6 +666,11 @@ body.analysis-open { overflow: hidden; }
   <div class="an-group">
     <div class="an-group-title">Watt og arbeid</div>
     <div class="an-group-grid" id="anPowerMetrics" style="--cols:10"></div>
+  </div>
+
+  <div class="an-group">
+    <div class="an-group-title">Rullerende best efforts</div>
+    <div class="an-best-grid" id="anBestEfforts"></div>
   </div>
 
   <!-- Rad 2: Puls og Økt side om side (5 kolonner i Økt for Kadens + Torque + Tid) -->
@@ -1325,7 +1333,7 @@ function closeLap(){
  const L=S.lap;S.lap=null;
  if(!L)return;
  const sec=S.realEl-L.startReal;
- if(sec>=1)S.laps.push({sec,w:lapAvg(L,'w'),h:lapAvg(L,'h'),c:lapAvg(L,'c'),mx:L.mx});
+ if(sec>=1){const extra=lapMetrics(S.log,L.startReal,S.realEl);S.laps.push({sec,w:lapAvg(L,'w'),h:lapAvg(L,'h'),c:lapAvg(L,'c'),mx:L.mx,hr20:extra.hr20,ef:extra.ef});}
 }
 function accReset(){S.acc={dist:0,j:0,hrS:0,hrN:0,q:[],qs:0,np4:0,npN:0}}
 function accAdd(x){
@@ -1336,6 +1344,16 @@ function accAdd(x){
 }
 function accNP(){const a=S.acc;return a&&a.npN?Math.pow(a.np4/a.npN,.25):null}
 function lapAvg(L,k){return L.s[k][1]?L.s[k][0]/L.s[k][1]:null}
+function lapMetrics(points,startReal,endReal){
+ const p=points.filter(x=>x.realEl>=startReal&&x.realEl<=endReal);
+ const hr20Start=startReal+(endReal-startReal)*.8;
+ const hr20=avg(p.filter(x=>x.realEl>=hr20Start).map(x=>x.hr).filter(v=>v!=null));
+ const watts=p.map(x=>x.w).filter(v=>v!=null),hrs=p.map(x=>x.hr).filter(v=>v!=null);
+ let n4=0,nN=0,win=[];
+ for(const x of p){if(x.w==null){win=[];continue}win.push(x.w);if(win.length>30)win.shift();if(win.length===30){n4+=Math.pow(avg(win),4);nN++}}
+ const np=nN?Math.pow(n4/nN,.25):avg(watts),meanHr=avg(hrs);
+ return{hr20,ef:np!=null&&meanHr>0?np/meanHr:null};
+}
 
 /* ---------- Hovedtick ---------- */
 function tick(){
@@ -1623,15 +1641,15 @@ function render(){
   }
   $3('clkI').classList.toggle('pulse',pulse);$3('wt').classList.toggle('pulse',pulse)}
 
- const rw=(n,sec,w,h,c,mx,cls)=>`<div class="lr ${cls||''}"><span>${n}</span><span>${fmt(sec)}</span><span>${fm(w)}</span><span>${fm(h)}</span><span>${fm(c)}</span><span>${mx||'0'}</span></div>`;
+ const rw=(n,sec,w,h,c,mx,hr20,ef,cls)=>`<div class="lr ${cls||''}"><span>${n}</span><span>${fmt(sec)}</span><span>${fm(w)}</span><span>${fm(h)}</span><span>${fm(c)}</span><span>${mx||'0'}</span><span>${fm(hr20)}</span><span>${fm(ef,2)}</span></div>`;
  let html='';
- if(L)html+=rw('→',S.realEl-L.startReal,m('w'),m('h'),m('c'),L.mx,'cur');
- for(let i=S.laps.length-1;i>=0;i--){const l=S.laps[i];html+=rw(i+1,l.sec,l.w,l.h,l.c,l.mx)}
+ if(L){const extra=lapMetrics(S.log,L.startReal,S.realEl);html+=rw('→',S.realEl-L.startReal,m('w'),m('h'),m('c'),L.mx,extra.hr20,extra.ef,'cur')}
+ for(let i=S.laps.length-1;i>=0;i--){const l=S.laps[i];html+=rw(i+1,l.sec,l.w,l.h,l.c,l.mx,l.hr20,l.ef)}
  if(S.log.length){
   const allW=S.log.map(x=>x.w).filter(x=>x!=null),allH=S.log.map(x=>x.hr).filter(x=>x!=null);
   const totW=allW.length?avg(allW):null,totH=allH.length?avg(allH):null;
   const kj=allW.length?Math.round(allW.reduce((a,b)=>a+b,0)/1000):null;
-  html+=`<div class="lr tot"><span>Tot</span><span>${fmt(S.realEl)}</span><span>${fm(totW)}</span><span>${fm(totH)}</span><span></span><span>${kj!=null?kj+' kJ':''}</span></div>`;
+  html+=`<div class="lr tot"><span>Tot</span><span>${fmt(S.realEl)}</span><span>${fm(totW)}</span><span>${fm(totH)}</span><span></span><span>${kj!=null?kj+' kJ':''}</span><span></span><span></span></div>`;
  }
  $3('lrows').innerHTML=html||'<div class="empty">Ingen runder ennå – trykk «Runde» for å markere</div>';
  draw();
@@ -2038,6 +2056,29 @@ function anCalc(){
  const drift=ef1&&ef2?(ef1-ef2)/ef1*100:null;
  return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),avgNm:anMean(nms),np,IF,TSS,z,totalJ,halfStats,lrLeft:anMean(lrSamples),lrN:lrSamples.length,corrWH:corr(x=>x.w,x=>x.hr),corrWC:corr(x=>x.w,x=>x.core),corrHC:corr(x=>x.hr,x=>x.core),corrNH:corr(x=>calcNm(x.w,x.cad),x=>x.hr),core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
 }
+const AN_BEST_EFFORTS=[['5 sek',5],['30 sek',30],['1 min',60],['5 min',300],['10 min',600],['20 min',1200],['60 min',3600]];
+function anBestEfforts(points){
+ const r=points.filter(x=>Number.isFinite(x.realEl)).slice().sort((a,b)=>a.realEl-b.realEl);
+ const n=r.length,prefix=[0],bad=[0];
+ for(let i=0;i<n;i++){prefix.push(prefix[i]+(r[i].w==null?0:r[i].w));bad.push(bad[i]+(r[i].w==null?1:0))}
+ return AN_BEST_EFFORTS.map(([label,duration])=>{
+  let best=null,j=0;
+  for(let i=0;i<n;i++){
+   const end=r[i].realEl,threshold=end-(duration-1);
+   while(j<i&&r[j].realEl<threshold)j++;
+   const span=end-r[j].realEl;
+   if(span<duration-2||bad[i+1]-bad[j]>0)continue;
+   let gapOk=true;
+   for(let k=j+1;k<=i;k++){if(r[k].realEl-r[k-1].realEl>2.5){gapOk=false;break}}
+   if(!gapOk)continue;
+   const count=i-j+1;
+   if(count<Math.max(2,duration-1))continue;
+   const value=(prefix[i+1]-prefix[j])/count;
+   if(best==null||value>best)best=value;
+  }
+  return{label,value:best};
+ });
+}
 function anCell(label,value,unit=''){return '<div class="an-metric"><span>'+label+'</span><b>'+value+(unit?' '+unit:'')+'</b></div>'}
 function anKv(label,val){return `<div class="an-kv"><span>${label}</span><b>${val}</b></div>`}
 
@@ -2048,6 +2089,7 @@ function renderAnalysis() {
   if (!r.length) {
     $('anStatus').textContent = 'Ingen øktdata. Start en økt for sanntidsanalyse.';
     $('anPowerMetrics').innerHTML = ['Nå','3 s','10 s','Snitt','NP','IF','TSS','Arbeid','kJ/t nå','Ø kJ/t'].map(l => anCell(l, '–')).join('');
+    $('anBestEfforts').innerHTML = AN_BEST_EFFORTS.map(([label])=>anCell(label,'–','W')).join('');
     $('anHrMetrics').innerHTML = ['Nå','% Maks','Snitt','Maks'].map(l => anCell(l, '–')).join('');
     $('anSessMetrics').innerHTML = ['Kadens nå','Ø Kadens','Torque nå','Ø Torque','Tid'].map(l => anCell(l, '–')).join('');
     $('anZones').innerHTML = AN_ZONES.map((z, i) => `
@@ -2072,6 +2114,7 @@ function renderAnalysis() {
   }
 
   const a = anCalc();
+  $('anBestEfforts').innerHTML = anBestEfforts(r).map(x=>anCell(x.label,anFmt(x.value,0),'W')).join('');
   const lastPt = r.at(-1);
   const curZone = S.state === 'running' ? anZone(anMean(r.slice(-2).map(x=>x.w).filter(v=>v!=null)), a.ftp) : -1;
   $('anStatus').textContent = `${S.state === 'running' ? 'Live' : 'Pauset/Ferdig'} · FTP ${a.ftp} W · Maks puls ${a.hrSetting} bpm`;

@@ -208,7 +208,7 @@ function updateBluetoothPicker(request, devices) {
 }
 
 function installBluetoothDevicePicker(win) {
-  win.webContents.on('select-bluetooth-device', (event, devices, callback) => {
+  win.webContents.on('select-bluetooth-device', async (event, devices, callback) => {
     event.preventDefault()
 
     let request = activeBluetoothRequest

@@ -2070,7 +2070,7 @@ function anBestEfforts(points){
    if(span<duration-2||bad[i+1]-bad[j]>0)continue;
    if(gapBad[i+1]-gapBad[j+1]>0)continue;
    const count=i-j+1;
-   if(count<Math.max(2,duration-1))continue;
+   if(count<Math.max(2,duration))continue;
    const value=(prefix[i+1]-prefix[j])/count;
    if(best==null||value>best)best=value;
   }

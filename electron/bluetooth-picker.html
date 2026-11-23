@@ -34,11 +34,23 @@
         status.textContent = 'Søker etter Bluetooth-enheter … Kontroller at sensoren er slått på.'
         return
       }
+      const preferred = found.filter(device => device.preferred)
       status.textContent = found.length === 1 ? 'Fant 1 enhet.' : 'Fant ' + found.length + ' enheter.'
+      if (preferred.length) {
+        const hint = document.createElement('p')
+        hint.textContent = 'Sist brukte sensor: ' + preferred[0].name
+        hint.style.margin = '12px 0 4px'
+        hint.style.color = '#2767c5'
+        status.append(hint)
+      }
       for (const device of found) {
         const button = document.createElement('button')
         button.type = 'button'
-        button.textContent = device.name
+        button.textContent = device.name + (device.preferred ? '  ·  Sist brukt' : '')
+        if (device.preferred) {
+          button.style.borderColor = '#2767c5'
+          button.style.background = '#eef3fa'
+        }
         button.addEventListener('click', () => window.bluetoothPicker.select(device.id), { once: true })
         devices.append(button)
       }

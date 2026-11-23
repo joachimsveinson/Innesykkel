@@ -881,6 +881,7 @@ async function pair(k){
  document.querySelectorAll('.conn[data-k]').forEach(b=>b.disabled=true);
  c.stage='velge enhet';
  try{
+  await BT_REMEMBERED_READY;
   if(window.electronApp?.isElectron&&window.electronApp.bluetoothSetPickerCategory){
    await window.electronApp.bluetoothSetPickerCategory(k);
   }
@@ -892,7 +893,6 @@ async function pair(k){
   if(k==='power'&&/assioma.*l$/i.test(c.dev.name||''))toast('Assioma venstre pedal valgt. Den sender samlet watt når pedalene er paret i Favero-appen.');
   c.manual=false;
   c.dev.addEventListener('gattserverdisconnected',()=>lost(k));
-  rememberSensor(k,c.dev);
   await link(k);
  }catch(e){
   console.error(e);
@@ -930,25 +930,6 @@ function rememberSensor(k,dev){
  if(window.electronApp?.isElectron&&window.electronApp.bluetoothRemember){
   window.electronApp.bluetoothRemember(k,item).catch(e=>console.warn('Kunne ikke lagre Bluetooth-sensor',e));
  }
-}
-async function restoreBluetoothSensors(){
- const saved=await loadRememberedSensors();
- if(!navigator.bluetooth||typeof navigator.bluetooth.getDevices!=='function')return;
- if(!Object.keys(saved).length)return;
- try{
-  const devices=await navigator.bluetooth.getDevices();
-  for(const k of Object.keys(D)){
-   const item=saved[k];if(!item)continue;
-   const dev=devices.find(x=>x.id===item.id);
-   if(!dev){status(k,'Godkjent – ikke funnet');continue}
-   const c=D[k];c.dev=dev;c.manual=false;
-   dev.addEventListener('gattserverdisconnected',()=>lost(k));
-   try{await link(k)}catch(e){
-    c.ok=false;status(k,'Trykk for å koble til');
-    console.warn('Automatisk Bluetooth-tilkobling feilet for '+cName(k),e);
-   }
-  }
- }catch(e){console.warn('Kunne ikke hente tidligere godkjente Bluetooth-enheter',e)}
 }
 async function link(k){
  const c=D[k];status(k,'Kobler til …','try');
@@ -2347,7 +2328,7 @@ $('helpOk').onclick=()=>{$('helpdlg').hidden=true;try{localStorage.setItem('hrhe
 }
 try{const lk=localStorage.getItem('kind'),c=document.querySelector(`.card[data-kind="${lk}"]`);if(c)c.classList.add('last')}catch(e){}
 setKind(null);
-restoreBluetoothSensors();
+const BT_REMEMBERED_READY=loadRememberedSensors();
 
 /* ---------- Moduser, modaler og hurtigtaster ---------- */
 function openSummary(){

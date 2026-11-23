@@ -10,8 +10,35 @@ function intervalsPaths() {
   const dir = app.getPath('userData')
   return {
     credentials: path.join(dir, 'intervals-credentials.json'),
-    cache: path.join(dir, 'intervals-plan-cache.json')
+    cache: path.join(dir, 'intervals-plan-cache.json'),
+    bluetooth: path.join(dir, 'bluetooth-devices.json')
   }
+}
+
+const BLUETOOTH_CATEGORIES = new Set(['trainer', 'power', 'hr', 'core'])
+let bluetoothPickerCategory = null
+
+async function readRememberedBluetoothSensors() {
+  try {
+    const saved = JSON.parse(await fs.promises.readFile(intervalsPaths().bluetooth, 'utf8'))
+    return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {}
+  } catch {
+    return {}
+  }
+}
+
+async function writeRememberedBluetoothSensor(category, device) {
+  if (!BLUETOOTH_CATEGORIES.has(category) || !device || typeof device !== 'object') return
+  const id = String(device.id || '').slice(0, 512)
+  const name = String(device.name || '').trim().slice(0, 200)
+  if (!id || !name) return
+  const saved = await readRememberedBluetoothSensors()
+  saved[category] = { id, name }
+  const file = intervalsPaths().bluetooth
+  const temp = file + '.tmp'
+  await fs.promises.mkdir(path.dirname(file), { recursive: true })
+  await fs.promises.writeFile(temp, JSON.stringify(saved), { mode: 0o600 })
+  await fs.promises.rename(temp, file)
 }
 
 async function readIntervalsCredentials() {
@@ -130,6 +157,23 @@ ipcMain.handle('intervals:sync', async event => {
   }
 })
 
+ipcMain.handle('bluetooth:remembered', async event => {
+  checkMainSender(event)
+  return readRememberedBluetoothSensors()
+})
+
+ipcMain.handle('bluetooth:remember', async (event, input) => {
+  checkMainSender(event)
+  await writeRememberedBluetoothSensor(input?.category, input?.device)
+  return { ok: true }
+})
+
+ipcMain.handle('bluetooth:picker-category', async (event, category) => {
+  checkMainSender(event)
+  bluetoothPickerCategory = BLUETOOTH_CATEGORIES.has(category) ? category : null
+  return { ok: true }
+})
+
 let activeBluetoothRequest = null
 
 function finishBluetoothRequest(request, deviceId = '') {
@@ -152,8 +196,13 @@ function updateBluetoothPicker(request, devices) {
       devices: request.devices.map((device, index) => ({
         id: device.deviceId,
         name: device.deviceName || 'Bluetooth-enhet uten navn',
+        preferred: !!request.preferred && (
+          (request.preferred.id && request.preferred.id === device.deviceId) ||
+          (request.preferred.name && request.preferred.name.toLocaleLowerCase() === String(device.deviceName || '').toLocaleLowerCase())
+        ),
         index: index + 1
-      }))
+      })),
+      preferredName: request.preferred?.name || null
     })
   }
 }
@@ -182,7 +231,15 @@ function installBluetoothDevicePicker(win) {
         }
       })
 
-      request = { callback, devices: [], picker }
+      const remembered = await readRememberedBluetoothSensors()
+      request = {
+        callback,
+        devices: [],
+        picker,
+        category: bluetoothPickerCategory,
+        preferred: remembered[bluetoothPickerCategory] || null
+      }
+      bluetoothPickerCategory = null
       activeBluetoothRequest = request
 
       picker.on('closed', () => {
@@ -197,8 +254,13 @@ function installBluetoothDevicePicker(win) {
             devices: request.devices.map((device, index) => ({
               id: device.deviceId,
               name: device.deviceName || 'Bluetooth-enhet uten navn',
+              preferred: !!request.preferred && (
+                (request.preferred.id && request.preferred.id === device.deviceId) ||
+                (request.preferred.name && request.preferred.name.toLocaleLowerCase() === String(device.deviceName || '').toLocaleLowerCase())
+              ),
               index: index + 1
-            }))
+            })),
+            preferredName: request.preferred?.name || null
           })
         }
       }).catch(error => {

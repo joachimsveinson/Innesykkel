@@ -877,6 +877,9 @@ async function pair(k){
  document.querySelectorAll('.conn[data-k]').forEach(b=>b.disabled=true);
  c.stage='velge enhet';
  try{
+  if(window.electronApp?.isElectron&&window.electronApp.bluetoothSetPickerCategory){
+   await window.electronApp.bluetoothSetPickerCategory(k);
+  }
   c.dev=await navigator.bluetooth.requestDevice(BT_ALL?{acceptAllDevices:true,optionalServices:[U(c.svc),U(0x180F)]}:{filters:[{services:[U(c.svc)]}],optionalServices:[U(c.svc),U(0x180F)]});
   if(BT_ALL)BT_ALL=false;
   const dup=Object.keys(D).find(o=>o!==k&&D[o].dev&&D[o].dev.id===c.dev.id);
@@ -905,14 +908,28 @@ const BT_STORAGE_KEY='innesykkel.bluetooth.devices';
 function rememberedSensors(){
  try{return JSON.parse(localStorage.getItem(BT_STORAGE_KEY)||'{}')||{}}catch(e){return{}}
 }
+let BT_REMEMBERED={}
+async function loadRememberedSensors(){
+ const local=rememberedSensors();
+ if(window.electronApp?.isElectron&&window.electronApp.bluetoothRemembered){
+  try{BT_REMEMBERED=await window.electronApp.bluetoothRemembered()||{}}catch(e){console.warn('Kunne ikke lese lagrede Bluetooth-sensorer',e)}
+ }
+ BT_REMEMBERED={...local,...BT_REMEMBERED};
+ try{localStorage.setItem(BT_STORAGE_KEY,JSON.stringify(BT_REMEMBERED))}catch(e){}
+ return BT_REMEMBERED;
+}
 function rememberSensor(k,dev){
  if(!dev||!dev.id)return;
- const saved=rememberedSensors();saved[k]={id:dev.id,name:dev.name||cName(k)};
- try{localStorage.setItem(BT_STORAGE_KEY,JSON.stringify(saved))}catch(e){}
+ const item={id:dev.id,name:dev.name||cName(k)};
+ BT_REMEMBERED[k]=item;
+ try{localStorage.setItem(BT_STORAGE_KEY,JSON.stringify(BT_REMEMBERED))}catch(e){}
+ if(window.electronApp?.isElectron&&window.electronApp.bluetoothRemember){
+  window.electronApp.bluetoothRemember(k,item).catch(e=>console.warn('Kunne ikke lagre Bluetooth-sensor',e));
+ }
 }
 async function restoreBluetoothSensors(){
+ const saved=await loadRememberedSensors();
  if(!navigator.bluetooth||typeof navigator.bluetooth.getDevices!=='function')return;
- const saved=rememberedSensors();
  if(!Object.keys(saved).length)return;
  try{
   const devices=await navigator.bluetooth.getDevices();

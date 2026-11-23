@@ -27,18 +27,24 @@ async function readRememberedBluetoothSensors() {
   }
 }
 
-async function writeRememberedBluetoothSensor(category, device) {
-  if (!BLUETOOTH_CATEGORIES.has(category) || !device || typeof device !== 'object') return
-  const id = String(device.id || '').slice(0, 512)
-  const name = String(device.name || '').trim().slice(0, 200)
-  if (!id || !name) return
-  const saved = await readRememberedBluetoothSensors()
-  saved[category] = { id, name }
-  const file = intervalsPaths().bluetooth
-  const temp = file + '.tmp'
-  await fs.promises.mkdir(path.dirname(file), { recursive: true })
-  await fs.promises.writeFile(temp, JSON.stringify(saved), { mode: 0o600 })
-  await fs.promises.rename(temp, file)
+let bluetoothWriteQueue = Promise.resolve()
+
+function writeRememberedBluetoothSensor(category, device) {
+  const operation = bluetoothWriteQueue.then(async () => {
+    if (!BLUETOOTH_CATEGORIES.has(category) || !device || typeof device !== 'object') return
+    const id = String(device.id || '').slice(0, 512)
+    const name = String(device.name || '').trim().slice(0, 200)
+    if (!id || !name) return
+    const saved = await readRememberedBluetoothSensors()
+    saved[category] = { id, name }
+    const file = intervalsPaths().bluetooth
+    const temp = file + '.tmp'
+    await fs.promises.mkdir(path.dirname(file), { recursive: true })
+    await fs.promises.writeFile(temp, JSON.stringify(saved), { mode: 0o600 })
+    await fs.promises.rename(temp, file)
+  })
+  bluetoothWriteQueue = operation.catch(() => {})
+  return operation
 }
 
 async function readIntervalsCredentials() {
@@ -231,16 +237,19 @@ function installBluetoothDevicePicker(win) {
         }
       })
 
-      const remembered = await readRememberedBluetoothSensors()
       request = {
         callback,
         devices: [],
         picker,
         category: bluetoothPickerCategory,
-        preferred: remembered[bluetoothPickerCategory] || null
+        preferred: null
       }
       bluetoothPickerCategory = null
       activeBluetoothRequest = request
+      const remembered = await readRememberedBluetoothSensors()
+      if (activeBluetoothRequest !== request) return
+      request.preferred = remembered[request.category] || null
+      updateBluetoothPicker(request, devices)
 
       picker.on('closed', () => {
         if (activeBluetoothRequest === request) {

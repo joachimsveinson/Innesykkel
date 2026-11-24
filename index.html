@@ -937,7 +937,7 @@ async function link(k){
  c.stage='finne tjeneste';const svc=await srv.getPrimaryService(U(c.svc));
  c.stage='finne karakteristikk';const ch=await svc.getCharacteristic(U(c.chr));
  c.srv=srv;c.svcObj=svc;c.ch=ch;c.n=0;
- ch.addEventListener('characteristicvaluechanged',e=>{c.t=Date.now();c.staleWarned=false;c.n=(c.n||0)+1;try{if(k==='core'){const v=e.target.value;c.rawHex=Array.from(new Uint8Array(v.buffer,v.byteOffset,v.byteLength)).map(x=>x.toString(16).padStart(2,'0')).join(' ')}c.parse(e.target.value)}catch(err){c.err=String(err)}});
+ ch.addEventListener('characteristicvaluechanged',e=>{c.t=Date.now();c.rxTs=c.t;c.staleWarned=false;c.n=(c.n||0)+1;try{if(k==='core'){const v=e.target.value;c.rawHex=Array.from(new Uint8Array(v.buffer,v.byteOffset,v.byteLength)).map(x=>x.toString(16).padStart(2,'0')).join(' ')}c.parse(e.target.value)}catch(err){c.err=String(err)}});
  c.stage='slå på varsler (startNotifications)';await ch.startNotifications();
  await readBattery(c,srv);
  if(k==='trainer'){
@@ -1390,7 +1390,8 @@ function tick(){
   if(S.tgt!=null&&S.prev!=null&&Math.abs(S.tgt-S.prev)>S.ftp*PM_JUMP_PCT/100)S.settleUntil=t+PM_SETTLE_S;
   S.prev=S.tgt;
 
-  const pp=fresh('power','w'),w=hold('pw',pp)??hold('tw',fresh('trainer','w'));
+  const pp=fresh('power','w'),tw=fresh('trainer','w'),w=hold('pw',pp,D.power.rxTs)??hold('tw',tw,D.trainer.rxTs);
+  const powerSampleTs=S.hd.pw&&now-S.hd.pw.t<=10000?S.hd.pw.ts:(S.hd.tw&&now-S.hd.tw.t<=10000?S.hd.tw.ts:null);
   const newSec=t!==S.lastT;
   if(newSec)S.lastT=t;
   S.wb=[...S.wb,w].slice(-25);
@@ -1408,7 +1409,7 @@ function tick(){
    {const pw=fresh('power','w'),tw=fresh('trainer','w');
     if(pw!=null&&tw!=null&&tw>100&&pw/tw>.42&&pw/tw<.58){S.halfN=(S.halfN||0)+1;if(S.halfN===30)toast('Pedalene viser omtrent halv watt mot Kickr. Sjekk i Favero-appen at venstre pedal sender samlet watt (ikke bare venstre side).',true)}else S.halfN=0}
    S.acc||accReset();
-   S.log.push({e:t,realEl:S.realEl,ts:now,w,hr,cad,lrLeft,core,skin,hsi,quality,spd,tgt:S.tgt,lap:S.lapSeq+1});
+   S.log.push({e:t,realEl:S.realEl,ts:powerSampleTs??now,w,hr,cad,lrLeft,core,skin,hsi,quality,spd,tgt:S.tgt,lap:S.lapSeq+1});
    accAdd(S.log[S.log.length-1]);
    if(hr>S.hrmax)S.hrmax=hr;
    [['w',w],['h',hr],['c',cad]].forEach(([k,v])=>{if(v!=null){S.lap.s[k][0]+=v;S.lap.s[k][1]++}});
@@ -1434,7 +1435,7 @@ function tick(){
  render();
 }
 setInterval(tick,200);
-function hold(k,v){const n=Date.now();if(v!=null){S.hd[k]={v,t:n};return v}const h=S.hd[k];return h&&n-h.t<=10000?h.v:null}
+function hold(k,v,ts){const n=Date.now();if(v!=null){S.hd[k]={v,t:n,ts:ts??n};return v}const h=S.hd[k];return h&&n-h.t<=10000?h.v:null}
 
 /* ---------- Øktkontroll ---------- */
 function save(){try{localStorage.setItem('sess',JSON.stringify({log:S.log,el:S.el,realEl:S.realEl,scale:S.scale,iv:S.iv,hrmax:S.hrmax,off:S.off,laps:S.laps,lapSeq:S.lapSeq,kind:S.kind,hrW:S.hrW,hrPhase:S.hrPhase,hrW0:S.hrW0,warmW:S.warmW,coolT0:S.coolT0,sessFtp:S.sessFtp}))}catch(e){}}

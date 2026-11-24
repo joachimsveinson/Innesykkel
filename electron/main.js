@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, nativeImage } = require('electron')
+const { app, BrowserWindow, ipcMain, nativeImage, session } = require('electron')
 const fs = require('node:fs')
 const path = require('node:path')
 
@@ -325,6 +325,8 @@ function createWindow() {
     }
   })
 
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  mainWindow.webContents.on('will-navigate', event => event.preventDefault())
   installBluetoothDevicePicker(mainWindow)
   mainWindow.loadFile(path.join(__dirname, '..', 'index.html'))
 
@@ -335,6 +337,11 @@ function createWindow() {
 
 app.whenReady().then(() => {
   app.setName('Innesykkel')
+
+  // Allow only Bluetooth for the app window. Deny all other permission requests.
+  const allowed = new Set(['bluetooth'])
+  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => callback(allowed.has(permission)))
+  session.defaultSession.setPermissionCheckHandler((_wc, permission) => allowed.has(permission))
 
   if (process.platform === 'darwin') {
     const iconPath = path.join(__dirname, '..', 'assets', 'innesykkel.icns')

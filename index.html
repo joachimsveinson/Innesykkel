@@ -4,9 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Innesykkel</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <style>
+@font-face{font-family:"DM Mono";font-style:normal;font-weight:400;font-display:swap;src:url("assets/fonts/dm-mono-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"DM Mono";font-style:normal;font-weight:500;font-display:swap;src:url("assets/fonts/dm-mono-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:400;font-display:swap;src:url("assets/fonts/geist-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:500;font-display:swap;src:url("assets/fonts/geist-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:600;font-display:swap;src:url("assets/fonts/geist-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:700;font-display:swap;src:url("assets/fonts/geist-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"Instrument Serif";font-style:normal;font-weight:400;font-display:swap;src:url("assets/fonts/instrument-serif-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Instrument Serif";font-style:italic;font-weight:400;font-display:swap;src:url("assets/fonts/instrument-serif-latin-400-italic.woff2") format("woff2")}
 :root{
   --bg:#000000;--obsidian:#010101;--card:#191919;--card2:#282828;--charcoal:#363636;--slate:#3f3f3f;
   --line:#282828;--line-hi:#3f3f3f;--off:#0e0e0e;--offfg:#4a4a4a;--nil:#282828;
@@ -821,11 +828,14 @@ if(!navigator.bluetooth){$('warn').style.display='block'}
 let toastTimer=null;
 function toast(txt,err){
  const t=$('toast');
- t.innerHTML=err?`<span class="tmsg err">${txt}</span>`:`<span class="tmsg">${txt}</span>`;
+ const span=document.createElement('span');
+ span.className=err?'tmsg err':'tmsg';
+ span.textContent=txt==null?'':String(txt);
+ t.replaceChildren(span);
  clearTimeout(toastTimer);
- if(!err)toastTimer=setTimeout(()=>{if(!t.dataset.sticky)t.innerHTML=''},8000);
+ if(!err)toastTimer=setTimeout(()=>{if(!t.dataset.sticky)t.replaceChildren()},8000);
 }
-function toastSticky(html){const t=$('toast');t.dataset.sticky='1';t.innerHTML=`<span class="tmsg">${html}</span>`}
+function toastSticky(text){const t=$('toast');t.dataset.sticky='1';const span=document.createElement('span');span.className='tmsg';span.textContent=String(text);t.replaceChildren(span)}
 function toastClear(){$('toast').dataset.sticky='';toast('')}
 
 window.addEventListener('beforeunload',e=>{if(S.state==='running'||S.state==='paused'){save();e.preventDefault();e.returnValue=''}});

@@ -1391,7 +1391,7 @@ function tick(){
   S.prev=S.tgt;
 
   const pp=fresh('power','w'),tw=fresh('trainer','w'),w=hold('pw',pp,D.power.rxTs)??hold('tw',tw,D.trainer.rxTs);
-  const powerSampleTs=S.hd.pw&&now-S.hd.pw.t<=10000?S.hd.pw.ts:(S.hd.tw&&now-S.hd.tw.t<=10000?S.hd.tw.ts:null);
+  const powerSampleTs=pp!=null?D.power.rxTs:(S.hd.pw&&now-S.hd.pw.t<=10000?now:(tw!=null?D.trainer.rxTs:now));
   const newSec=t!==S.lastT;
   if(newSec)S.lastT=t;
   S.wb=[...S.wb,w].slice(-25);

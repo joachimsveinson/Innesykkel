@@ -246,16 +246,17 @@ function installBluetoothDevicePicker(win) {
       }
       bluetoothPickerCategory = null
       activeBluetoothRequest = request
-      const remembered = await readRememberedBluetoothSensors()
-      if (activeBluetoothRequest !== request) return
-      request.preferred = remembered[request.category] || null
-      updateBluetoothPicker(request, devices)
 
       picker.on('closed', () => {
         if (activeBluetoothRequest === request) {
           finishBluetoothRequest(request, '')
         }
       })
+
+      const remembered = await readRememberedBluetoothSensors()
+      if (activeBluetoothRequest !== request) return
+      request.preferred = remembered[request.category] || null
+      updateBluetoothPicker(request, devices)
 
       picker.loadFile(path.join(__dirname, 'bluetooth-picker.html')).then(() => {
         if (activeBluetoothRequest === request && !picker.isDestroyed()) {

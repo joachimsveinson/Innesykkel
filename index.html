@@ -835,7 +835,6 @@ function toast(txt,err){
  clearTimeout(toastTimer);
  if(!err)toastTimer=setTimeout(()=>{if(!t.dataset.sticky)t.replaceChildren()},8000);
 }
-function toastSticky(text){const t=$('toast');t.dataset.sticky='1';const span=document.createElement('span');span.className='tmsg';span.textContent=String(text);t.replaceChildren(span)}
 function toastClear(){$('toast').dataset.sticky='';toast('')}
 
 window.addEventListener('beforeunload',e=>{if(S.state==='running'||S.state==='paused'){save();e.preventDefault();e.returnValue=''}});
@@ -923,22 +922,29 @@ function rememberedSensors(){
  try{return JSON.parse(localStorage.getItem(BT_STORAGE_KEY)||'{}')||{}}catch(e){return{}}
 }
 let BT_REMEMBERED={}
+const BT_IPC=()=>!!(window.electronApp?.isElectron&&window.electronApp.bluetoothRemembered&&window.electronApp.bluetoothRemember);
 async function loadRememberedSensors(){
- const local=rememberedSensors();
- if(window.electronApp?.isElectron&&window.electronApp.bluetoothRemembered){
-  try{BT_REMEMBERED=await window.electronApp.bluetoothRemembered()||{}}catch(e){console.warn('Kunne ikke lese lagrede Bluetooth-sensorer',e)}
+ if(!BT_IPC()){BT_REMEMBERED=rememberedSensors();return BT_REMEMBERED}
+ // Electron: the file in userData is the only source of truth.
+ try{BT_REMEMBERED=await window.electronApp.bluetoothRemembered()||{}}catch(e){console.warn('Kunne ikke lese lagrede Bluetooth-sensorer',e);BT_REMEMBERED={}}
+ if(!Object.keys(BT_REMEMBERED).length){
+  // One-time migration from old localStorage data.
+  const legacy=rememberedSensors();
+  for(const k of Object.keys(legacy)){
+   const item=legacy[k];
+   if(item&&item.id){BT_REMEMBERED[k]=item;window.electronApp.bluetoothRemember(k,item).catch(()=>{})}
+  }
  }
- BT_REMEMBERED={...local,...BT_REMEMBERED};
- try{localStorage.setItem(BT_STORAGE_KEY,JSON.stringify(BT_REMEMBERED))}catch(e){}
  return BT_REMEMBERED;
 }
 function rememberSensor(k,dev){
  if(!dev||!dev.id)return;
  const item={id:dev.id,name:dev.name||cName(k)};
  BT_REMEMBERED[k]=item;
- try{localStorage.setItem(BT_STORAGE_KEY,JSON.stringify(BT_REMEMBERED))}catch(e){}
- if(window.electronApp?.isElectron&&window.electronApp.bluetoothRemember){
+ if(BT_IPC()){
   window.electronApp.bluetoothRemember(k,item).catch(e=>console.warn('Kunne ikke lagre Bluetooth-sensor',e));
+ }else{
+  try{localStorage.setItem(BT_STORAGE_KEY,JSON.stringify(BT_REMEMBERED))}catch(e){}
  }
 }
 async function link(k){

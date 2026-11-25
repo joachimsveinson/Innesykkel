@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- Mørk bakgrunnsgradient -->
+    <linearGradient id="bgGradient" x1="100" y1="100" x2="924" y2="924" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0f2537" />
+      <stop offset="1" stop-color="#061019" />
+    </linearGradient>
+
+    <!-- Subtil kantlinje på squircle -->
+    <linearGradient id="borderGradient" x1="100" y1="100" x2="924" y2="924" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#19d0e8" stop-opacity="0.5" />
+      <stop offset="1" stop-color="#19d0e8" stop-opacity="0.12" />
+    </linearGradient>
+
+    <!-- Lynets gradient (uendret) -->
+    <linearGradient id="boltGradient" x1="400" y1="160" x2="650" y2="850" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#19d0e8" stop-opacity="0.99" />
+      <stop offset="0.5" stop-color="#0e7490" stop-opacity="0.42" />
+      <stop offset="1" stop-color="#19d0e8" stop-opacity="0.18" />
+    </linearGradient>
+
+    <!-- Nedtonet gradient for sykkelen slik at den matcher lynet bedre -->
+    <linearGradient id="bikeGradient" x1="750" y1="400" x2="750" y2="4000" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5ce1f2" stop-opacity="0.8" />
+      <stop offset="0.5" stop-color="#19d0e8" stop-opacity="0.79" />
+      <stop offset="1" stop-color="#0c8da3" stop-opacity="0.79" />
+    </linearGradient>
+
+    <!-- Svakere, mer kontrollert glød på sykkelen -->
+    <filter id="bikeGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Skygge for macOS-ikon -->
+    <filter id="iconShadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#000000" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- macOS App Icon Squircle -->
+  <rect x="100" y="100" width="824" height="824" rx="185" ry="185" fill="url(#bgGradient)" stroke="url(#borderGradient)" stroke-width="6" filter="url(#iconShadow)" />
+
+  <!-- Lyn i bakgrunnen (beholdt nøyaktig slik det var) -->
+  <path d="M585 175 L370 505 L505 505 L430 845 L675 475 L535 475 Z" fill="url(#boltGradient)" stroke="#19d0e8" stroke-opacity="0.55" stroke-width="6" stroke-linejoin="round" />
+
+  <!-- Nedtonet sykkel med tynnere, lettere linjer -->
+  <g fill="none" stroke="url(#bikeGradient)" stroke-linecap="round" stroke-linejoin="round" filter="url(#bikeGlow)">
+    
+    <!-- Bakhjul og forhjul -->
+    <circle cx="318" cy="655" r="122" stroke-width="17" />
+    <circle cx="706" cy="655" r="122" stroke-width="17" />
+
+    <!-- Diskrete hjulnav -->
+    <circle cx="318" cy="655" r="8" fill="#19d0e8" fill-opacity="0.8" stroke="none" />
+    <circle cx="706" cy="655" r="8" fill="#19d0e8" fill-opacity="0.8" stroke="none" />
+
+    <!-- Ramme: Kjedestag -->
+    <path d="M318 655 L496 680" stroke-width="16" />
+
+    <!-- Ramme: Setestag -->
+    <path d="M318 655 L440 465" stroke-width="15" />
+
+    <!-- Ramme: Seterør -->
+    <path d="M496 680 L440 465" stroke-width="17" />
+
+    <!-- Ramme: Overrør -->
+    <path d="M440 465 L632 448" stroke-width="17" />
+
+    <!-- Ramme: Underrør -->
+    <path d="M496 680 L648 504" stroke-width="18" />
+
+    <!-- Styrerør og gaffel -->
+    <path d="M627 428 L706 655" stroke-width="17" />
+
+    <!-- Setepinne og sete -->
+    <path d="M440 465 L424 405" stroke-width="15" />
+    <path d="M385 405 L458 405" stroke-width="18" />
+
+    <!-- Stem og bukkestyre -->
+    <path d="M627 428 L670 414" stroke-width="15" />
+    <path d="M670 414 L694 414 C716 414 716 456 688 456" stroke-width="15" />
+
+    <!-- Rent krankdrev uten støyende pedaldetaljer -->
+    <circle cx="496" cy="680" r="28" stroke-width="14" />
+  </g>
+</svg>

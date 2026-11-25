@@ -884,9 +884,6 @@ async function pair(k){
  c.stage='velge enhet';
  try{
   await BT_REMEMBERED_READY;
-  if(window.electronApp?.isElectron&&window.electronApp.bluetoothSetPickerCategory){
-   await window.electronApp.bluetoothSetPickerCategory(k);
-  }
   c.dev=await navigator.bluetooth.requestDevice(BT_ALL?{acceptAllDevices:true,optionalServices:[U(c.svc),U(0x180F)]}:{filters:[{services:[U(c.svc)]}],optionalServices:[U(c.svc),U(0x180F)]});
   if(BT_ALL)BT_ALL=false;
   const dup=Object.keys(D).find(o=>o!==k&&D[o].dev&&D[o].dev.id===c.dev.id);
@@ -914,31 +911,12 @@ const BT_STORAGE_KEY='innesykkel.bluetooth.devices';
 function rememberedSensors(){
  try{return JSON.parse(localStorage.getItem(BT_STORAGE_KEY)||'{}')||{}}catch(e){return{}}
 }
-let BT_REMEMBERED={}
-const BT_IPC=()=>!!(window.electronApp?.isElectron&&window.electronApp.bluetoothRemembered&&window.electronApp.bluetoothRemember);
-async function loadRememberedSensors(){
- if(!BT_IPC()){BT_REMEMBERED=rememberedSensors();return BT_REMEMBERED}
- // Electron: the file in userData is the only source of truth.
- try{BT_REMEMBERED=await window.electronApp.bluetoothRemembered()||{}}catch(e){console.warn('Kunne ikke lese lagrede Bluetooth-sensorer',e);BT_REMEMBERED={}}
- if(!Object.keys(BT_REMEMBERED).length){
-  // One-time migration from old localStorage data.
-  const legacy=rememberedSensors();
-  for(const k of Object.keys(legacy)){
-   const item=legacy[k];
-   if(item&&item.id){BT_REMEMBERED[k]=item;window.electronApp.bluetoothRemember(k,item).catch(()=>{})}
-  }
- }
- return BT_REMEMBERED;
-}
+let BT_REMEMBERED={};
+async function loadRememberedSensors(){BT_REMEMBERED=rememberedSensors();return BT_REMEMBERED}
 function rememberSensor(k,dev){
  if(!dev||!dev.id)return;
- const item={id:dev.id,name:dev.name||cName(k)};
- BT_REMEMBERED[k]=item;
- if(BT_IPC()){
-  window.electronApp.bluetoothRemember(k,item).catch(e=>console.warn('Kunne ikke lagre Bluetooth-sensor',e));
- }else{
-  try{localStorage.setItem(BT_STORAGE_KEY,JSON.stringify(BT_REMEMBERED))}catch(e){}
- }
+ BT_REMEMBERED[k]={id:dev.id,name:dev.name||cName(k)};
+ try{localStorage.setItem(BT_STORAGE_KEY,JSON.stringify(BT_REMEMBERED))}catch(e){}
 }
 async function link(k){
  const c=D[k];status(k,'Kobler til …','try');
@@ -1044,9 +1022,6 @@ $('file').onchange=async e=>{
 
 /* ---------- Øktbibliotek: Intervals Kalender og forhåndslagrede økter ---------- */
 let PRESET_WORKOUTS=[];
-let INTERVALS_EVENTS=[];
-let INTERVALS_BUSY=false;
-const intervalsDialog=$('intervalsDialog');
 const workoutLibraryDialog=$('workoutLibraryDialog');
 
 function parsePresetDescription(description){
@@ -1174,9 +1149,9 @@ async function loadPresetWorkouts(){
  meta.textContent='Laster øktbiblioteket …';
  try{
   const url=new URL('./workouts.json',document.baseURI);
-  const data=window.electronApp?.isElectron&&typeof window.electronApp.loadWorkouts==='function'
-   ?await window.electronApp.loadWorkouts()
-   :await (async()=>{const response=await fetch(url.href,{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);return response.json()})();
+  const response=await fetch(url.href,{cache:'no-store'});
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const data=await response.json();
   if(!data||!Array.isArray(data.workouts))throw new Error('JSON mangler listen workouts');
   if(data.workout_count!==undefined&&data.workout_count!==data.workouts.length)throw new Error('Antall økter stemmer ikke med workout_count');
   PRESET_WORKOUTS=data.workouts;
@@ -1187,132 +1162,19 @@ async function loadPresetWorkouts(){
   container.innerHTML='<div class="workout-empty">Øktbiblioteket kunne ikke lastes.</div>';
  }
 }
-function parseIntervalsDoc(event){
- const doc=event.workout_doc;
- if(!doc||!Array.isArray(doc.steps)||!doc.steps.length)throw new Error('Ingen strukturert økt eller ZWO-fil fra Intervals.icu');
- const out=[];
- const append=(items,reps=1)=>{
-  for(let r=0;r<reps;r++)for(const step of items){
-   if(Array.isArray(step.steps)&&step.steps.length){append(step.steps,Math.max(1,Number(step.reps)||1));continue}
-   const duration=Number(step.duration);
-   if(!(duration>0))continue;
-   if(step.freeride){ramp(out,duration,60,60,1);continue}
-   const power=step.power;
-   if(!power)throw new Error('Et steg mangler wattmål');
-   const units=String(power.units||'').toLowerCase();
-   const convert=value=>units==='w'||units==='watts'?Number(value)/S.ftp*100:Number(value);
-   const from=convert(power.start??power.value??power.end);
-   const to=convert(power.end??power.value??power.start);
-   if(!Number.isFinite(from)||!Number.isFinite(to))throw new Error('Ugyldig wattmål i Intervals økten');
-   ramp(out,duration,from,to,0);
-  }
- };
- append(doc.steps);
- validateWorkout(out);
- return out;
+function setWorkoutLibraryTab(){
+ $('intervalsLibraryPanel').hidden=true;
+ $('presetLibraryPanel').hidden=false;
+ $('tabIntervals').hidden=true;
+ $('tabPresets').classList.add('active');
+ $('tabPresets').setAttribute('aria-selected','true');
 }
-function parseIntervalsWorkout(event){
- if(event.workout_file_base64){
-  const binary=atob(event.workout_file_base64);
-  const bytes=new Uint8Array(binary.length);
-  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
-  const zwo=new TextDecoder().decode(bytes);
-  const steps=parseZwo(zwo);
-  validateWorkout(steps);
-  return steps;
- }
- if(event.workout_doc?.steps?.length)return parseIntervalsDoc(event);
- return parsePresetDescription(event.description_raw||event.description||'');
-}
-function renderIntervalsEvents(events){
- INTERVALS_EVENTS=Array.isArray(events)?events:[];
- const container=$('intervalsCards');container.replaceChildren();
- if(!INTERVALS_EVENTS.length){
-  container.innerHTML='<div class="workout-empty">Ingen planlagte økter i lokal kopi.</div>';
-  return;
- }
- INTERVALS_EVENTS.sort((a,b)=>String(a.start_date_local||'').localeCompare(String(b.start_date_local||'')));
- INTERVALS_EVENTS.forEach(event=>{
-  try{
-   const steps=parseIntervalsWorkout(event);
-   addWorkoutCard(container,{name:event.name,date:event.start_date_local,steps,onSelect:()=>loadSelectedWorkout(event.name,steps)});
-  }catch(error){
-   addWorkoutCard(container,{name:event.name,date:event.start_date_local,error:'Kan ikke bygge økten: '+error.message});
-  }
- });
-}
-function intervalsStatusText(result){
- const date=result.cachedAt?new Date(result.cachedAt).toLocaleString('nb-NO'):'ingen lokal kopi';
- $('intervalsMeta').textContent=(result.message||'')+' · Sist lagret: '+date;
-}
-async function syncIntervals(showToast=false){
- if(INTERVALS_BUSY||!window.electronApp?.isElectron||typeof window.electronApp.intervalsSync!=='function')return;
- INTERVALS_BUSY=true;
- $('intervalsSync').disabled=true;
- try{
-  const result=await window.electronApp.intervalsSync();
-  renderIntervalsEvents(result.events||[]);
-  intervalsStatusText(result);
-  if(showToast)toast(result.message||'Intervals.icu synkronisert',!result.ok);
- }catch(error){
-  $('intervalsMeta').textContent='Kunne ikke synkronisere. Lokal treningsfunksjon er uendret.';
-  if(showToast)toast('Intervals.icu: '+error.message,true);
- }finally{INTERVALS_BUSY=false;$('intervalsSync').disabled=false}
-}
-function setWorkoutLibraryTab(tab){
- const intervals=tab==='intervals';
- $('intervalsLibraryPanel').hidden=!intervals;
- $('presetLibraryPanel').hidden=intervals;
- $('tabIntervals').classList.toggle('active',intervals);
- $('tabPresets').classList.toggle('active',!intervals);
- $('tabIntervals').setAttribute('aria-selected',String(intervals));
- $('tabPresets').setAttribute('aria-selected',String(!intervals));
-}
-$('bIntervals').onclick=()=>{setWorkoutLibraryTab('presets');workoutLibraryDialog.hidden=false};
+$('bIntervals').onclick=()=>{setWorkoutLibraryTab();workoutLibraryDialog.hidden=false};
 $('workoutLibraryClose').onclick=()=>{workoutLibraryDialog.hidden=true};
-$('tabIntervals').onclick=()=>setWorkoutLibraryTab('intervals');
-$('tabPresets').onclick=()=>setWorkoutLibraryTab('presets');
-$('intervalsSync').onclick=()=>syncIntervals(true);
-$('intervalsCredentials').onclick=async()=>{
- intervalsDialog.hidden=false;
- $('intervalsApiKey').value='';
- $('intervalsSaveStatus').textContent='';
- try{
-  const status=await window.electronApp?.intervalsStatus?.();
-  if(status?.connected)$('intervalsSaveStatus').textContent='API-nøkkel er lagret. Lim inn en ny nøkkel bare hvis du vil erstatte den.';
- }catch(error){$('intervalsSaveStatus').textContent=error.message}
-};
-$('intervalsCancel').onclick=()=>{intervalsDialog.hidden=true};
-$('intervalsSave').onclick=async()=>{
- const apiKey=$('intervalsApiKey').value.trim();
- if(!apiKey){$('intervalsSaveStatus').textContent='Lim inn API-nøkkelen først.';return}
- $('intervalsSave').disabled=true;
- $('intervalsSaveStatus').textContent='Lagrer nøkkelen sikkert …';
- try{
-  await window.electronApp.intervalsSaveCredentials({apiKey});
-  $('intervalsApiKey').value='';
-  $('intervalsSaveStatus').textContent='Nøkkelen er lagret. Synkroniserer …';
-  await syncIntervals(true);
-  intervalsDialog.hidden=true;
- }catch(error){$('intervalsSaveStatus').textContent=error.message}
- finally{$('intervalsSave').disabled=false}
-};
-$('intervalsDialog').addEventListener('click',event=>{if(event.target===intervalsDialog)intervalsDialog.hidden=true});
+$('tabPresets').onclick=setWorkoutLibraryTab;
 $('workoutLibraryDialog').addEventListener('click',event=>{if(event.target===workoutLibraryDialog)workoutLibraryDialog.hidden=true});
-async function initIntervalsSync(){
- if(!window.electronApp?.isElectron||typeof window.electronApp.intervalsStatus!=='function')return;
- try{
-  const status=await window.electronApp.intervalsStatus();
-  renderIntervalsEvents(status.events||[]);
-  intervalsStatusText({cachedAt:status.cachedAt,message:status.connected?'Lokal kopi lastet':'Ikke tilkoblet'});
-  if(status.connected)syncIntervals(false);
- }catch(error){$('intervalsMeta').textContent='Intervals.icu er ikke tilgjengelig'}
-}
 loadPresetWorkouts();
-setWorkoutLibraryTab('presets');
-$('tabIntervals').hidden=true;
-$('intervalsLibraryPanel').hidden=true;
-$('intervalsDialog').hidden=true;
+setWorkoutLibraryTab();
 
 
 /* ---------- Lyd og skjerm ---------- */

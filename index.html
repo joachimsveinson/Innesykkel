@@ -148,7 +148,7 @@ canvas{width:100%;height:100%;min-height:70px;display:block}
 
 #lp{padding:12px 14px;display:flex;flex-direction:column;min-height:0}
 #lrows{overflow-y:auto;flex:1;display:flex;flex-direction:column}
-.lr{display:grid;grid-template-columns:.5fr 1.3fr 1fr 1fr 1fr 1.3fr;gap:4px;padding:4px 8px;font-family:var(--font-mono);font-size:clamp(12px,1.4vw,18px);text-align:right;border-radius:8px}
+.lr{display:grid;grid-template-columns:.35fr .9fr .75fr .75fr .65fr .8fr .85fr .7fr;gap:4px;padding:4px 8px;font-family:var(--font-mono);font-size:clamp(9px,.9vw,12px);text-align:right;border-radius:8px}
 .lr>:first-child{text-align:left}
 .lr.h{font-family:var(--font-mono);text-transform:uppercase;font-size:10.5px;color:var(--mut);letter-spacing:0.02em;border-bottom:1px solid var(--line);margin-bottom:4px;padding-bottom:6px}
 .lr.cur{background:linear-gradient(180deg, rgba(25, 208, 232, 0.14) 0%, rgba(6, 47, 52, 0.4) 100%);color:var(--fg);border:1px solid rgba(25, 208, 232, 0.35)}
@@ -262,7 +262,7 @@ body.landing #land{display:flex}
 }
 body.analysis-open #analysisPage {
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 8px;
 }
 body.analysis-open { overflow: hidden; }
@@ -294,7 +294,7 @@ body.analysis-open { overflow: hidden; }
 }
 .an-group-title {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11.5px;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--mut);
@@ -306,20 +306,22 @@ body.analysis-open { overflow: hidden; }
 .an-group-grid {
   display: grid;
   grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
-  gap: 5px;
+  gap: 6px;
 }
 .an-metric {
   background: linear-gradient(180deg, #0d0d0d 0%, var(--obsidian) 100%);
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 5px 8px;
+  padding: 7px 9px;
   min-width: 0;
 }
 .an-metric span {
   display: block;
   font-family: var(--font-mono);
-  color: var(--mut);
-  font-size: 9px;
+  color: var(--ghost);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
@@ -328,14 +330,17 @@ body.analysis-open { overflow: hidden; }
 .an-metric b {
   display: block;
   font-family: var(--font-mono);
-  font-size: clamp(13px, 1.3vw, 18px);
-  margin-top: 1px;
+  font-size: clamp(16px, 1.5vw, 21px);
+  line-height: 1.05;
+  margin-top: 3px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.an-best-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
+.an-best-grid .an-metric { padding:7px 9px; }
 .an-zones-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -368,7 +373,7 @@ body.analysis-open { overflow: hidden; }
   margin-bottom: 5px;
 }
 .zone-card h3 small {
-  font-size: 9.5px;
+  font-size: 11px;
   color: var(--mut);
 }
 .zone-stats {
@@ -383,7 +388,7 @@ body.analysis-open { overflow: hidden; }
   background: rgba(1, 1, 1, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  padding: 2px 5px;
+  padding: 4px 6px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -391,7 +396,8 @@ body.analysis-open { overflow: hidden; }
 }
 .zone-stats span {
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 9.5px;
+  font-weight: 500;
   text-transform: uppercase;
   color: var(--mut);
   white-space: nowrap;
@@ -400,7 +406,7 @@ body.analysis-open { overflow: hidden; }
 }
 .zone-stats b {
   font-family: var(--font-mono);
-  font-size: clamp(10.5px, 1vw, 13px);
+  font-size: clamp(12px, 1.1vw, 15px);
   line-height: 1.1;
   font-weight: 500;
   white-space: nowrap;
@@ -427,24 +433,24 @@ body.analysis-open { overflow: hidden; }
 .an-panel h2 {
   font-family: var(--font-mono);
   font-style: normal;
-  font-size: 10px;
+  font-size: 11.5px;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--mut);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 .an-kv {
   display: flex;
   justify-content: space-between;
   font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 2.5px 0;
+  font-size: 12px;
+  padding: 4px 0;
   border-bottom: 1px solid var(--line);
   gap: 4px;
 }
 .an-kv span {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--mut);
   white-space: nowrap;
   overflow: hidden;
@@ -469,16 +475,39 @@ body.analysis-open { overflow: hidden; }
   .an-mid-groups { grid-template-columns: 1fr; }
   .an-group-grid { grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)) !important; }
   .an-zones-grid { grid-template-columns: repeat(4, 1fr); overflow-y: auto; }
+  .an-best-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
   .an-bottom-grid { grid-template-columns: repeat(2, 1fr); }
   #analysisPage { overflow-y: auto; }
 }
 
-#presetPanel{display:none;flex:none;max-height:22vh;overflow:auto;padding:10px 14px;background:linear-gradient(180deg,#1d1d1d 0%,var(--card) 55%,#111 100%);border:1px solid var(--line);border-radius:var(--rad-card);font-family:var(--font-mono)}
-#presetPanel.on{display:block}
-#presetPanel .preset-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-#presetPanel label{font-size:11px;color:var(--mut);text-transform:uppercase}
-#presetSelect{min-width:min(100%,280px);max-width:100%;padding:7px 10px;background:var(--obsidian);color:var(--fg);border:1px solid var(--line);border-radius:8px;font:12px var(--font-mono)}
-#presetMeta{font-size:10px;color:var(--mut)}
+#workoutLibraryDialog{z-index:30}
+#workoutLibraryDialog .library-box{width:min(1000px,96vw);max-width:1000px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+#workoutLibraryDialog h2{font-size:36px;margin-bottom:0}
+.library-tabs{display:flex;gap:8px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.library-tab{border:1px solid var(--line);border-radius:999px;background:var(--obsidian);padding:9px 15px;color:var(--mut);cursor:pointer;font:12px var(--font-mono)}
+.library-tab.active{color:var(--fg);border-color:var(--cyan);background:rgba(25,208,232,.1)}
+.library-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--mut);font-size:11px}
+.library-toolbar span{flex:1;min-width:180px}
+.workout-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;overflow:auto;min-height:180px;max-height:58vh;padding:2px}
+.workout-card{display:flex;flex-direction:column;gap:8px;text-align:left;min-width:0;padding:12px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,#1c1c1c,#101010);color:var(--fg);cursor:pointer}
+.workout-card:hover{border-color:var(--cyan);background:linear-gradient(180deg,rgba(25,208,232,.12),#101010)}
+.workout-card:disabled{cursor:default;opacity:.55}
+.workout-card strong{font:500 12px/1.35 var(--font-mono);overflow-wrap:anywhere}
+.workout-card small{font:10px var(--font-mono);color:var(--mut)}
+.workout-profile{height:76px;border-radius:7px;background:#080808;border:1px solid var(--line);padding:4px}
+.workout-profile svg{width:100%;height:100%;display:block}
+.workout-empty{grid-column:1/-1;color:var(--mut);font:12px var(--font-mono);padding:24px;text-align:center}
+#intervalsDialog{position:fixed;inset:0;z-index:40;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px}
+#intervalsDialog[hidden]{display:none}
+#intervalsDialog .intervals-box{width:min(460px,100%);background:linear-gradient(180deg,#242424,#111);border:1px solid var(--line-hi);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 70px #000a}
+#intervalsDialog h2{font-size:28px}
+#intervalsDialog p{font-size:12px;color:var(--mut);line-height:1.5}
+#intervalsDialog label{font-size:11px;color:var(--mut);text-transform:uppercase}
+#intervalsApiKey{width:100%;padding:10px;background:#080808;color:var(--fg);font:13px var(--font-mono);border:1px solid var(--line);border-radius:8px}
+#intervalsActions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+#intervalsSaveStatus{font-size:11px;color:var(--mut);min-height:16px}
+@media(max-width:760px){.workout-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.workout-grid{grid-template-columns:1fr}.library-box{padding:16px!important}}
 </style></head>
 <body>
 <div id="warn">Web Bluetooth mangler i denne visningen – åpne i Chrome (Mac/PC) eller Bluefy (iPad) for sensortilkobling.</div>
@@ -495,6 +524,7 @@ body.analysis-open { overflow: hidden; }
   <label>Maks puls <input id="maxHrSet" type="number" min="80" max="230" value="188" aria-label="Maksimal puls"> bpm</label>
   <label class="file" id="fileLbl" hidden>Last økt (.zwo / .mrc)<input id="file" type="file"></label>
  </div>
+ <button class="conn" id="bIntervals" style="min-width:0;justify-content:center"><b>Øktbibliotek</b></button>
  <button class="conn" id="bAnalysis" style="min-width:0;justify-content:center"><b>Analyse</b></button>
  <button class="conn" id="bKeys" title="Hurtigtaster (?)" style="min-width:0;justify-content:center"><b>?</b></button>
 </header>
@@ -545,12 +575,10 @@ body.analysis-open { overflow: hidden; }
  <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#ffffff" stroke-opacity=".35" stroke-dasharray="4 3"/></svg>FTP</span>
  <span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#fff" stroke-width="2"/></svg>Watt</span><span><svg width="20" height="12"><line x1="1" y1="6" x2="19" y2="6" stroke="#AD5358" stroke-width="2"/></svg>Puls</span>
 </div><div id="tip"></div></div>
-  <section id="presetPanel" aria-label="Forhåndslagrede treningsøkter">
-   <div class="preset-head"><label for="presetSelect">Forhåndslagret økt</label><select id="presetSelect"><option value="">Velg økt …</option></select><span id="presetMeta"></span></div>
-  </section>
+
  </div>
  <aside id="lp" aria-label="Rundeliste">
-  <div class="lr h"><span>#</span><span>Tid</span><span>Watt</span><span>Puls</span><span>Kad</span><span>Maks puls</span></div>
+  <div class="lr h"><span>#</span><span>Tid</span><span>Watt</span><span>Puls</span><span>Kad</span><span>Maks</span><span>Puls 20%</span><span>EF</span></div>
   <div id="lrows"></div>
  </aside>
 </div>
@@ -644,6 +672,11 @@ body.analysis-open { overflow: hidden; }
     <div class="an-group-grid" id="anPowerMetrics" style="--cols:10"></div>
   </div>
 
+  <div class="an-group">
+    <div class="an-group-title">Rullerende best efforts</div>
+    <div class="an-best-grid" id="anBestEfforts"></div>
+  </div>
+
   <!-- Rad 2: Puls og Økt side om side (5 kolonner i Økt for Kadens + Torque + Tid) -->
   <div class="an-mid-groups">
     <div class="an-group hr-grp">
@@ -699,6 +732,37 @@ body.analysis-open { overflow: hidden; }
   <button class="big" id="cfmNo" style="min-height:48px;padding:0 28px">Nei</button>
  </div>
 </div>
+<div id="workoutLibraryDialog" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="workoutLibraryTitle">
+ <div class="mbox library-box">
+  <h2 id="workoutLibraryTitle">Øktbibliotek</h2>
+  <div class="library-tabs">
+   <button class="library-tab active" id="tabIntervals" aria-selected="true">Intervals Kalender</button>
+   <button class="library-tab" id="tabPresets" aria-selected="false">Forhåndslagrede økter</button>
+  </div>
+  <section id="intervalsLibraryPanel">
+   <div class="library-toolbar"><span id="intervalsMeta" aria-live="polite">Laster kalender …</span><button class="big" id="intervalsSync">Synkroniser</button><button class="big" id="intervalsCredentials">API-nøkkel</button></div>
+   <div class="workout-grid" id="intervalsCards"><div class="workout-empty">Laster planlagte økter …</div></div>
+  </section>
+  <section id="presetLibraryPanel" hidden>
+   <div class="library-toolbar"><span id="presetMeta">Laster øktbiblioteket …</span></div>
+   <div class="workout-grid" id="presetCards"><div class="workout-empty">Laster forhåndslagrede økter …</div></div>
+  </section>
+  <div class="row"><button class="big" id="workoutLibraryClose">Lukk</button></div>
+ </div>
+</div>
+<div id="intervalsDialog" hidden role="dialog" aria-modal="true" aria-labelledby="intervalsTitle">
+ <div class="intervals-box">
+  <h2 id="intervalsTitle">Intervals.icu</h2>
+  <p>Lim inn din personlige API-nøkkel fra Intervals.icu. Nøkkelen lagres kryptert i macOS nøkkellagring. Appen henter dagens plan og de neste 7 dagene. Appen utfører bare lesekall. Behandle API-nøkkelen som et passord.</p>
+  <label for="intervalsApiKey">Personlig API-nøkkel</label>
+  <input id="intervalsApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Lim inn API-nøkkel">
+  <div id="intervalsSaveStatus" aria-live="polite"></div>
+  <div id="intervalsActions">
+   <button class="big" id="intervalsCancel">Lukk</button>
+   <button class="big go" id="intervalsSave">Lagre og synkroniser</button>
+  </div>
+ </div>
+</div>
 <script>
 /* ---------- intern bekreftelsesdialog ---------- */
 function uiConfirm(msg,key){
@@ -711,6 +775,7 @@ function uiConfirm(msg,key){
  });
 }
 const $=id=>document.getElementById(id);
+const $2=id=>document.getElementById(id);
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const avg=a=>{a=a.filter(x=>x!=null);return a.length?a.reduce((s,x)=>s+x,0)/a.length:null};
@@ -756,11 +821,13 @@ if(!navigator.bluetooth){$('warn').style.display='block'}
 let toastTimer=null;
 function toast(txt,err){
  const t=$('toast');
- t.innerHTML=err?`<span class="tmsg err">${txt}</span>`:`<span class="tmsg">${txt}</span>`;
+ const span=document.createElement('span');
+ span.className=err?'tmsg err':'tmsg';
+ span.textContent=txt==null?'':String(txt);
+ t.replaceChildren(span);
  clearTimeout(toastTimer);
- if(!err)toastTimer=setTimeout(()=>{if(!t.dataset.sticky)t.innerHTML=''},8000);
+ if(!err)toastTimer=setTimeout(()=>{if(!t.dataset.sticky)t.replaceChildren()},8000);
 }
-function toastSticky(html){const t=$('toast');t.dataset.sticky='1';t.innerHTML=`<span class="tmsg">${html}</span>`}
 function toastClear(){$('toast').dataset.sticky='';toast('')}
 
 window.addEventListener('beforeunload',e=>{if(S.state==='running'||S.state==='paused'){save();e.preventDefault();e.returnValue=''}});
@@ -805,13 +872,21 @@ async function readBattery(c,srv){
   try{bc.addEventListener('characteristicvaluechanged',e=>{c.bat=e.target.value.getUint8(0);c.batT=Date.now()});await bc.startNotifications()}catch(_){}
  }catch(e){}
 }
+let BT_PAIRING=false;
 async function pair(k){
  const c=D[k];
  if(c.dev){
   if(c.ok&&!(await uiConfirm(`Frakoble ${cName(k)}? Du mister data fra denne sensoren.`)))return;
   c.manual=true;c.ok=false;try{c.dev.gatt.disconnect()}catch(e){}c.dev=null;status(k,'Frakoblet');return}
+ if(BT_PAIRING)return;
+ BT_PAIRING=true;
+ document.querySelectorAll('.conn[data-k]').forEach(b=>b.disabled=true);
  c.stage='velge enhet';
  try{
+  await BT_REMEMBERED_READY;
+  if(window.electronApp?.isElectron&&window.electronApp.bluetoothSetPickerCategory){
+   await window.electronApp.bluetoothSetPickerCategory(k);
+  }
   c.dev=await navigator.bluetooth.requestDevice(BT_ALL?{acceptAllDevices:true,optionalServices:[U(c.svc),U(0x180F)]}:{filters:[{services:[U(c.svc)]}],optionalServices:[U(c.svc),U(0x180F)]});
   if(BT_ALL)BT_ALL=false;
   const dup=Object.keys(D).find(o=>o!==k&&D[o].dev&&D[o].dev.id===c.dev.id);
@@ -820,7 +895,6 @@ async function pair(k){
   if(k==='power'&&/assioma.*l$/i.test(c.dev.name||''))toast('Assioma venstre pedal valgt. Den sender samlet watt når pedalene er paret i Favero-appen.');
   c.manual=false;
   c.dev.addEventListener('gattserverdisconnected',()=>lost(k));
-  rememberSensor(k,c.dev);
   await link(k);
  }catch(e){
   console.error(e);
@@ -829,36 +903,42 @@ async function pair(k){
   c.dev=null;status(k,'Feil – se melding');
   let ekstra='';
   if(c.stage==='velge enhet'&&e&&e.name!=='NotFoundError'&&!BT_ALL){BT_ALL=true;ekstra=' · Trykk på knappen igjen: da vises alle Bluetooth-enheter i nærheten'}
-  toast(`${cName(k)} – ${d}${ekstra}`,true)}
+  toast(`${cName(k)} – ${d}${ekstra}`,true)
+ }finally{
+  BT_PAIRING=false;
+  document.querySelectorAll('.conn[data-k]').forEach(b=>b.disabled=false)
+ }
 }
 function cName(k){return{trainer:'Kickr Core',power:'Wattpedaler',hr:'pulsbeltet',core:'CORE-sensoren'}[k]||k}
 const BT_STORAGE_KEY='innesykkel.bluetooth.devices';
 function rememberedSensors(){
  try{return JSON.parse(localStorage.getItem(BT_STORAGE_KEY)||'{}')||{}}catch(e){return{}}
 }
+let BT_REMEMBERED={}
+const BT_IPC=()=>!!(window.electronApp?.isElectron&&window.electronApp.bluetoothRemembered&&window.electronApp.bluetoothRemember);
+async function loadRememberedSensors(){
+ if(!BT_IPC()){BT_REMEMBERED=rememberedSensors();return BT_REMEMBERED}
+ // Electron: the file in userData is the only source of truth.
+ try{BT_REMEMBERED=await window.electronApp.bluetoothRemembered()||{}}catch(e){console.warn('Kunne ikke lese lagrede Bluetooth-sensorer',e);BT_REMEMBERED={}}
+ if(!Object.keys(BT_REMEMBERED).length){
+  // One-time migration from old localStorage data.
+  const legacy=rememberedSensors();
+  for(const k of Object.keys(legacy)){
+   const item=legacy[k];
+   if(item&&item.id){BT_REMEMBERED[k]=item;window.electronApp.bluetoothRemember(k,item).catch(()=>{})}
+  }
+ }
+ return BT_REMEMBERED;
+}
 function rememberSensor(k,dev){
  if(!dev||!dev.id)return;
- const saved=rememberedSensors();saved[k]={id:dev.id,name:dev.name||cName(k)};
- try{localStorage.setItem(BT_STORAGE_KEY,JSON.stringify(saved))}catch(e){}
-}
-async function restoreBluetoothSensors(){
- if(!navigator.bluetooth||typeof navigator.bluetooth.getDevices!=='function')return;
- const saved=rememberedSensors();
- if(!Object.keys(saved).length)return;
- try{
-  const devices=await navigator.bluetooth.getDevices();
-  for(const k of Object.keys(D)){
-   const item=saved[k];if(!item)continue;
-   const dev=devices.find(x=>x.id===item.id);
-   if(!dev){status(k,'Godkjent – ikke funnet');continue}
-   const c=D[k];c.dev=dev;c.manual=false;
-   dev.addEventListener('gattserverdisconnected',()=>lost(k));
-   try{await link(k)}catch(e){
-    c.ok=false;status(k,'Trykk for å koble til');
-    console.warn('Automatisk Bluetooth-tilkobling feilet for '+cName(k),e);
-   }
-  }
- }catch(e){console.warn('Kunne ikke hente tidligere godkjente Bluetooth-enheter',e)}
+ const item={id:dev.id,name:dev.name||cName(k)};
+ BT_REMEMBERED[k]=item;
+ if(BT_IPC()){
+  window.electronApp.bluetoothRemember(k,item).catch(e=>console.warn('Kunne ikke lagre Bluetooth-sensor',e));
+ }else{
+  try{localStorage.setItem(BT_STORAGE_KEY,JSON.stringify(BT_REMEMBERED))}catch(e){}
+ }
 }
 async function link(k){
  const c=D[k];status(k,'Kobler til …','try');
@@ -866,7 +946,7 @@ async function link(k){
  c.stage='finne tjeneste';const svc=await srv.getPrimaryService(U(c.svc));
  c.stage='finne karakteristikk';const ch=await svc.getCharacteristic(U(c.chr));
  c.srv=srv;c.svcObj=svc;c.ch=ch;c.n=0;
- ch.addEventListener('characteristicvaluechanged',e=>{c.t=Date.now();c.n=(c.n||0)+1;try{if(k==='core'){const v=e.target.value;c.rawHex=Array.from(new Uint8Array(v.buffer,v.byteOffset,v.byteLength)).map(x=>x.toString(16).padStart(2,'0')).join(' ')}c.parse(e.target.value)}catch(err){c.err=String(err)}});
+ ch.addEventListener('characteristicvaluechanged',e=>{c.t=Date.now();c.staleWarned=false;c.n=(c.n||0)+1;try{if(k==='core'){const v=e.target.value;c.rawHex=Array.from(new Uint8Array(v.buffer,v.byteOffset,v.byteLength)).map(x=>x.toString(16).padStart(2,'0')).join(' ')}c.parse(e.target.value)}catch(err){c.err=String(err)}});
  c.stage='slå på varsler (startNotifications)';await ch.startNotifications();
  await readBattery(c,srv);
  if(k==='trainer'){
@@ -962,34 +1042,13 @@ $('file').onchange=async e=>{
 };
 
 
-/* ---------- Forhåndslagrede økter fra ekstern JSON ---------- */
+/* ---------- Øktbibliotek: Intervals Kalender og forhåndslagrede økter ---------- */
 let PRESET_WORKOUTS=[];
-async function loadPresetWorkouts(){
- const select=$('presetSelect');
- const meta=$('presetMeta');
- select.replaceChildren(new Option('Laster øktbiblioteket …',''));
- select.disabled=true;
- const url=new URL('./workouts.json',document.baseURI);
- try{
-  const response=await fetch(url.href,{cache:'no-store'});
-  if(!response.ok)throw new Error('HTTP '+response.status+' '+response.statusText);
-  const data=await response.json();
-  if(!data||!Array.isArray(data.workouts))throw new Error('JSON mangler listen «workouts»');
-  if(data.workout_count!==undefined&&data.workout_count!==data.workouts.length)throw new Error('Antall økter stemmer ikke med workout_count');
-  PRESET_WORKOUTS=data.workouts;
-  select.replaceChildren(new Option('Velg forhåndslagret økt',''));
-  PRESET_WORKOUTS.forEach(w=>{
-   if(!w||w.id==null||!w.name)throw new Error('En økt mangler id eller name');
-   const o=document.createElement('option');o.value=String(w.id);o.textContent=w.name;select.appendChild(o);
-  });
-  select.disabled=false;
-  meta.textContent=PRESET_WORKOUTS.length+' økter lastet fra workouts.json';
- }catch(err){
-  console.error('Kunne ikke laste øktbiblioteket fra '+url.href,err);
-  meta.textContent='Kunne ikke laste øktbiblioteket: '+err.message;
-  select.replaceChildren(new Option('Øktbiblioteket kunne ikke lastes',''));
- }
-}
+let INTERVALS_EVENTS=[];
+let INTERVALS_BUSY=false;
+const intervalsDialog=$('intervalsDialog');
+const workoutLibraryDialog=$('workoutLibraryDialog');
+
 function parsePresetDescription(description){
  const lines=String(description||'').split(/\r?\n/);
  const out=[];
@@ -1010,7 +1069,14 @@ function parsePresetDescription(description){
   const percentMatch=line.match(/(\d+(?:[.,]\d+)?)\s*(?:-|–|til)\s*(\d+(?:[.,]\d+)?)\s*%|(\d+(?:[.,]\d+)?)\s*%/i);
   let pct=null;
   if(percentMatch){
-   pct=percentMatch[3]!=null?Number(percentMatch[3].replace(',','.')):(Number(percentMatch[1].replace(',','.'))+Number(percentMatch[2].replace(',','.')))/2;
+   if(percentMatch[3]==null){
+    const from=Number(percentMatch[1].replace(',','.'));
+    const to=Number(percentMatch[2].replace(',','.'));
+    if(/\bramp\b/i.test(line))ramp(out,duration,from,to,0);
+    else ramp(out,duration,from,to,0,'range');
+    return;
+   }
+   pct=Number(percentMatch[3].replace(',','.'));
   }else{
    const zoneMatch=line.match(/\bz\s*([1-7])\b|intensity\s*=\s*z\s*([1-7])/i);
    if(zoneMatch){
@@ -1030,7 +1096,7 @@ function parsePresetDescription(description){
  for(const raw of lines){
   const line=raw.trim();
   if(!line){if(group.length)flush();continue}
-  const repeatMatch=line.match(/^(\d+)\s*x\s*$/i);
+  const repeatMatch=line.match(/(?:^|\s)(\d+)\s*x\s*$/i);
   if(repeatMatch){flush();repeat=Math.min(100,Number(repeatMatch[1]));continue}
   if(/^(warmup|cooldown)\s*:?$/i.test(line)){flush();continue}
   if(/\d/.test(line)&&/(?:m(?:in)?|s)\b/i.test(line))group.push(line);
@@ -1039,23 +1105,215 @@ function parsePresetDescription(description){
  validateWorkout(out);
  return out;
 }
-$('presetSelect').onchange=()=>{
- const w=PRESET_WORKOUTS.find(x=>String(x.id)===$('presetSelect').value);
- if(!w){
-  $('presetMeta').textContent=PRESET_WORKOUTS.length+' økter lastet fra workouts.json';
+
+function miniWorkoutSvg(steps){
+ const total=Math.max(1,steps.reduce((sum,x)=>sum+x.d,0));
+ const max=Math.max(100,...steps.map(x=>Math.max(x.p0??x.p??0,x.p1??x.p??0,x.rg?.[1]??0)));
+ const top=5,bottom=65,height=bottom-top,width=300;
+ const y=p=>bottom-clamp(p/max,0,1)*height;
+ const shapes=[];
+ let elapsed=0;
+ steps.forEach(step=>{
+  const x1=elapsed/total*width,x2=(elapsed+step.d)/total*width;
+  const p0=step.p0??step.p??0,p1=step.p1??step.p??p0;
+  const mid=step.rg?(step.rg[0]+step.rg[1])/2:(p0+p1)/2;
+  const color=step.free?'#5A6266':col(mid);
+  const y0=y(p0),y1=y(p1),ym=y(mid);
+  shapes.push('<path d="M'+x1.toFixed(2)+' '+bottom+' L'+x1.toFixed(2)+' '+y0.toFixed(2)+' L'+x2.toFixed(2)+' '+y1.toFixed(2)+' L'+x2.toFixed(2)+' '+bottom+' Z" fill="'+color+'" fill-opacity=".78" stroke="'+color+'" stroke-width=".45"/>');
+  if(step.rg){
+   const ya=y(step.rg[1]),yb=y(step.rg[0]);
+   shapes.push('<path d="M'+x1.toFixed(2)+' '+ya.toFixed(2)+' H'+x2.toFixed(2)+' M'+x1.toFixed(2)+' '+yb.toFixed(2)+' H'+x2.toFixed(2)+'" stroke="rgba(255,255,255,.9)" stroke-width="1.2" fill="none"/>');
+  }
+  if(step.free){
+   shapes.push('<path d="M'+x1.toFixed(2)+' '+bottom+' L'+x1.toFixed(2)+' '+y0.toFixed(2)+' L'+x2.toFixed(2)+' '+y1.toFixed(2)+' L'+x2.toFixed(2)+' '+bottom+'" fill="none" stroke="#a4a4a4" stroke-width=".7" stroke-dasharray="2 2"/>');
+  }
+  elapsed+=step.d;
+ });
+ const guides=[55,76,91,106,121,151].filter(v=>v<max).map(v=>'<line x1="0" y1="'+y(v).toFixed(2)+'" x2="'+width+'" y2="'+y(v).toFixed(2)+'" stroke="#ffffff" stroke-opacity=".13" stroke-width=".7"/>').join('');
+ return '<svg viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true">'+guides+'<path d="M0 '+bottom+' H300" stroke="#777" stroke-opacity=".5" stroke-width=".8"/>'+shapes.join('')+'</svg>';
+}
+function formatWorkoutDate(value){
+ const raw=String(value||'').slice(0,10);
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(raw))return raw||'Dato ikke oppgitt';
+ const d=new Date(raw+'T12:00:00');
+ return d.toLocaleDateString('nb-NO',{weekday:'short',day:'numeric',month:'short'});
+}
+function addWorkoutCard(container,{name,date,steps,onSelect,error}){
+ const card=document.createElement('button');
+ card.type='button';card.className='workout-card';card.disabled=!!error;
+ const title=document.createElement('strong');title.textContent=name||'Økt uten navn';
+ const profile=document.createElement('div');profile.className='workout-profile';
+ if(steps&&steps.length)profile.innerHTML=miniWorkoutSvg(steps);
+ else profile.textContent='Ingen øktprofil';
+ const meta=document.createElement('small');
+ meta.textContent=error?error:(date?formatWorkoutDate(date)+' · ':'')+(steps&&steps.length?fmt(steps.reduce((sum,x)=>sum+x.d,0))+' · '+steps.length+' steg':'');
+ card.append(title,profile,meta);
+ if(onSelect)card.addEventListener('click',onSelect);
+ container.appendChild(card);
+}
+function loadSelectedWorkout(name,steps){
+ validateWorkout(steps);
+ setWorkout(steps);
+ workoutLibraryDialog.hidden=true;
+ toast(name+' · '+steps.length+' steg · '+fmt(S.total));
+}
+function renderPresetCards(){
+ const container=$('presetCards');container.replaceChildren();
+ if(!PRESET_WORKOUTS.length){container.innerHTML='<div class="workout-empty">Ingen forhåndslagrede økter er tilgjengelige.</div>';return}
+ PRESET_WORKOUTS.forEach(workout=>{
+  try{
+   const steps=parsePresetDescription(workout.description_raw||workout.description||'');
+   addWorkoutCard(container,{name:workout.name,steps,onSelect:()=>loadSelectedWorkout(workout.name,steps)});
+  }catch(error){
+   addWorkoutCard(container,{name:workout.name,error:'Kunne ikke lese økten: '+error.message});
+  }
+ });
+}
+async function loadPresetWorkouts(){
+ const meta=$('presetMeta'),container=$('presetCards');
+ meta.textContent='Laster øktbiblioteket …';
+ try{
+  const url=new URL('./workouts.json',document.baseURI);
+  const data=window.electronApp?.isElectron&&typeof window.electronApp.loadWorkouts==='function'
+   ?await window.electronApp.loadWorkouts()
+   :await (async()=>{const response=await fetch(url.href,{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);return response.json()})();
+  if(!data||!Array.isArray(data.workouts))throw new Error('JSON mangler listen workouts');
+  if(data.workout_count!==undefined&&data.workout_count!==data.workouts.length)throw new Error('Antall økter stemmer ikke med workout_count');
+  PRESET_WORKOUTS=data.workouts;
+  meta.textContent=PRESET_WORKOUTS.length+' økter i biblioteket';
+  renderPresetCards();
+ }catch(error){
+  meta.textContent='Kunne ikke laste øktbiblioteket: '+error.message;
+  container.innerHTML='<div class="workout-empty">Øktbiblioteket kunne ikke lastes.</div>';
+ }
+}
+function parseIntervalsDoc(event){
+ const doc=event.workout_doc;
+ if(!doc||!Array.isArray(doc.steps)||!doc.steps.length)throw new Error('Ingen strukturert økt eller ZWO-fil fra Intervals.icu');
+ const out=[];
+ const append=(items,reps=1)=>{
+  for(let r=0;r<reps;r++)for(const step of items){
+   if(Array.isArray(step.steps)&&step.steps.length){append(step.steps,Math.max(1,Number(step.reps)||1));continue}
+   const duration=Number(step.duration);
+   if(!(duration>0))continue;
+   if(step.freeride){ramp(out,duration,60,60,1);continue}
+   const power=step.power;
+   if(!power)throw new Error('Et steg mangler wattmål');
+   const units=String(power.units||'').toLowerCase();
+   const convert=value=>units==='w'||units==='watts'?Number(value)/S.ftp*100:Number(value);
+   const from=convert(power.start??power.value??power.end);
+   const to=convert(power.end??power.value??power.start);
+   if(!Number.isFinite(from)||!Number.isFinite(to))throw new Error('Ugyldig wattmål i Intervals økten');
+   ramp(out,duration,from,to,0);
+  }
+ };
+ append(doc.steps);
+ validateWorkout(out);
+ return out;
+}
+function parseIntervalsWorkout(event){
+ if(event.workout_file_base64){
+  const binary=atob(event.workout_file_base64);
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+  const zwo=new TextDecoder().decode(bytes);
+  const steps=parseZwo(zwo);
+  validateWorkout(steps);
+  return steps;
+ }
+ if(event.workout_doc?.steps?.length)return parseIntervalsDoc(event);
+ return parsePresetDescription(event.description_raw||event.description||'');
+}
+function renderIntervalsEvents(events){
+ INTERVALS_EVENTS=Array.isArray(events)?events:[];
+ const container=$('intervalsCards');container.replaceChildren();
+ if(!INTERVALS_EVENTS.length){
+  container.innerHTML='<div class="workout-empty">Ingen planlagte økter i lokal kopi.</div>';
   return;
  }
+ INTERVALS_EVENTS.sort((a,b)=>String(a.start_date_local||'').localeCompare(String(b.start_date_local||'')));
+ INTERVALS_EVENTS.forEach(event=>{
+  try{
+   const steps=parseIntervalsWorkout(event);
+   addWorkoutCard(container,{name:event.name,date:event.start_date_local,steps,onSelect:()=>loadSelectedWorkout(event.name,steps)});
+  }catch(error){
+   addWorkoutCard(container,{name:event.name,date:event.start_date_local,error:'Kan ikke bygge økten: '+error.message});
+  }
+ });
+}
+function intervalsStatusText(result){
+ const date=result.cachedAt?new Date(result.cachedAt).toLocaleString('nb-NO'):'ingen lokal kopi';
+ $('intervalsMeta').textContent=(result.message||'')+' · Sist lagret: '+date;
+}
+async function syncIntervals(showToast=false){
+ if(INTERVALS_BUSY||!window.electronApp?.isElectron||typeof window.electronApp.intervalsSync!=='function')return;
+ INTERVALS_BUSY=true;
+ $('intervalsSync').disabled=true;
  try{
-  const steps=parsePresetDescription(w.description_raw);
-  setWorkout(steps);
-  $('presetMeta').textContent=w.name+' · '+S.steps.length+' steg · '+fmt(S.total)+(w.training_load!=null?' · Belastning '+w.training_load:'');
-  toast(w.name+' · '+S.steps.length+' steg · '+fmt(S.total));
- }catch(err){
-  $('presetMeta').textContent='Kunne ikke bygge økten: '+err.message;
-  toast('Feil i forhåndslagret økt: '+err.message,true);
- }
+  const result=await window.electronApp.intervalsSync();
+  renderIntervalsEvents(result.events||[]);
+  intervalsStatusText(result);
+  if(showToast)toast(result.message||'Intervals.icu synkronisert',!result.ok);
+ }catch(error){
+  $('intervalsMeta').textContent='Kunne ikke synkronisere. Lokal treningsfunksjon er uendret.';
+  if(showToast)toast('Intervals.icu: '+error.message,true);
+ }finally{INTERVALS_BUSY=false;$('intervalsSync').disabled=false}
+}
+function setWorkoutLibraryTab(tab){
+ const intervals=tab==='intervals';
+ $('intervalsLibraryPanel').hidden=!intervals;
+ $('presetLibraryPanel').hidden=intervals;
+ $('tabIntervals').classList.toggle('active',intervals);
+ $('tabPresets').classList.toggle('active',!intervals);
+ $('tabIntervals').setAttribute('aria-selected',String(intervals));
+ $('tabPresets').setAttribute('aria-selected',String(!intervals));
+}
+$('bIntervals').onclick=()=>{setWorkoutLibraryTab('presets');workoutLibraryDialog.hidden=false};
+$('workoutLibraryClose').onclick=()=>{workoutLibraryDialog.hidden=true};
+$('tabIntervals').onclick=()=>setWorkoutLibraryTab('intervals');
+$('tabPresets').onclick=()=>setWorkoutLibraryTab('presets');
+$('intervalsSync').onclick=()=>syncIntervals(true);
+$('intervalsCredentials').onclick=async()=>{
+ intervalsDialog.hidden=false;
+ $('intervalsApiKey').value='';
+ $('intervalsSaveStatus').textContent='';
+ try{
+  const status=await window.electronApp?.intervalsStatus?.();
+  if(status?.connected)$('intervalsSaveStatus').textContent='API-nøkkel er lagret. Lim inn en ny nøkkel bare hvis du vil erstatte den.';
+ }catch(error){$('intervalsSaveStatus').textContent=error.message}
 };
+$('intervalsCancel').onclick=()=>{intervalsDialog.hidden=true};
+$('intervalsSave').onclick=async()=>{
+ const apiKey=$('intervalsApiKey').value.trim();
+ if(!apiKey){$('intervalsSaveStatus').textContent='Lim inn API-nøkkelen først.';return}
+ $('intervalsSave').disabled=true;
+ $('intervalsSaveStatus').textContent='Lagrer nøkkelen sikkert …';
+ try{
+  await window.electronApp.intervalsSaveCredentials({apiKey});
+  $('intervalsApiKey').value='';
+  $('intervalsSaveStatus').textContent='Nøkkelen er lagret. Synkroniserer …';
+  await syncIntervals(true);
+  intervalsDialog.hidden=true;
+ }catch(error){$('intervalsSaveStatus').textContent=error.message}
+ finally{$('intervalsSave').disabled=false}
+};
+$('intervalsDialog').addEventListener('click',event=>{if(event.target===intervalsDialog)intervalsDialog.hidden=true});
+$('workoutLibraryDialog').addEventListener('click',event=>{if(event.target===workoutLibraryDialog)workoutLibraryDialog.hidden=true});
+async function initIntervalsSync(){
+ if(!window.electronApp?.isElectron||typeof window.electronApp.intervalsStatus!=='function')return;
+ try{
+  const status=await window.electronApp.intervalsStatus();
+  renderIntervalsEvents(status.events||[]);
+  intervalsStatusText({cachedAt:status.cachedAt,message:status.connected?'Lokal kopi lastet':'Ikke tilkoblet'});
+  if(status.connected)syncIntervals(false);
+ }catch(error){$('intervalsMeta').textContent='Intervals.icu er ikke tilgjengelig'}
+}
 loadPresetWorkouts();
+setWorkoutLibraryTab('presets');
+$('tabIntervals').hidden=true;
+$('intervalsLibraryPanel').hidden=true;
+$('intervalsDialog').hidden=true;
+
 
 /* ---------- Lyd og skjerm ---------- */
 let ac,wl;
@@ -1063,21 +1321,23 @@ function beep(f,d){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain()
 async function lock(){try{wl=await navigator.wakeLock.request('screen')}catch(e){}}
 function unlock(){try{wl&&wl.release()}catch(e){}wl=null}
 document.addEventListener('visibilitychange',()=>{
- if(document.visibilityState==='hidden'){S.hiddenAt=Date.now();return}
- if(S.state==='running')lock();
- const away=S.hiddenAt?Date.now()-S.hiddenAt:0;S.hiddenAt=null;
- if(away>3000&&(S.state==='running'||S.state==='paused')){
-  S.hrb=[];S.pb=[];S.wb=[];
-  toast(`Appen var i bakgrunnen i ${Math.round(away/1000)} s – sensordata mangler i den perioden. Kobler til på nytt …`,true);
-  resumeSensors();
- }
+ if(document.visibilityState==='visible'&&S.state==='running')lock();
 });
-async function resumeSensors(){
- for(const k of Object.keys(D)){const c=D[k];if(!c.dev||c.manual)continue;
-  try{if(c.ok&&c.ch){await c.ch.stopNotifications();await c.ch.startNotifications()}else if(!c.retrying)lost(k)}catch(e){}
+// Warn only when an active sensor has stopped delivering fresh notifications.
+// Hiding or minimizing the window alone is not evidence of missing sensor data.
+function checkSensorFreshness(){
+ if(S.state!=='running'&&S.state!=='paused')return;
+ const now=Date.now();
+ for(const k of Object.keys(D)){
+  const c=D[k];
+  if(!c.ok||!c.dev||c.manual)continue;
+  if(c.t&&now-c.t>6000&&!c.staleWarned){
+   c.staleWarned=true;
+   toast(`${cName(k)} har ikke sendt nye sensordata på ${Math.round((now-c.t)/1000)} s.`,true);
+  }
  }
- setTimeout(()=>{Object.keys(D).forEach(k=>{const c=D[k];if(c.ok&&c.dev&&Date.now()-(c.t||0)>6000){try{c.dev.gatt.disconnect()}catch(e){}}})},7000);
 }
+setInterval(checkSensorFreshness,1000);
 
 /* ---------- Ny runde / hopp ---------- */
 function lapStart(b){S.lap={b,startEl:S.el,startReal:S.realEl,s:{w:[0,0],h:[0,0],c:[0,0]},mx:0}}
@@ -1085,7 +1345,7 @@ function closeLap(){
  const L=S.lap;S.lap=null;
  if(!L)return;
  const sec=S.realEl-L.startReal;
- if(sec>=1)S.laps.push({sec,w:lapAvg(L,'w'),h:lapAvg(L,'h'),c:lapAvg(L,'c'),mx:L.mx});
+ if(sec>=1){const extra=lapMetrics(S.log,L.startReal,S.realEl);S.laps.push({sec,w:lapAvg(L,'w'),h:lapAvg(L,'h'),c:lapAvg(L,'c'),mx:L.mx,hr20:extra.hr20,ef:extra.ef});}
 }
 function accReset(){S.acc={dist:0,j:0,hrS:0,hrN:0,q:[],qs:0,np4:0,npN:0}}
 function accAdd(x){
@@ -1096,6 +1356,16 @@ function accAdd(x){
 }
 function accNP(){const a=S.acc;return a&&a.npN?Math.pow(a.np4/a.npN,.25):null}
 function lapAvg(L,k){return L.s[k][1]?L.s[k][0]/L.s[k][1]:null}
+function lapMetrics(points,startReal,endReal){
+ const p=points.filter(x=>x.realEl>=startReal&&x.realEl<=endReal);
+ const hr20Start=startReal+(endReal-startReal)*.8;
+ const hr20=avg(p.filter(x=>x.realEl>=hr20Start).map(x=>x.hr).filter(v=>v!=null));
+ const watts=p.map(x=>x.w).filter(v=>v!=null),hrs=p.map(x=>x.hr).filter(v=>v!=null);
+ let n4=0,nN=0,win=[];
+ for(const x of p){if(x.w==null){win=[];continue}win.push(x.w);if(win.length>30)win.shift();if(win.length===30){n4+=Math.pow(avg(win),4);nN++}}
+ const np=nN?Math.pow(n4/nN,.25):avg(watts),meanHr=avg(hrs);
+ return{hr20,ef:np!=null&&meanHr>0?np/meanHr:null};
+}
 
 /* ---------- Hovedtick ---------- */
 function tick(){
@@ -1241,7 +1511,7 @@ $('bSkip').onclick=async()=>{
 };
 
 /* ---------- ERG / intensitet / tastatur ---------- */
-const $2=id=>document.getElementById(id);
+
 function setErgBtn(v){
  S.erg=v;$2('bErg').textContent=v?'ERG på':'ERG av';S.pb=[];
  fxLabel();
@@ -1328,6 +1598,7 @@ const col=p=>p<55?'#6E9F98':p<76?'#6F9B62':p<91?'#A18F55':p<106?'#B17A55':p<121?
 const zcol=[0,55,76,91,106,121,151];
 function zoneIdx(pct){for(let i=zcol.length-1;i>=1;i--)if(pct>=zcol[i])return i;return 0}
 </script>
+
 <script>
 /* ---------- Visning ---------- */
 const $3=id=>document.getElementById(id);
@@ -1382,15 +1653,15 @@ function render(){
   }
   $3('clkI').classList.toggle('pulse',pulse);$3('wt').classList.toggle('pulse',pulse)}
 
- const rw=(n,sec,w,h,c,mx,cls)=>`<div class="lr ${cls||''}"><span>${n}</span><span>${fmt(sec)}</span><span>${fm(w)}</span><span>${fm(h)}</span><span>${fm(c)}</span><span>${mx||'0'}</span></div>`;
+ const rw=(n,sec,w,h,c,mx,hr20,ef,cls)=>`<div class="lr ${cls||''}"><span>${n}</span><span>${fmt(sec)}</span><span>${fm(w)}</span><span>${fm(h)}</span><span>${fm(c)}</span><span>${mx||'0'}</span><span>${fm(hr20)}</span><span>${fm(ef,2)}</span></div>`;
  let html='';
- if(L)html+=rw('→',S.realEl-L.startReal,m('w'),m('h'),m('c'),L.mx,'cur');
- for(let i=S.laps.length-1;i>=0;i--){const l=S.laps[i];html+=rw(i+1,l.sec,l.w,l.h,l.c,l.mx)}
+ if(L){const extra=lapMetrics(S.log,L.startReal,S.realEl);html+=rw('→',S.realEl-L.startReal,m('w'),m('h'),m('c'),L.mx,extra.hr20,extra.ef,'cur')}
+ for(let i=S.laps.length-1;i>=0;i--){const l=S.laps[i];html+=rw(i+1,l.sec,l.w,l.h,l.c,l.mx,l.hr20,l.ef)}
  if(S.log.length){
   const allW=S.log.map(x=>x.w).filter(x=>x!=null),allH=S.log.map(x=>x.hr).filter(x=>x!=null);
   const totW=allW.length?avg(allW):null,totH=allH.length?avg(allH):null;
   const kj=allW.length?Math.round(allW.reduce((a,b)=>a+b,0)/1000):null;
-  html+=`<div class="lr tot"><span>Tot</span><span>${fmt(S.realEl)}</span><span>${fm(totW)}</span><span>${fm(totH)}</span><span></span><span>${kj!=null?kj+' kJ':''}</span></div>`;
+  html+=`<div class="lr tot"><span>Tot</span><span>${fmt(S.realEl)}</span><span>${fm(totW)}</span><span>${fm(totH)}</span><span></span><span>${kj!=null?kj+' kJ':''}</span><span></span><span></span></div>`;
  }
  $3('lrows').innerHTML=html||'<div class="empty">Ingen runder ennå – trykk «Runde» for å markere</div>';
  draw();
@@ -1797,6 +2068,27 @@ function anCalc(){
  const drift=ef1&&ef2?(ef1-ef2)/ef1*100:null;
  return{ftp,elapsed,avgW,avgHr,avgCad:anMean(cad),avgNm:anMean(nms),np,IF,TSS,z,totalJ,halfStats,lrLeft:anMean(lrSamples),lrN:lrSamples.length,corrWH:corr(x=>x.w,x=>x.hr),corrWC:corr(x=>x.w,x=>x.core),corrHC:corr(x=>x.hr,x=>x.core),corrNH:corr(x=>calcNm(x.w,x.cad),x=>x.hr),core:tempStats(temps.core),skin:tempStats(temps.skin),hsi:tempStats(temps.hsi),drift,ef1,ef2,hrPeak:hrs.length?Math.max(...hrs):null,hrSetting:S.maxHrSetting,validW:ws.length};
 }
+const AN_BEST_EFFORTS=[['5 sek',5],['30 sek',30],['1 min',60],['5 min',300],['10 min',600],['20 min',1200],['60 min',3600]];
+function anBestEfforts(points){
+ const r=points.filter(x=>Number.isFinite(x.realEl)).slice().sort((a,b)=>a.realEl-b.realEl);
+ const n=r.length,prefix=[0],bad=[0],gapBad=[0];
+ for(let i=0;i<n;i++){prefix.push(prefix[i]+(r[i].w==null?0:r[i].w));bad.push(bad[i]+(r[i].w==null?1:0));gapBad.push(gapBad[i]+(i>0&&r[i].realEl-r[i-1].realEl>2.5?1:0))}
+ return AN_BEST_EFFORTS.map(([label,duration])=>{
+  let best=null,j=0;
+  for(let i=0;i<n;i++){
+   const end=r[i].realEl,threshold=end-(duration-1);
+   while(j<i&&r[j].realEl<threshold)j++;
+   const span=end-r[j].realEl;
+   if(span<duration-2||bad[i+1]-bad[j]>0)continue;
+   if(gapBad[i+1]-gapBad[j+1]>0)continue;
+   const count=i-j+1;
+   if(count<Math.max(2,duration))continue;
+   const value=(prefix[i+1]-prefix[j])/count;
+   if(best==null||value>best)best=value;
+  }
+  return{label,value:best};
+ });
+}
 function anCell(label,value,unit=''){return '<div class="an-metric"><span>'+label+'</span><b>'+value+(unit?' '+unit:'')+'</b></div>'}
 function anKv(label,val){return `<div class="an-kv"><span>${label}</span><b>${val}</b></div>`}
 
@@ -1807,6 +2099,7 @@ function renderAnalysis() {
   if (!r.length) {
     $('anStatus').textContent = 'Ingen øktdata. Start en økt for sanntidsanalyse.';
     $('anPowerMetrics').innerHTML = ['Nå','3 s','10 s','Snitt','NP','IF','TSS','Arbeid','kJ/t nå','Ø kJ/t'].map(l => anCell(l, '–')).join('');
+    $('anBestEfforts').innerHTML = AN_BEST_EFFORTS.map(([label])=>anCell(label,'–','W')).join('');
     $('anHrMetrics').innerHTML = ['Nå','% Maks','Snitt','Maks'].map(l => anCell(l, '–')).join('');
     $('anSessMetrics').innerHTML = ['Kadens nå','Ø Kadens','Torque nå','Ø Torque','Tid'].map(l => anCell(l, '–')).join('');
     $('anZones').innerHTML = AN_ZONES.map((z, i) => `
@@ -1831,6 +2124,7 @@ function renderAnalysis() {
   }
 
   const a = anCalc();
+  $('anBestEfforts').innerHTML = anBestEfforts(r).map(x=>anCell(x.label,anFmt(x.value,0),'W')).join('');
   const lastPt = r.at(-1);
   const curZone = S.state === 'running' ? anZone(anMean(r.slice(-2).map(x=>x.w).filter(v=>v!=null)), a.ftp) : -1;
   $('anStatus').textContent = `${S.state === 'running' ? 'Live' : 'Pauset/Ferdig'} · FTP ${a.ftp} W · Maks puls ${a.hrSetting} bpm`;
@@ -2010,7 +2304,7 @@ function setKind(k){
  if(k){try{localStorage.setItem('kind',k)}catch(e){}}
  if(k!=='workout')setWorkout([]);
  const v=(id,c)=>{$(id).hidden=!c};
- v('fileLbl',k==='workout');$('presetPanel').classList.toggle('on',k==='workout');v('grpScale',k==='workout');v('bSkip',k==='workout');v('bSteps',k==='workout');
+ v('fileLbl',k==='workout');v('grpScale',k==='workout');v('bSkip',k==='workout');v('bSteps',k==='workout');
  v('grpFix',k==='free'||k==='hr');v('bErg',k==='free'||k==='workout');v('hrstat',k==='hr');v('bCool',k==='hr');
  $('steps').hidden=true;$('hr').style.color='';$('hrdlg').hidden=!(k==='hr'&&S.state==='idle');
  if(k==='hr')setErgBtn(true);else if(k==='free')setErgBtn(false);
@@ -2044,7 +2338,7 @@ $('helpOk').onclick=()=>{$('helpdlg').hidden=true;try{localStorage.setItem('hrhe
 }
 try{const lk=localStorage.getItem('kind'),c=document.querySelector(`.card[data-kind="${lk}"]`);if(c)c.classList.add('last')}catch(e){}
 setKind(null);
-restoreBluetoothSensors();
+const BT_REMEMBERED_READY=loadRememberedSensors();
 
 /* ---------- Moduser, modaler og hurtigtaster ---------- */
 function openSummary(){
@@ -2061,7 +2355,7 @@ $('sdClose').onclick=()=>{$('sensordlg').hidden=true;sdK=null};
 $('sdOff').onclick=()=>{if(sdK)disconnectSensor(sdK);$('sensordlg').hidden=true;sdK=null};
 $('pick').onclick=()=>$('file').click();
 document.addEventListener('keydown',e=>{
- if(e.key==='Escape'){for(const id of ['sensordlg','helpdlg','keysdlg','hrdlg','sumdlg','steps']){if(!$(id).hidden){$(id).hidden=true;if(id==='sensordlg')sdK=null;e.preventDefault();break}}}
+ if(e.key==='Escape'){for(const id of ['sensordlg','helpdlg','keysdlg','hrdlg','sumdlg','steps','workoutLibraryDialog','intervalsDialog']){if(!$(id).hidden){$(id).hidden=true;if(id==='sensordlg')sdK=null;e.preventDefault();break}}}
  else if(e.key==='?'&&!/INPUT|SELECT/.test(e.target.tagName)){$('keysdlg').hidden=false}
 });
 /* ---------- Gjenopprett økt ---------- */
@@ -2084,4 +2378,6 @@ try{
 }catch(e){}
 ui();render();
 </script>
+
+
 </body></html>

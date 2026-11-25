@@ -1,106 +1,33 @@
 # Innesykkel
 
-Innesykkel er en nettleserbasert app for registrering og styring av innendørs sykkeltrening. Appen er laget for personlig bruk og samler treningsdata fra en smarttrainer og tilkoblede sensorer.
+Innesykkel er en nettleserbasert app for innendørs sykkeltrening. Appen kjører fra `index.html` og bruker Web Bluetooth for å koble til smarttrainer og sensorer.
 
-Appen kjører i én HTML-fil. Den krever ikke et eget byggesystem, en backend eller en database.
+## Bruk
+
+Åpne appen fra en sikker HTTPS adresse i en nettleser som støtter Web Bluetooth. På iPad kan du bruke Bluefy. Bluetooth krever at nettleseren støtter Web Bluetooth og at siden har tillatelse til å bruke Bluetooth.
+
+Du kan også åpne `index.html` lokalt for å se grensesnittet. For å laste øktbiblioteket må nettleseren kunne hente `workouts.json`, så bruk en lokal webserver eller publiser filene på HTTPS.
 
 ## Funksjoner
 
-### Trening
+- Fri tur og treningsøkter med ZWO og MRC import.
+- 26 forhåndslagrede treningsøkter.
+- ERG styring på kompatible smarttrainere.
+- Pulsbasert ERG.
+- Watt, puls, kadens, fart, kjernetemperatur og hudtemperatur.
+- Analyse med NP, TSS, IF, EF, pulssoner og effektsoner.
+- FIT, TCX og CSV eksport.
+- Lagring og gjenoppretting av aktive økter.
+- Bluetooth tilkobling til smarttrainer, wattpedaler, pulssensor og CORE sensor.
 
-- Fri tur med eller uten fast wattmål.
-- Treningsøkter med import av `.zwo`- og `.mrc`-filer.
-- Pulsbasert ERG-modus som justerer motstanden for å holde pulsen innenfor et valgt område.
-- Vanlig ERG-styring på kompatibel smarttrainer.
-- Visning av watt, puls, kadens, fart, kjernetemperatur og hudtemperatur.
-- Graf for watt og puls, med visning av treningssteg.
-- Manuelle runder, rundestatistikk og hurtigtaster.
-- Gjenoppretting av en økt hvis nettleseren lukkes eller siden lastes inn på nytt.
+## Intervals.icu
 
-### Treningsdata og analyse
+Intervals.icu kalenderintegrasjon er ikke aktivert i denne nettleserversjonen. Den tidligere implementasjonen var avhengig av Electron og macOS nøkkellagring. Den må bygges om og testes for nettlesere før den kan brukes trygt på PC og iPad. API nøkkelen skal ikke lagres ukryptert i nettleseren.
 
-Appen viser blant annet:
+## Bluetooth
 
-- Normalisert watt (NP).
-- Training Stress Score (TSS).
-- Effektivitetsfaktor (EF).
-- Gjennomsnittlig og maksimal puls.
-- Distanse og akkumulert arbeid i kJ.
+Web Bluetooth har ulike begrensninger mellom nettlesere og enheter. Test tilkobling, gjenoppkobling og sensordata i Bluefy på iPad før du bruker appen til en treningsøkt.
 
-Beregningene er ment som treningsinformasjon. Verdiene kan avvike fra andre treningsplattformer, særlig hvis datagrunnlaget eller beregningsmetoden er forskjellig.
+## Personvern
 
-### Eksport
-
-Etter en økt kan du eksportere data i disse formatene:
-
-| Format | Innhold |
-| --- | --- |
-| FIT | Treningsdata, runder, sensorverdier og øktinformasjon. Kan også inneholde en syntetisk GPS-rute. |
-| TCX | Grunnleggende treningsdata med tid, puls, kadens, watt og kjernetemperatur. |
-| CSV | Tidsserier med watt, puls, kadens, fart, distanse, kjernetemperatur, hudtemperatur og CORE-relaterte felt. |
-
-FIT-eksporten kan merkes med Garmin Edge 840 som enhetsmodell. Dette er metadata i filen. Det garanterer ikke at Garmin Connect beregner Training Effect, belastning eller andre Garmin-spesifikke målinger.
-
-Virtuell GPS er valgfritt og brukes for å legge en beregnet rute inn i FIT-filen. Ruten er syntetisk. Den er ikke målt med GPS.
-
-## Utstyr og tilkobling
-
-Appen bruker Web Bluetooth. Den er laget for disse enhetstypene:
-
-- Smarttrainer med Bluetooth Fitness Machine Service (FTMS), for eksempel Wahoo KICKR CORE.
-- Kraftsensor med Bluetooth Cycling Power Service.
-- Pulssensor med Bluetooth Heart Rate Service.
-- CORE kroppstemperatursensor.
-
-Funksjoner og tilgjengelige data avhenger av enheten og Bluetooth-profilen den støtter. En wattpedal kan for eksempel levere kraftdata uten at den leverer kadens.
-
-## Krav til nettleser
-
-Du trenger en nettleser som støtter Web Bluetooth. Bruk en oppdatert versjon av Chrome på en støttet datamaskin eller Android-enhet. På iPad kan en egen nettleser med Web Bluetooth-støtte, for eksempel Bluefy, være nødvendig.
-
-Web Bluetooth krever en sikker kontekst. Bruk HTTPS eller en lokal utviklingsserver på localhost. Vanlig HTTP på andre adresser støttes ikke.
-
-Nettleseren må ha tilgang til Bluetooth. Du må også godkjenne tilkobling til hver sensor.
-
-## Komme i gang
-
-1. Åpne appen i en nettleser som støtter Web Bluetooth.
-2. Koble til smarttrainer og sensorer med knappene øverst i appen.
-3. Angi FTP. Appen bruker FTP i treningsberegninger og ERG-styring.
-4. Velg Fri tur, Treningsøkt eller Puls-ERG.
-5. Hvis du velger Treningsøkt, last inn en `.zwo`- eller `.mrc`-fil.
-6. Start økten.
-7. Når økten er ferdig, åpner du øktsammendraget og velger ønsket eksportformat.
-
-Du kan koble til bare sensorene du trenger. Appen viser ikke målinger som sensoren ikke leverer.
-
-## Data og personvern
-
-Appen kjører lokalt i nettleseren. Innstillinger som FTP, modusvalg og Puls-ERG-konfigurasjon lagres i nettleserens lokale lagring.
-
-En aktiv økt lagres også lokalt slik at appen kan tilby gjenoppretting etter en avbrutt økt. Eksporterte filer lastes ned til enheten din.
-
-Appen har ingen egen server eller brukerkonto. Data som du importerer eller registrerer, sendes ikke til en Innesykkel-backend.
-
-## Kjente begrensninger
-
-- Web Bluetooth fungerer ikke i alle nettlesere eller innebygde nettleservisninger.
-- Bluetooth-tilkobling og sensordata avhenger av operativsystem, nettleser og enhet.
-- CORE-data omfatter kjernetemperatur, hudtemperatur, datakvalitet, reservert verdi og HSI (Heat Strain Index) når sensoren sender disse feltene. HSI krever CORE-fastvare 0.8.7 eller nyere. Hudtemperatur dekodes som en 12-bits verdi delt på 20. Eksporten tar med HSI i FIT og CSV. TCX legger HSI og hudtemperatur i utvidelsesfeltene.
-- FIT-filen bruker Garmin-relaterte metadata og felt, men er ikke en garanti for identisk oppførsel med en ekte Garmin Edge-enhet.
-- Virtuell GPS er beregnet og skal ikke brukes som dokumentasjon på faktisk posisjon eller tilbakelagt utendørs rute.
-- Prosjektet er under utvikling. Kontroller eksportfilene før du bruker dem som eneste kilde til treningsanalyse.
-
-## Prosjektstruktur
-
-```text
-Innesykkel/
-├── index.html
-└── README.md
-```
-
-Hoveddelen av appen ligger i `index.html`. Det finnes ikke et eget byggesteg eller en pakkehåndtering som må kjøres.
-
-## Status
-
-Innesykkel er et personlig prosjekt under aktiv utvikling. Funksjoner, eksportformat og brukergrensesnitt kan endres.
+Treningsdata lagres lokalt i nettleseren. Eksporterte filer lagres på enheten din. Appen krever ikke en egen backend eller database.
